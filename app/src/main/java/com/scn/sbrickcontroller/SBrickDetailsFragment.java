@@ -10,7 +10,10 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
+import android.view.InputDevice;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
@@ -25,7 +28,7 @@ import com.scn.sbrickmanager.SBrickManagerHolder;
 /**
  * SBrick details fragment.
  */
-public class SBrickDetailsFragment extends Fragment {
+public class SBrickDetailsFragment extends Fragment implements GameControllerActionListener {
 
     //
     // Private members
@@ -169,6 +172,37 @@ public class SBrickDetailsFragment extends Fragment {
     }
 
     //
+    // GameControllerActionListener overrides
+    //
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        return false;
+    }
+
+    @Override
+    public boolean onKeyUp(int keyCode, KeyEvent event) {
+        return false;
+    }
+
+    @Override
+    public boolean onGenericMotionEvent(MotionEvent event) {
+
+        if ((event.getSource() & InputDevice.SOURCE_JOYSTICK) != 0 && event.getAction() == MotionEvent.ACTION_MOVE) {
+            int value1 = (int)(event.getAxisValue(MotionEvent.AXIS_X) * 255);
+            int value2 = (int)(event.getAxisValue(MotionEvent.AXIS_Y) * 255);
+            int value3 = (int)(event.getAxisValue(MotionEvent.AXIS_Z) * 255);
+            int value4 = (int)(event.getAxisValue(MotionEvent.AXIS_RZ) * 255);
+
+            sbrick.sendCommand(0, Math.abs(value1), value1 < 0);
+            sbrick.sendCommand(1, Math.abs(value2), value2 < 0);
+            sbrick.sendCommand(2, Math.abs(value3), value3 < 0);
+            sbrick.sendCommand(3, Math.abs(value4), value4 < 0);
+        }
+        return false;
+    }
+
+    //
     // Private methods and classes
     //
 
@@ -259,7 +293,7 @@ public class SBrickDetailsFragment extends Fragment {
                         progressDialog = null;
                     }
 
-                    SBrickCharacteristics characteristics = (SBrickCharacteristics)intent.getParcelableExtra(SBrick.EXTRA_CHARACTERISTICS);
+                    SBrickCharacteristics characteristics = intent.getParcelableExtra(SBrick.EXTRA_CHARACTERISTICS);
                     twDeviceName.setText(characteristics.getDeviceName());
                     twModelNumber.setText(characteristics.getModelNumber());
                     twFirmwareRevision.setText(characteristics.getFirmwareRevision());
