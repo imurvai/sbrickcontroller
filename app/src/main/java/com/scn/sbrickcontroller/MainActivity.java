@@ -169,7 +169,7 @@ public class MainActivity extends FragmentActivity {
     }
 
     private Fragment getVisibleFragment() {
-        Log.i(TAG, "getVisibleFragment...");
+        //Log.i(TAG, "getVisibleFragment...");
 
         FragmentManager fm = getSupportFragmentManager();
         for (Fragment fr : fm.getFragments()) {

@@ -54,6 +54,8 @@ public class SBrickDetailsFragment extends Fragment implements GameControllerAct
 
     private ProgressDialog progressDialog;
 
+    private boolean isCharacteristicsRead = false;
+
     //
     // Constructors
     //
@@ -136,14 +138,27 @@ public class SBrickDetailsFragment extends Fragment implements GameControllerAct
         filter.addAction(SBrick.ACTION_SBRICK_CHARACTERISTIC_READ);
         LocalBroadcastManager.getInstance(getActivity()).registerReceiver(sbrickBroadcastReceiver, filter);
 
-        progressDialog = Helper.showProgressDialog(SBrickDetailsFragment.this.getActivity(), "Connecting to SBrick...", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                Log.i(TAG, "onClick...");
+        progressDialog = Helper.showProgressDialog(
+                SBrickDetailsFragment.this.getActivity(),
+                "Connecting to SBrick...",
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        Log.i(TAG, "onClick...");
+                        sbrick.disconnect();
+                    }
+                },
+                new DialogInterface.OnDismissListener() {
+                    @Override
+                    public void onDismiss(DialogInterface dialog) {
+                        Log.i(TAG, "onDissmiss...");
 
-                // TODO: handle the cancel
-            }
-        });
+                        if (!isCharacteristicsRead) {
+                            MainActivity activity = (MainActivity)getActivity();
+                            activity.goBackFromFragment();
+                        }
+                    }
+                });
 
         if (!sbrick.connect()) {
             getCharacteristics();
@@ -188,6 +203,9 @@ public class SBrickDetailsFragment extends Fragment implements GameControllerAct
     @Override
     public boolean onGenericMotionEvent(MotionEvent event) {
 
+        if (!isCharacteristicsRead)
+            return false;
+
         if ((event.getSource() & InputDevice.SOURCE_JOYSTICK) != 0 && event.getAction() == MotionEvent.ACTION_MOVE) {
             int value1 = (int)(event.getAxisValue(MotionEvent.AXIS_X) * 255);
             int value2 = (int)(event.getAxisValue(MotionEvent.AXIS_Y) * 255);
@@ -198,7 +216,10 @@ public class SBrickDetailsFragment extends Fragment implements GameControllerAct
             sbrick.sendCommand(1, Math.abs(value2), value2 < 0);
             sbrick.sendCommand(2, Math.abs(value3), value3 < 0);
             sbrick.sendCommand(3, Math.abs(value4), value4 < 0);
+
+            return true;
         }
+
         return false;
     }
 
@@ -241,7 +262,7 @@ public class SBrickDetailsFragment extends Fragment implements GameControllerAct
 
             int seekBarCenter = getSeekBarCenter(seekBar);
 
-            int value = Math.min(255, (Math.abs(progress - seekBarCenter) * 255) / seekBarCenter);
+            int value = Math.min(255, (Math.abs(progress - seekBarCenter) * 280) / seekBarCenter);
             boolean invert = progress < seekBarCenter;
 
             sbrick.sendCommand(channel, value, invert);
@@ -269,7 +290,10 @@ public class SBrickDetailsFragment extends Fragment implements GameControllerAct
             switch (intent.getAction()) {
                 case SBrick.ACTION_SBRICK_CONNECTED:
                     Log.i(TAG, "  ACTION_SBRICK_CONNECTED");
-                    getCharacteristics();
+
+                    if (!isCharacteristicsRead)
+                        getCharacteristics();
+
                     break;
 
                 case SBrick.ACTION_SBRICK_DISCONNECTED:
@@ -278,15 +302,14 @@ public class SBrickDetailsFragment extends Fragment implements GameControllerAct
                     if (progressDialog != null) {
                         progressDialog.dismiss();
                         progressDialog = null;
-
-                        MainActivity activity = (MainActivity)getActivity();
-                        activity.goBackFromFragment();
                     }
 
                     break;
 
                 case SBrick.ACTION_SBRICK_CHARACTERISTIC_READ:
                     Log.i(TAG, "  ACTION_SBRICK_CHARACTERISTIC_READ");
+
+                    isCharacteristicsRead = true;
 
                     if (progressDialog != null) {
                         progressDialog.dismiss();
