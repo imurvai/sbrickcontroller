@@ -60,4 +60,24 @@ class Helper {
         dialog.show();
         return dialog;
     }
+
+    /**
+     * Shows a progress dialog with the given message and a Cancel button.
+     * @param context The context the dialog is shown in.
+     * @param message The message shown on the dialog.
+     * @param onClickListener Listener to handle the Cancel button event.
+     * @param onDismissListener Listener to handle the dismiss event.
+     * @return The ProgressDialog instance.
+     */
+    public static ProgressDialog showProgressDialog(Context context, String message, final DialogInterface.OnClickListener onClickListener, final DialogInterface.OnDismissListener onDismissListener) {
+        Log.i(TAG, "showProgressDialog");
+
+        ProgressDialog dialog = new ProgressDialog(context);
+        dialog.setMessage(message);
+        dialog.setCancelable(false);
+        dialog.setButton(DialogInterface.BUTTON_NEGATIVE, "Cancel", onClickListener);
+        dialog.setOnDismissListener(onDismissListener);
+        dialog.show();
+        return dialog;
+    }
 }

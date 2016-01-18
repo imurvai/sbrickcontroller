@@ -10,7 +10,10 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
+import android.view.InputDevice;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
@@ -25,7 +28,7 @@ import com.scn.sbrickmanager.SBrickManagerHolder;
 /**
  * SBrick details fragment.
  */
-public class SBrickDetailsFragment extends Fragment {
+public class SBrickDetailsFragment extends Fragment implements GameControllerActionListener {
 
     //
     // Private members
@@ -50,6 +53,8 @@ public class SBrickDetailsFragment extends Fragment {
     private SeekBar sbPort4;
 
     private ProgressDialog progressDialog;
+
+    private boolean isCharacteristicsRead = false;
 
     //
     // Constructors
@@ -133,14 +138,27 @@ public class SBrickDetailsFragment extends Fragment {
         filter.addAction(SBrick.ACTION_SBRICK_CHARACTERISTIC_READ);
         LocalBroadcastManager.getInstance(getActivity()).registerReceiver(sbrickBroadcastReceiver, filter);
 
-        progressDialog = Helper.showProgressDialog(SBrickDetailsFragment.this.getActivity(), "Connecting to SBrick...", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                Log.i(TAG, "onClick...");
+        progressDialog = Helper.showProgressDialog(
+                SBrickDetailsFragment.this.getActivity(),
+                "Connecting to SBrick...",
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        Log.i(TAG, "onClick...");
+                        sbrick.disconnect();
+                    }
+                },
+                new DialogInterface.OnDismissListener() {
+                    @Override
+                    public void onDismiss(DialogInterface dialog) {
+                        Log.i(TAG, "onDissmiss...");
 
-                // TODO: handle the cancel
-            }
-        });
+                        if (!isCharacteristicsRead) {
+                            MainActivity activity = (MainActivity)getActivity();
+                            activity.goBackFromFragment();
+                        }
+                    }
+                });
 
         if (!sbrick.connect()) {
             getCharacteristics();
@@ -166,6 +184,43 @@ public class SBrickDetailsFragment extends Fragment {
         }
 
         super.onPause();
+    }
+
+    //
+    // GameControllerActionListener overrides
+    //
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        return false;
+    }
+
+    @Override
+    public boolean onKeyUp(int keyCode, KeyEvent event) {
+        return false;
+    }
+
+    @Override
+    public boolean onGenericMotionEvent(MotionEvent event) {
+
+        if (!isCharacteristicsRead)
+            return false;
+
+        if ((event.getSource() & InputDevice.SOURCE_JOYSTICK) != 0 && event.getAction() == MotionEvent.ACTION_MOVE) {
+            int value1 = (int)(event.getAxisValue(MotionEvent.AXIS_X) * 255);
+            int value2 = (int)(event.getAxisValue(MotionEvent.AXIS_Y) * 255);
+            int value3 = (int)(event.getAxisValue(MotionEvent.AXIS_Z) * 255);
+            int value4 = (int)(event.getAxisValue(MotionEvent.AXIS_RZ) * 255);
+
+            sbrick.sendCommand(0, Math.abs(value1), value1 < 0);
+            sbrick.sendCommand(1, Math.abs(value2), value2 < 0);
+            sbrick.sendCommand(2, Math.abs(value3), value3 < 0);
+            sbrick.sendCommand(3, Math.abs(value4), value4 < 0);
+
+            return true;
+        }
+
+        return false;
     }
 
     //
@@ -207,7 +262,7 @@ public class SBrickDetailsFragment extends Fragment {
 
             int seekBarCenter = getSeekBarCenter(seekBar);
 
-            int value = Math.min(255, (Math.abs(progress - seekBarCenter) * 255) / seekBarCenter);
+            int value = Math.min(255, (Math.abs(progress - seekBarCenter) * 280) / seekBarCenter);
             boolean invert = progress < seekBarCenter;
 
             sbrick.sendCommand(channel, value, invert);
@@ -235,7 +290,10 @@ public class SBrickDetailsFragment extends Fragment {
             switch (intent.getAction()) {
                 case SBrick.ACTION_SBRICK_CONNECTED:
                     Log.i(TAG, "  ACTION_SBRICK_CONNECTED");
-                    getCharacteristics();
+
+                    if (!isCharacteristicsRead)
+                        getCharacteristics();
+
                     break;
 
                 case SBrick.ACTION_SBRICK_DISCONNECTED:
@@ -244,9 +302,6 @@ public class SBrickDetailsFragment extends Fragment {
                     if (progressDialog != null) {
                         progressDialog.dismiss();
                         progressDialog = null;
-
-                        MainActivity activity = (MainActivity)getActivity();
-                        activity.goBackFromFragment();
                     }
 
                     break;
@@ -254,12 +309,14 @@ public class SBrickDetailsFragment extends Fragment {
                 case SBrick.ACTION_SBRICK_CHARACTERISTIC_READ:
                     Log.i(TAG, "  ACTION_SBRICK_CHARACTERISTIC_READ");
 
+                    isCharacteristicsRead = true;
+
                     if (progressDialog != null) {
                         progressDialog.dismiss();
                         progressDialog = null;
                     }
 
-                    SBrickCharacteristics characteristics = (SBrickCharacteristics)intent.getParcelableExtra(SBrick.EXTRA_CHARACTERISTICS);
+                    SBrickCharacteristics characteristics = intent.getParcelableExtra(SBrick.EXTRA_CHARACTERISTICS);
                     twDeviceName.setText(characteristics.getDeviceName());
                     twModelNumber.setText(characteristics.getModelNumber());
                     twFirmwareRevision.setText(characteristics.getFirmwareRevision());

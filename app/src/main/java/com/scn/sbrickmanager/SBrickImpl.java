@@ -45,7 +45,10 @@ class SBrickImpl extends SBrickBase {
     private static final String CHARACTERISTIC_UUID_QUICK_DRIVE = "489a6ae0-c1ab-4c9c-bdb2-11d373c1b7fb";
 
     private final BluetoothDevice bluetoothDevice;
-    private BluetoothGatt bluetoothGatt;
+    private BluetoothGatt bluetoothGatt = null;
+    private boolean isConnected = false;
+
+    private BluetoothGattCharacteristic remoteControlCharacteristic = null;
 
     private boolean readingCharacteristics = false;
     private LinkedList<SBrickCharacteristicType> characteristicsToRead = new LinkedList<>();
@@ -79,7 +82,7 @@ class SBrickImpl extends SBrickBase {
     public boolean connect() {
         Log.i(TAG, "connect - " + getAddress());
 
-        if (isConnected()) {
+        if (isConnected) {
             Log.i(TAG, "  Already connected.");
             return false;
         }
@@ -95,7 +98,7 @@ class SBrickImpl extends SBrickBase {
     public void disconnect() {
         Log.i(TAG, "disconnect - " + getAddress());
 
-        if (!isConnected()) {
+        if (!isConnected) {
             Log.i(TAG, "  Already disconnected.");
 
             if (bluetoothGatt != null)
@@ -106,14 +109,18 @@ class SBrickImpl extends SBrickBase {
 
         bluetoothGatt.disconnect();
         bluetoothGatt.close();
+        isConnected = false;
+        readingCharacteristics = false;
     }
 
     @Override
     public boolean getCharacteristicsAsync() {
         Log.i(TAG, "getCharacteristicsAsync - " + getAddress());
 
-        if (!isConnected())
-            throw new RuntimeException("SBrick hasn't been connected yet - " + getAddress());
+        if (!isConnected) {
+            Log.w(TAG, "  Not connected.");
+            return false;
+        }
 
         if (readingCharacteristics) {
             Log.i(TAG, "  Already reading characteristics.");
@@ -148,14 +155,11 @@ class SBrickImpl extends SBrickBase {
         if (value < 0 || 255 < value)
             throw new RuntimeException("value must be 0-255.");
 
-        if (!isConnected())
+        if (!isConnected)
             return false;
-            //throw new RuntimeException("SBrick hasn't been connected yet - " + getAddress());
 
-        BluetoothGattCharacteristic gattCharacteristic = getGattCharacteristic(bluetoothGatt, SERVICE_UUID_REMOTE_CONTROL, CHARACTERISTIC_UUID_REMOTE_CONTROL);
-        if (gattCharacteristic == null)
+        if (remoteControlCharacteristic == null)
             return false;
-            //throw new RuntimeException("No characteristic found - " + CHARACTERISTIC_UUID_REMOTE_CONTROL);
 
         byte[] packet = new byte[4];
         packet[0] = 0x01;
@@ -163,8 +167,9 @@ class SBrickImpl extends SBrickBase {
         packet[2] = invert ? (byte)1 : (byte)0;
         packet[3] = (byte)value;
 
-        if (gattCharacteristic.setValue(packet))
-            return bluetoothGatt.writeCharacteristic(gattCharacteristic);
+        // TODO: instead of directly writing commands to characteristic put them into a queue
+        if (remoteControlCharacteristic.setValue(packet))
+            return bluetoothGatt.writeCharacteristic(remoteControlCharacteristic);
 
         return false;
     }
@@ -190,6 +195,7 @@ class SBrickImpl extends SBrickBase {
     }
 
     private final BluetoothGattCallback gattCallback = new BluetoothGattCallback() {
+
         @Override
         public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
             Log.i(TAG, "BluetoothGattCallback.onConnectionStateChange - " + getAddress());
@@ -201,6 +207,7 @@ class SBrickImpl extends SBrickBase {
 
                 case BluetoothProfile.STATE_CONNECTED:
                     Log.i(TAG, "  STATE_CONNECTED");
+
                     bluetoothGatt = gatt;
 
                     Log.i(TAG, " Discovering GATT services...");
@@ -213,7 +220,11 @@ class SBrickImpl extends SBrickBase {
 
                 case BluetoothProfile.STATE_DISCONNECTED:
                     Log.i(TAG, "  STATE_DISCONNECTED");
+
+                    isConnected = false;
                     readingCharacteristics = false;
+                    remoteControlCharacteristic = null;
+
                     sendLocalBroadcast(ACTION_SBRICK_DISCONNECTED);
                     break;
 
@@ -221,6 +232,8 @@ class SBrickImpl extends SBrickBase {
                     Log.w(TAG, "  Unknown state.");
                     break;
             }
+
+            super.onConnectionStateChange(gatt, status, newState);
         }
 
         @Override
@@ -231,17 +244,24 @@ class SBrickImpl extends SBrickBase {
                 case BluetoothGatt.GATT_SUCCESS:
                     Log.i(TAG, "  GATT_SUCCESS");
                     logServices(gatt);
+
+                    isConnected = true;
+                    remoteControlCharacteristic = getGattCharacteristic(bluetoothGatt, SERVICE_UUID_REMOTE_CONTROL, CHARACTERISTIC_UUID_REMOTE_CONTROL);
+
                     sendLocalBroadcast(ACTION_SBRICK_CONNECTED);
                     break;
 
                 case BluetoothGatt.GATT_FAILURE:
                     Log.w(TAG, "  GATT_FAILURE");
                     disconnect();
+                    break;
 
                 default:
                     Log.w(TAG, "  GATT status: " + status);
                     break;
             }
+
+            super.onServicesDiscovered(gatt, status);
         }
 
         @Override
@@ -272,12 +292,10 @@ class SBrickImpl extends SBrickBase {
                         case ManufacturerName:
                             sBrickCharacteristics.setManufacturerName(characteristic.getStringValue(0));
                             break;
-
                         case Appearance:
                             int value = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT16, 0);
                             sBrickCharacteristics.setManufacturerName(String.valueOf(value));
                             break;
-
                         default:
                             Log.i(TAG, "  Unknown characteristic.");
                             break;
@@ -291,6 +309,13 @@ class SBrickImpl extends SBrickBase {
             }
 
             readNextCharacteristic();
+            super.onCharacteristicRead(gatt, characteristic, status);
+        }
+
+        @Override
+        public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
+            super.onCharacteristicWrite(gatt, characteristic, status);
+            // TODO: read more commands from queue and write them out
         }
     };
 
@@ -402,6 +427,11 @@ class SBrickImpl extends SBrickBase {
 
     private BluetoothGattService getService(BluetoothGatt gatt, String uuid) {
         Log.i(TAG, "getService...");
+
+        if (gatt == null) {
+            Log.w(TAG, "  No GATT yet.");
+            return null;
+        }
 
         if (uuid.length() == 4) {
             Log.i(TAG, "  Partial service UUID");
