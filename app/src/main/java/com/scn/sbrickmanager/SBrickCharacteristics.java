@@ -57,7 +57,7 @@ public final class SBrickCharacteristics implements Parcelable {
     public String getModelNumber() { return modelNumber; }
     void setModelNumber(String modelNumber) { this.modelNumber = modelNumber; }
 
-    public String getFirmwareRevision() { return modelNumber; }
+    public String getFirmwareRevision() { return firmwareRevision; }
     void setFirmwareRevision(String firmwareRevision) { this.firmwareRevision = firmwareRevision; }
 
     public String getHardwareRevision() { return hardwareRevision; }

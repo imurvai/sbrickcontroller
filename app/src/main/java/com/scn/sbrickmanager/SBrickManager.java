@@ -7,6 +7,10 @@ import java.util.Collection;
  */
 public interface SBrickManager {
 
+    //
+    // Public constants
+    //
+
     // Broadcast actions
     String ACTION_START_SBRICK_SCAN = "com.scn.sbrickmanager.ACTION_START_SBRICK_SCAN";
     String ACTION_STOP_SBRICK_SCAN = "com.scn.sbrickmanager.ACTION_STOP_SBRICK_SCAN";
@@ -16,6 +20,21 @@ public interface SBrickManager {
     String EXTRA_SBRICK_NAME = "com.scn.sbrickmanager.EXTRA_SBRICK_NAME";
     String EXTRA_SBRICK_ADDRESS = "com.scn.sbrickmanager.EXTRA_SBRICK_ADDRESS";
 
+    //
+    // API
+    //
+
+    /**
+     * Checks if the bluetooth low energy profile is supported on this device.
+     * @return True if BLE is supported, false otherwise.
+     */
+    boolean isBLESupported();
+
+    /**
+     * Checks if the bluetooth is on.
+     * @return True if the bluetooth is on, false otherwise.
+     */
+    boolean isBluetoothOn();
 
     /**
      * Starts the SBrick scanning.

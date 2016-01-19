@@ -3,6 +3,7 @@ package com.scn.sbrickcontroller;
 import android.bluetooth.BluetoothAdapter;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.support.v4.app.Fragment;
@@ -12,6 +13,8 @@ import android.support.v4.app.FragmentManager;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
+
+import com.scn.sbrickmanager.SBrickManagerHolder;
 
 /**
  * The one and only activity.
@@ -34,6 +37,16 @@ public class MainActivity extends FragmentActivity {
     protected void onCreate(Bundle savedInstanceState) {
         Log.i(TAG, "onCreate...");
         super.onCreate(savedInstanceState);
+
+        if (!SBrickManagerHolder.getSBrickManager().isBLESupported()) {
+            Helper.messageBox(this, "Your device doesn't support bluetooth low energy profile.", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    MainActivity.this.finish();
+                }
+            });
+            return;
+        }
 
         setContentView(R.layout.activity_main);
 
@@ -58,12 +71,15 @@ public class MainActivity extends FragmentActivity {
         Log.i(TAG, "onResume...");
         super.onResume();
 
+        if (!SBrickManagerHolder.getSBrickManager().isBLESupported())
+            return;
+
         Log.i(TAG, "  Register the BluetoothAdapter broadcast receiver...");
         IntentFilter filter = new IntentFilter();
         filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
         registerReceiver(bluetoothAdapterBroadcastReceiver, filter);
 
-        if (!Helper.isBluetoothOn(this)) {
+        if (!SBrickManagerHolder.getSBrickManager().isBluetoothOn()) {
             Log.i(TAG, "  Bluetooth is off, ask to turn it on...");
             Intent intent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivityForResult(intent, REQUEST_ENABLE_BLUETOOTH);
@@ -74,6 +90,9 @@ public class MainActivity extends FragmentActivity {
     protected void onPause() {
         Log.i(TAG, "onPause...");
         super.onPause();
+
+        if (!SBrickManagerHolder.getSBrickManager().isBLESupported())
+            return;
 
         Log.i(TAG, "  Unregister the BluetoothAdapter broadcast receiver...");
         unregisterReceiver(bluetoothAdapterBroadcastReceiver);
@@ -169,7 +188,7 @@ public class MainActivity extends FragmentActivity {
     }
 
     private Fragment getVisibleFragment() {
-        //Log.i(TAG, "getVisibleFragment...");
+        Log.i(TAG, "getVisibleFragment...");
 
         FragmentManager fm = getSupportFragmentManager();
         for (Fragment fr : fm.getFragments()) {

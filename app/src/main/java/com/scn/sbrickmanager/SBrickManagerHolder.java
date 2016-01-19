@@ -29,7 +29,7 @@ public class SBrickManagerHolder {
         if (instance != null)
             throw new RuntimeException("SBrickManager has already been created.");
 
-        boolean isRealImplementation = true;
+        boolean isRealImplementation = false;
         instance = isRealImplementation ?
                 new SBrickManagerImpl(context) :
                 new SBrickManagerMock(context);

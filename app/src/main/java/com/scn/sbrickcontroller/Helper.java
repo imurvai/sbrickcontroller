@@ -1,5 +1,7 @@
 package com.scn.sbrickcontroller;
 
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothManager;
@@ -9,38 +11,41 @@ import android.content.pm.PackageManager;
 import android.util.Log;
 
 /**
- * Created by Istvan_Murvai on 2015-02-27.
+ * Helper class.
  */
 class Helper {
 
+    //
+    // Private members
+    //
+
     private static final String TAG = Helper.class.getSimpleName();
 
-    /**
-     * Checks if Bluetooth is on.
-     * @return true if on, false otherwise.
-     */
-    public static boolean isBluetoothOn(Context context) {
-        Log.i(TAG, "isBluetoothOn...");
+    //
+    // Constructor
+    //
 
-        final BluetoothManager bluetoothManager = (BluetoothManager)context.getSystemService(Context.BLUETOOTH_SERVICE);
-        if (bluetoothManager == null)
-            throw new RuntimeException("Can't find bluetooth manager.");
+    private Helper() {}
 
-        BluetoothAdapter bluetoothAdapter = bluetoothManager.getAdapter();
-        if (bluetoothAdapter == null)
-            throw new RuntimeException("Can't find bluetooth adapter.");
-
-        return bluetoothAdapter.isEnabled();
-    }
+    //
+    // API
+    //
 
     /**
-     * Checks if Bluetooth low energy profile is supported by the device.
-     * @return true if supported, false otherwise.
+     * Pops up a meessage box.
+     * @param context is the current context.
+     * @param message is the text to show.
+     * @param onClickListener is the listener when the one and only button is clicked.
+     * @return the Dialog instance.
      */
-    public static boolean isBleSupported(Context context) {
-        Log.i(TAG, "isBleSupported...");
+    public static Dialog messageBox(Context context, String message, final DialogInterface.OnClickListener onClickListener) {
+        Dialog dialog = new AlertDialog.Builder(context)
+                .setMessage(message)
+                .setPositiveButton("Ok", onClickListener)
+                .create();
 
-        return context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE);
+        dialog.show();
+        return dialog;
     }
 
     /**

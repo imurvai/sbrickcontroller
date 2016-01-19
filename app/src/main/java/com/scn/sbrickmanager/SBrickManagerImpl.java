@@ -8,6 +8,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
@@ -33,6 +34,11 @@ class SBrickManagerImpl extends SBrickManagerBase {
 
         Log.i(TAG, "SBrickManagerImpl...");
 
+        if (!isBLESupported()) {
+            Log.i(TAG, "BLE is not supported.");
+            return;
+        }
+
         Log.i(TAG, "  Retrieving the bluetooth adapter...");
         final BluetoothManager bluetoothManager = (BluetoothManager)context.getSystemService(Context.BLUETOOTH_SERVICE);
         if (bluetoothManager == null)
@@ -53,6 +59,28 @@ class SBrickManagerImpl extends SBrickManagerBase {
     //
     // SBrickManager overrides
     //
+
+    @Override
+    public boolean isBLESupported() {
+        Log.i(TAG, "isBleSupported...");
+
+        return context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE);
+    }
+
+    @Override
+    public boolean isBluetoothOn() {
+        Log.i(TAG, "isBluetoothOn...");
+
+        final BluetoothManager bluetoothManager = (BluetoothManager)context.getSystemService(Context.BLUETOOTH_SERVICE);
+        if (bluetoothManager == null)
+            throw new RuntimeException("Can't find bluetooth manager.");
+
+        BluetoothAdapter bluetoothAdapter = bluetoothManager.getAdapter();
+        if (bluetoothAdapter == null)
+            throw new RuntimeException("Can't find bluetooth adapter.");
+
+        return bluetoothAdapter.isEnabled();
+    }
 
     @Override
     public boolean startSBrickScan() {
