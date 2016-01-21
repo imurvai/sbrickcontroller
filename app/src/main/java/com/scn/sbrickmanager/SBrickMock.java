@@ -17,7 +17,6 @@ public class SBrickMock extends SBrickBase {
 
     private final static String TAG = SBrickMock.class.getSimpleName();
 
-    private final String name;
     private final String address;
 
     private boolean isConnected = false;
@@ -38,17 +37,12 @@ public class SBrickMock extends SBrickBase {
         Log.i(TAG, "  Name   : " + name);
 
         this.address = address;
-        this.name = name;
+        setName(name);
     }
 
     @Override
     public String getAddress() {
         return address;
-    }
-
-    @Override
-    public String getName() {
-        return name;
     }
 
     @Override
@@ -141,7 +135,7 @@ public class SBrickMock extends SBrickBase {
 
                 SBrickCharacteristics characteristics = new SBrickCharacteristics();
                 characteristics.setAddress(getAddress());
-                characteristics.setDeviceName(getName());
+                characteristics.setDeviceName("SCNBrick");
                 characteristics.setModelNumber("1");
                 characteristics.setFirmwareRevision("1.0");
                 characteristics.setHardwareRevision("1.0");

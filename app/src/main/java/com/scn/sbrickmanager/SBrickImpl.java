@@ -66,16 +66,12 @@ class SBrickImpl extends SBrickBase {
         Log.i(TAG, "  name:    " + bluetoothDevice.getName());
 
         this.bluetoothDevice = bluetoothDevice;
+        setName(bluetoothDevice.getName());
     }
 
     @Override
     public String getAddress() {
         return bluetoothDevice.getAddress();
-    }
-
-    @Override
-    public String getName() {
-        return bluetoothDevice.getName();
     }
 
     @Override

@@ -33,7 +33,7 @@ abstract class SBrickBase implements SBrick {
 
     protected final Context context;
 
-    private String displayName = null;
+    private String name = null;
 
     //
     // SBrick overrides
@@ -41,16 +41,13 @@ abstract class SBrickBase implements SBrick {
 
 
     @Override
-    public String getDisplayName() {
-        Log.i(TAG, "getDisplayName - " + getAddress());
-        return displayName != null ? displayName : getName();
+    public String getName() {
+        return name;
     }
 
     @Override
-    public void setDisplayName(String displayName) {
-        Log.i(TAG, "setDisplayName - " + getAddress());
-        Log.i(TAG, "  display name: " + displayName);
-        this.displayName = displayName;
+    public void setName(String name) {
+        this.name = name;
     }
 
     @Override
@@ -80,5 +77,4 @@ abstract class SBrickBase implements SBrick {
         Log.i(TAG, "sendLocalBroadcast...");
         LocalBroadcastManager.getInstance(context).sendBroadcast(buildBroadcastIntent(action));
     }
-
 }

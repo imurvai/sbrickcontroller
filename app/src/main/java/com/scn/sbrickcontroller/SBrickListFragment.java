@@ -10,11 +10,16 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
+import android.view.ContextMenu;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.BaseAdapter;
+import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -23,6 +28,7 @@ import com.scn.sbrickmanager.SBrickManager;
 import com.scn.sbrickmanager.SBrickManagerHolder;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 
@@ -34,11 +40,13 @@ public class SBrickListFragment extends Fragment {
 
     private static final String TAG = SBrickListFragment.class.getSimpleName();
 
-    private boolean scanned = false;
-    private final List<SBrick> sbricks = new ArrayList<>();
-    private SBrickListViewAdapter sbrickListViewAdapter;
+    private static final int MENU_ITEM_FORGET = 0;
 
+    private SBrickListAdapter sbrickListViewAdapter;
     private ProgressDialog progressDialog;
+
+    private ListView listViewSBricks;
+    private Button buttonScanSBricks;
 
     //
     // Constructors
@@ -72,6 +80,35 @@ public class SBrickListFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view =  inflater.inflate(R.layout.fragment_sbrick_list, container, false);
+
+        Log.i(TAG, "  Setup the list view adapter...");
+        listViewSBricks = (ListView)view.findViewById(R.id.listViewSBricks);
+        listViewSBricks.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Log.i(TAG, "onItemClick...");
+
+                // Open the SBrick details fragment
+                List<SBrick> sbrickList = new ArrayList<>(SBrickManagerHolder.getSBrickManager().getSBricks());
+                SBrick sbrick = sbrickList.get(position);
+                String selectedSBrickAddress = sbrick.getAddress();
+                MainActivity activity = (MainActivity) getActivity();
+                activity.startSBrickDetailsFragment(selectedSBrickAddress);
+            }
+        });
+        sbrickListViewAdapter = new SBrickListAdapter(getActivity());
+        listViewSBricks.setAdapter(sbrickListViewAdapter);
+        registerForContextMenu(listViewSBricks);
+
+        buttonScanSBricks = (Button)view.findViewById(R.id.buttonScanSBricks);
+        buttonScanSBricks.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.i(TAG, "onClick...");
+                SBrickManagerHolder.getSBrickManager().startSBrickScan();
+            }
+        });
+
         return view;
     }
 
@@ -80,32 +117,12 @@ public class SBrickListFragment extends Fragment {
         Log.i(TAG, "onResume...");
         super.onResume();
 
-        Log.i(TAG, "  Setup the list view adapter...");
-        ListView sbricksListView = (ListView)getView().findViewById(R.id.listViewSBricks);
-        sbricksListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Log.i(TAG, "onItemClick...");
-
-                // Open the SBrick details fragment
-                String selectedSBrickAddress = sbricks.get(position).getAddress();
-                MainActivity activity = (MainActivity)getActivity();
-                activity.startSBrickDetailsFragment(selectedSBrickAddress);
-            }
-        });
-        sbrickListViewAdapter = new SBrickListViewAdapter(getActivity(), sbricks);
-        sbricksListView.setAdapter(sbrickListViewAdapter);
-
         Log.i(TAG, "  Register the SBrick local broadcast reveiver...");
         IntentFilter filter = new IntentFilter();
         filter.addAction(SBrickManager.ACTION_START_SBRICK_SCAN);
         filter.addAction(SBrickManager.ACTION_STOP_SBRICK_SCAN);
         filter.addAction(SBrickManager.ACTION_FOUND_AN_SBRICK);
         LocalBroadcastManager.getInstance(this.getActivity()).registerReceiver(sbrickBroadcastReceiver, filter);
-
-        if (!scanned) {
-            SBrickManagerHolder.getSBrickManager().startSBrickScan();
-        }
     }
 
     @Override
@@ -124,6 +141,29 @@ public class SBrickListFragment extends Fragment {
             progressDialog.dismiss();
             progressDialog = null;
         }
+    }
+
+    @Override
+    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
+
+        if (v == listViewSBricks) {
+            AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo)menuInfo;
+            List<SBrick> sbrickList = new ArrayList<>(SBrickManagerHolder.getSBrickManager().getSBricks());
+            SBrick sbrick = sbrickList.get(info.position);
+            menu.setHeaderTitle(sbrick.getName());
+            menu.add(Menu.NONE, 0, MENU_ITEM_FORGET, "Forget");
+        }
+    }
+
+    @Override
+    public boolean onContextItemSelected(MenuItem item) {
+
+        AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo)item.getMenuInfo();
+        List<SBrick> sbrickList = new ArrayList<>(SBrickManagerHolder.getSBrickManager().getSBricks());
+        SBrick sbrick = sbrickList.get(info.position);
+        SBrickManagerHolder.getSBrickManager().forgetSBrick(sbrick.getAddress());
+        sbrickListViewAdapter.notifyDataSetChanged();
+        return true;
     }
 
     //
@@ -155,7 +195,6 @@ public class SBrickListFragment extends Fragment {
                         progressDialog.dismiss();
                         progressDialog = null;
                     }
-                    scanned = true;
                     break;
 
                 case SBrickManager.ACTION_FOUND_AN_SBRICK:
@@ -165,26 +204,34 @@ public class SBrickListFragment extends Fragment {
                     String sbrickAddress = intent.getStringExtra(SBrickManager.EXTRA_SBRICK_ADDRESS);
                     Log.i(TAG, "  SBrick name   : " + sbrickName);
                     Log.i(TAG, "  Sbrick address: " + sbrickAddress);
-
-                    SBrick sbrick = SBrickManagerHolder.getSBrickManager().getSBrick(sbrickAddress);
-                    if (sbrick != null) {
-                        sbricks.add(sbrick);
-                        sbrickListViewAdapter.notifyDataSetChanged();
-                    }
+                    sbrickListViewAdapter.notifyDataSetChanged();
                     break;
             }
         }
     };
 
-    private static class SBrickListViewAdapter extends ArrayAdapter<SBrick> {
+    private static class SBrickListAdapter extends BaseAdapter {
 
-        private final Context context;
-        private final List<SBrick> sbricks;
+        private Context context;
 
-        public SBrickListViewAdapter(Context context, List<SBrick> items) {
-            super(context, R.layout.sbrick_list_item, items);
+        public SBrickListAdapter(Context context) {
             this.context = context;
-            this.sbricks = items;
+        }
+
+        @Override
+        public int getCount() {
+            return SBrickManagerHolder.getSBrickManager().getSBricks().size();
+        }
+
+        @Override
+        public Object getItem(int position) {
+            List<SBrick> sbrickList = new ArrayList<>(SBrickManagerHolder.getSBrickManager().getSBricks());
+            return sbrickList.get(position);
+        }
+
+        @Override
+        public long getItemId(int position) {
+            return 0;
         }
 
         @Override
@@ -196,13 +243,14 @@ public class SBrickListFragment extends Fragment {
                 rowView = inflater.inflate(R.layout.sbrick_list_item, parent, false);
             }
 
-            SBrick sbrick = sbricks.get(position);
+            SBrick sbrick = (SBrick)getItem(position);
 
             TextView twSBrickName = (TextView)rowView.findViewById(R.id.textview_sbrick_name);
             TextView twSBrickAddress = (TextView)rowView.findViewById(R.id.textview_sbrick_address);
-            twSBrickName.setText(sbrick.getDisplayName());
+            twSBrickName.setText(sbrick.getName());
             twSBrickAddress.setText(sbrick.getAddress());
 
             return rowView;
         }
-    }}
+    }
+}

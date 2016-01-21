@@ -14,6 +14,8 @@ class SBrickManagerMock extends SBrickManagerBase {
 
     private static final String TAG = SBrickManagerMock.class.getSimpleName();
 
+    private static final String SBrickName = "SCNBrick";
+
     private AsyncTask<Void, Void, Void> scanAsyncTask = null;
 
     private String[] sbrickAddresses = {
@@ -55,16 +57,24 @@ class SBrickManagerMock extends SBrickManagerBase {
             return false;
         }
 
-        scannedSBrickDevices.clear();
-
         scanAsyncTask = new AsyncTask<Void, Void, Void>() {
+
+            @Override
+            protected void onPreExecute() {
+                super.onPreExecute();
+
+                Intent sendIntent = new Intent();
+                sendIntent.setAction(ACTION_START_SBRICK_SCAN);
+                LocalBroadcastManager.getInstance(context).sendBroadcast(sendIntent);
+            }
+
             @Override
             protected Void doInBackground(Void... params) {
 
                 try {
                     for (int i = 0; i < sbrickAddresses.length; i++) {
 
-                        // Wait a bit before 'find' an SBrick
+                        // Wait a bit before 'finding' an SBrick
                         for (int j = 0; j < 30; j++) {
                             if (isCancelled())
                                 return null;
@@ -75,13 +85,13 @@ class SBrickManagerMock extends SBrickManagerBase {
                         // 'Found' an SBrick
                         String address = sbrickAddresses[i];
                         String name = "SBrick";
-                        if (!scannedSBrickDevices.containsKey(address)) {
+                        if (!sbrickMap.containsKey(address)) {
                             Log.i(TAG, "  Storing SBrick.");
                             Log.i(TAG, "    Device name       : " + name);
                             Log.i(TAG, "    Device address    : " + address);
 
-                            SBrick sbrick = new SBrickMock(context, address, name);
-                            scannedSBrickDevices.put(address, sbrick);
+                            SBrick sbrick = new SBrickMock(context, address, SBrickName);
+                            sbrickMap.put(address, sbrick);
 
                             Intent sendIntent = new Intent();
                             sendIntent.setAction(ACTION_FOUND_AN_SBRICK);
@@ -103,12 +113,18 @@ class SBrickManagerMock extends SBrickManagerBase {
             protected void onPostExecute(Void aVoid) {
                 super.onPostExecute(aVoid);
                 scanAsyncTask = null;
+                Intent sendIntent = new Intent();
+                sendIntent.setAction(ACTION_STOP_SBRICK_SCAN);
+                LocalBroadcastManager.getInstance(context).sendBroadcast(sendIntent);
             }
 
             @Override
             protected void onCancelled() {
                 super.onCancelled();
                 scanAsyncTask = null;
+                Intent sendIntent = new Intent();
+                sendIntent.setAction(ACTION_STOP_SBRICK_SCAN);
+                LocalBroadcastManager.getInstance(context).sendBroadcast(sendIntent);
             }
         }.execute();
 
@@ -131,10 +147,11 @@ class SBrickManagerMock extends SBrickManagerBase {
     public SBrick getSBrick(String sbrickAddress) {
         Log.i(TAG, "getSBrick - " + sbrickAddress);
 
-        if (scannedSBrickDevices.containsKey(sbrickAddress))
-            return scannedSBrickDevices.get(sbrickAddress);
+        if (sbrickMap.containsKey(sbrickAddress))
+            return sbrickMap.get(sbrickAddress);
 
-        SBrick sbrick = new SBrickMock(context, sbrickAddress, sbrickAddress);
+        SBrick sbrick = new SBrickMock(context, sbrickAddress, SBrickName);
+        sbrickMap.put(sbrickAddress, sbrick);
         return sbrick;
     }
 }

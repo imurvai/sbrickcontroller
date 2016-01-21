@@ -91,7 +91,6 @@ class SBrickManagerImpl extends SBrickManagerBase {
             return false;
         }
 
-        scannedSBrickDevices.clear();
         return bluetoothAdapter.startDiscovery();
     }
 
@@ -106,15 +105,16 @@ class SBrickManagerImpl extends SBrickManagerBase {
     public SBrick getSBrick(String sbrickAddress) {
         Log.i(TAG, "getSBrick - " + sbrickAddress);
 
-        if (scannedSBrickDevices.containsKey(sbrickAddress)) {
+        if (sbrickMap.containsKey(sbrickAddress)) {
             Log.i(TAG, "  SBrick device has already been created.");
-            return scannedSBrickDevices.get(sbrickAddress);
+            return sbrickMap.get(sbrickAddress);
         }
 
-        Log.w(TAG, "  Create the SBrick device...");
+        Log.i(TAG, "  Create the SBrick device...");
         BluetoothDevice sbrickDevice = bluetoothAdapter.getRemoteDevice(sbrickAddress);
         if (sbrickDevice != null) {
             SBrick sbrick = new SBrickImpl(context, sbrickDevice);
+            sbrickMap.put(sbrickAddress, sbrick);
             return sbrick;
         }
 
@@ -151,15 +151,13 @@ class SBrickManagerImpl extends SBrickManagerBase {
 
                     if (device != null) {
                         if (device.getName().equalsIgnoreCase("sbrick")) {
-                            if (!scannedSBrickDevices.containsKey(device.getAddress())) {
+                            if (!sbrickMap.containsKey(device.getAddress())) {
                                 Log.i(TAG, "  Storing SBrick.");
-                                Log.i(TAG, "    Device name       : " + device.getName());
                                 Log.i(TAG, "    Device address    : " + device.getAddress());
-                                Log.i(TAG, "    Device class      : " + bluetoothClass.getDeviceClass());
-                                Log.i(TAG, "    Device major class: " + bluetoothClass.getMajorDeviceClass());
+                                Log.i(TAG, "    Device name       : " + device.getName());
 
                                 SBrick sbrick = new SBrickImpl(context, device);
-                                scannedSBrickDevices.put(device.getAddress(), sbrick);
+                                sbrickMap.put(device.getAddress(), sbrick);
 
                                 Intent sendIntent = new Intent();
                                 sendIntent.setAction(ACTION_FOUND_AN_SBRICK);

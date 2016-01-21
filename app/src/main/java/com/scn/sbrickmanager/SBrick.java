@@ -23,15 +23,10 @@ public interface SBrick {
     String getName();
 
     /**
-     * @return The display name of the SBrick.
+     * Sets the name of the SBrick.
+     * @param name is the name.
      */
-    String getDisplayName();
-
-    /**
-     * Sets the display name of the SBrick.
-     * @param displayName is the name to display.
-     */
-    void setDisplayName(String displayName);
+    void setName(String name);
 
     /**
      * Starts connecting to the SBrick.

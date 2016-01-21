@@ -113,7 +113,7 @@ public class SBrickDetailsFragment extends Fragment implements GameControllerAct
         sbPort4 = (SeekBar)view.findViewById(R.id.seekBarPort4);
 
         twAddress.setText(sbrick.getAddress());
-        etDisplayName.setText(sbrick.getDisplayName());
+        etDisplayName.setText(sbrick.getName());
 
         sbPort1.setOnSeekBarChangeListener(seekBarChangeListener);
         sbPort2.setOnSeekBarChangeListener(seekBarChangeListener);
@@ -170,6 +170,8 @@ public class SBrickDetailsFragment extends Fragment implements GameControllerAct
     @Override
     public void onPause() {
         Log.i(TAG, "onPause...");
+
+        sbrick.setName(etDisplayName.getText().toString());
 
         Log.i(TAG, "  Unregister the SBrick local broadcast receiver...");
         LocalBroadcastManager.getInstance(this.getActivity()).unregisterReceiver(sbrickBroadcastReceiver);

@@ -56,7 +56,7 @@ class Helper {
      * @return The ProgressDialog instance.
      */
     public static ProgressDialog showProgressDialog(Context context, String message, final DialogInterface.OnClickListener onClickListener) {
-        Log.i(TAG, "showProgressDialog");
+        Log.i(TAG, "showProgressDialog - " + message);
 
         ProgressDialog dialog = new ProgressDialog(context);
         dialog.setMessage(message);
@@ -75,7 +75,7 @@ class Helper {
      * @return The ProgressDialog instance.
      */
     public static ProgressDialog showProgressDialog(Context context, String message, final DialogInterface.OnClickListener onClickListener, final DialogInterface.OnDismissListener onDismissListener) {
-        Log.i(TAG, "showProgressDialog");
+        Log.i(TAG, "showProgressDialog - " + message);
 
         ProgressDialog dialog = new ProgressDialog(context);
         dialog.setMessage(message);

@@ -37,6 +37,16 @@ public interface SBrickManager {
     boolean isBluetoothOn();
 
     /**
+     * Loads the previously scanned SBrick device list.
+     */
+    void loadSBricks();
+
+    /**
+     * Saves the previously scanned SBrick device list.
+     */
+    void saveSBricks();
+
+    /**
      * Starts the SBrick scanning.
      * @return True if the scanning has been started OK, false otherwise.
      */
@@ -49,14 +59,20 @@ public interface SBrickManager {
 
     /**
      * Gets the SBricks have been scanned previously.
-     * @return Collection of the scanned SBricks.
+     * @return Collection of the SBricks.
      */
-    Collection<SBrick> getScannedSBricks();
+    Collection<SBrick> getSBricks();
 
     /**
-     * Gets the SBrick specified by its address.
+     * Gets (or creates) the SBrick specified by its address.
      * @param sbrickAddress The SBrick address.
      * @return The SBrick.
      */
     SBrick getSBrick(String sbrickAddress);
+
+    /**
+     * Forgets the SBrick specified by its address.
+     * @param sbrickAddress The SBrick address.
+     */
+    void forgetSBrick(String sbrickAddress);
 }
