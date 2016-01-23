@@ -39,7 +39,7 @@ public class MainActivity extends FragmentActivity {
         super.onCreate(savedInstanceState);
 
         if (!SBrickManagerHolder.getSBrickManager().isBLESupported()) {
-            Helper.messageBox(this, "Your device doesn't support bluetooth low energy profile.", new DialogInterface.OnClickListener() {
+            Helper.showMessageBox(this, "Your device doesn't support bluetooth low energy profile.", new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
                     MainActivity.this.finish();

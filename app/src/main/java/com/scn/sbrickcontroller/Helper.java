@@ -38,10 +38,31 @@ class Helper {
      * @param onClickListener is the listener when the one and only button is clicked.
      * @return the Dialog instance.
      */
-    public static Dialog messageBox(Context context, String message, final DialogInterface.OnClickListener onClickListener) {
+    public static Dialog showMessageBox(Context context, String message, final DialogInterface.OnClickListener onClickListener) {
         Dialog dialog = new AlertDialog.Builder(context)
                 .setMessage(message)
                 .setPositiveButton("Ok", onClickListener)
+                .create();
+
+        dialog.show();
+        return dialog;
+    }
+
+    /**
+     * Pops up a question dialog.
+     * @param context is the context.
+     * @param question is the question text.
+     * @param positiveButtonText is the text of the positive button.
+     * @param negativeButtonText is the text of the negative button.
+     * @param onPositiveListener is the listener for positive button.
+     * @param onNegativeListener is the listener for negative button.
+     * @return
+     */
+    public static Dialog showQuestionDialog(Context context, String question, String positiveButtonText, String negativeButtonText, final DialogInterface.OnClickListener onPositiveListener, final DialogInterface.OnClickListener onNegativeListener) {
+        Dialog dialog = new AlertDialog.Builder(context)
+                .setMessage(question)
+                .setPositiveButton(positiveButtonText, onPositiveListener)
+                .setNegativeButton(negativeButtonText, onNegativeListener)
                 .create();
 
         dialog.show();

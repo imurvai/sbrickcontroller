@@ -1,5 +1,6 @@
 package com.scn.sbrickcontroller;
 
+import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -160,9 +161,29 @@ public class SBrickListFragment extends Fragment {
 
         AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo)item.getMenuInfo();
         List<SBrick> sbrickList = new ArrayList<>(SBrickManagerHolder.getSBrickManager().getSBricks());
-        SBrick sbrick = sbrickList.get(info.position);
-        SBrickManagerHolder.getSBrickManager().forgetSBrick(sbrick.getAddress());
-        sbrickListViewAdapter.notifyDataSetChanged();
+        final SBrick sbrick = sbrickList.get(info.position);
+
+        Helper.showQuestionDialog(
+                getActivity(),
+                "Do you really want to forget this SBrick?",
+                "Yes",
+                "No",
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        Log.i(TAG, "onClick...");
+                        SBrickManagerHolder.getSBrickManager().forgetSBrick(sbrick.getAddress());
+                        sbrickListViewAdapter.notifyDataSetChanged();
+                    }
+                },
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        // Do nothing here
+                    }
+                }
+        );
+
         return true;
     }
 
