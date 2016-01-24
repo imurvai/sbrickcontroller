@@ -59,16 +59,6 @@ class SBrickControllerProfileManagerImpl implements SBrickControllerProfileManag
     }
 
     @Override
-    public synchronized int getProfileCount() {
-        Log.i(TAG, "getProfileCount...");
-
-        int size = controllerProfiles.size();
-        Log.i(TAG, "  count: " + size);
-
-        return size;
-    }
-
-    @Override
     public synchronized SBrickControllerProfile getProfileAt(int position) {
         Log.i(TAG, "getProfileAt - " + position);
 
@@ -92,13 +82,38 @@ class SBrickControllerProfileManagerImpl implements SBrickControllerProfileManag
     }
 
     @Override
-    public synchronized void addProfile(String name) {
-        Log.i(TAG, "addProfile - " + name);
+    public synchronized SBrickControllerProfile addNewProfile() {
+        Log.i(TAG, "addNewProfile...");
 
-        if (getProfile(name) !=  null)
-            throw new RuntimeException("A profile with the same name already exists.");
+        String name = "Controller profile";
+        if (getProfile(name) != null) {
+            for (int i = 1; ; i++) {
+                String nameWithPostfix = name + " " + i;
+                if (getProfile(nameWithPostfix) != null) {
+                    name = nameWithPostfix;
+                    break;
+                }
+            }
+        }
 
-        controllerProfiles.add(new SBrickControllerProfile(name));
+        SBrickControllerProfile profile = new SBrickControllerProfile(name);
+        controllerProfiles.add(profile);
+        return profile;
+    }
+
+    @Override
+    public synchronized boolean renameProfile(SBrickControllerProfile profile, String newName) {
+        Log.i(TAG, "renameProfile...");
+        Log.i(TAG, "  from: " + profile.getName());
+        Log.i(TAG, "  to:   " + newName);
+
+        if (getProfile(newName) != null) {
+            Log.w(TAG, "  Profile with the same name already exists.");
+            return false;
+        }
+
+        profile.setName(newName);
+        return true;
     }
 
     @Override

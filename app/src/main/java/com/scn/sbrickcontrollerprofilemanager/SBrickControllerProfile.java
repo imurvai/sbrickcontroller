@@ -1,5 +1,7 @@
 package com.scn.sbrickcontrollerprofilemanager;
 
+import android.util.Log;
+
 /**
  * SBrick controller profile.
  */
@@ -32,6 +34,8 @@ public class SBrickControllerProfile {
     // Private members
     //
 
+    private static final String TAG = SBrickControllerProfile.class.getSimpleName();
+
     private String name;
 
     private ControllerAction dpadLeftRightControllerAction;
@@ -57,7 +61,12 @@ public class SBrickControllerProfile {
     // Constructor
     //
 
-    public SBrickControllerProfile(String name) {
+    /**
+     * Creates a new instance of the SBrickControllerProfile class.
+     * @param name is the name of the profile.
+     */
+    SBrickControllerProfile(String name) {
+        Log.i(TAG, "SBrickControllerProfile - " + name);
         this.name = name;
     }
 
@@ -66,8 +75,13 @@ public class SBrickControllerProfile {
     //
 
     public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
+    void setName(String name) { this.name = name; }
 
+    /**
+     * Gets the controller action specified by its ID.
+     * @param controllerActionId is the controller action ID.
+     * @return The controller action object.
+     */
     public ControllerAction getControllerAction(int controllerActionId) {
         switch (controllerActionId) {
             case CONTROLLER_ACTION_DPAD_LEFT_RIGHT:
@@ -111,6 +125,11 @@ public class SBrickControllerProfile {
         return null;
     }
 
+    /**
+     * Sets the controller action for the specified ID.
+     * @param controllerActionId is the controller action ID.
+     * @param controllerAction is the controller action object.
+     */
     public void setControllerAction(int controllerActionId, ControllerAction controllerAction) {
         switch (controllerActionId) {
             case CONTROLLER_ACTION_DPAD_LEFT_RIGHT:

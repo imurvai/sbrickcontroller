@@ -1,6 +1,5 @@
 package com.scn.sbrickcontroller;
 
-import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -18,7 +17,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.ListView;
@@ -29,7 +27,6 @@ import com.scn.sbrickmanager.SBrickManager;
 import com.scn.sbrickmanager.SBrickManagerHolder;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 
@@ -43,7 +40,7 @@ public class SBrickListFragment extends Fragment {
 
     private static final int MENU_ITEM_FORGET = 0;
 
-    private SBrickListAdapter sbrickListViewAdapter;
+    private SBrickListAdapter sbrickListAdapter;
     private ProgressDialog progressDialog;
 
     private ListView listViewSBricks;
@@ -97,8 +94,7 @@ public class SBrickListFragment extends Fragment {
                 activity.startSBrickDetailsFragment(selectedSBrickAddress);
             }
         });
-        sbrickListViewAdapter = new SBrickListAdapter(getActivity());
-        listViewSBricks.setAdapter(sbrickListViewAdapter);
+        listViewSBricks.setAdapter(new SBrickListAdapter(getActivity()));
         registerForContextMenu(listViewSBricks);
 
         buttonScanSBricks = (Button)view.findViewById(R.id.buttonScanSBricks);
@@ -173,7 +169,7 @@ public class SBrickListFragment extends Fragment {
                     public void onClick(DialogInterface dialog, int which) {
                         Log.i(TAG, "onClick...");
                         SBrickManagerHolder.getSBrickManager().forgetSBrick(sbrick.getAddress());
-                        sbrickListViewAdapter.notifyDataSetChanged();
+                        sbrickListAdapter.notifyDataSetChanged();
                     }
                 },
                 new DialogInterface.OnClickListener() {
@@ -225,7 +221,7 @@ public class SBrickListFragment extends Fragment {
                     String sbrickAddress = intent.getStringExtra(SBrickManager.EXTRA_SBRICK_ADDRESS);
                     Log.i(TAG, "  SBrick name   : " + sbrickName);
                     Log.i(TAG, "  Sbrick address: " + sbrickAddress);
-                    sbrickListViewAdapter.notifyDataSetChanged();
+                    sbrickListAdapter.notifyDataSetChanged();
                     break;
             }
         }
@@ -235,7 +231,7 @@ public class SBrickListFragment extends Fragment {
 
         private Context context;
 
-        public SBrickListAdapter(Context context) {
+        SBrickListAdapter(Context context) {
             this.context = context;
         }
 

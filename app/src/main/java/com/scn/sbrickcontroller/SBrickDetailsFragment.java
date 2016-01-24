@@ -31,12 +31,17 @@ import com.scn.sbrickmanager.SBrickManagerHolder;
 public class SBrickDetailsFragment extends Fragment implements GameControllerActionListener {
 
     //
+    // Public constants
+    //
+
+    public static final String ARG_SBRICK_ADDRESS = "arg_sbrick_address";
+
+    //
     // Private members
     //
 
     private static final String TAG = SBrickDetailsFragment.class.getSimpleName();
 
-    public static final String ARG_SBRICK_ADDRESS = "arg_sbrick_address";
     private SBrick sbrick;
 
     private EditText etDisplayName;

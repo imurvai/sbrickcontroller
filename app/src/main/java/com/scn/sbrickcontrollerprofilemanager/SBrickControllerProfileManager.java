@@ -25,12 +25,6 @@ public interface SBrickControllerProfileManager {
     Collection<SBrickControllerProfile> getProfiles();
 
     /**
-     * Gets the number of SBrick controller profiles.
-     * @return The number of SBrick controller profiles.
-     */
-    int getProfileCount();
-
-    /**
      * Gets the SBrick controller profile at the specified position.
      * @param position is the position of the profile to get.
      * @return The SBrick controller profile at the specified position.
@@ -46,9 +40,16 @@ public interface SBrickControllerProfileManager {
 
     /**
      * Adds a new blank SBrick controller profile.
-     * @param name is the name of the new profile.
      */
-    void addProfile(String name);
+    SBrickControllerProfile addNewProfile();
+
+    /**
+     * Renames the profile.
+     * @param profile to rename.
+     * @param newName is the new name.
+     * @return True if renameing was successful, false otherwise.
+     */
+    boolean renameProfile(SBrickControllerProfile profile, String newName);
 
     /**
      * Removes the SBrick controller profile.
