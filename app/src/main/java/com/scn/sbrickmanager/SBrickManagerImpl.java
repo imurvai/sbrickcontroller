@@ -4,6 +4,9 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothClass;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
+import android.bluetooth.le.BluetoothLeScanner;
+import android.bluetooth.le.ScanCallback;
+import android.bluetooth.le.ScanResult;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -47,13 +50,6 @@ class SBrickManagerImpl extends SBrickManagerBase {
         bluetoothAdapter = bluetoothManager.getAdapter();
         if (bluetoothAdapter == null)
             throw new RuntimeException("Can't find bluetooth adapter.");
-
-        Log.i(TAG, "  Registering the scan broadcast receiver...");
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_STARTED);
-        filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
-        filter.addAction(BluetoothDevice.ACTION_FOUND);
-        context.registerReceiver(scanBroadcastReceiver, filter);
     }
 
     //
@@ -91,14 +87,21 @@ class SBrickManagerImpl extends SBrickManagerBase {
             return false;
         }
 
-        return bluetoothAdapter.startDiscovery();
+        if (bluetoothAdapter.startLeScan(leScanCallback)) {
+            isScanning = true;
+            return true;
+        }
+
+        Log.w(TAG, "  Failed to start scanning.");
+        return false;
     }
 
     @Override
     public void stopSBrickScan() {
         Log.i(TAG, "stopSBrickScan...");
 
-        bluetoothAdapter.cancelDiscovery();
+        bluetoothAdapter.stopLeScan(leScanCallback);
+        isScanning = false;
     }
 
     @Override
@@ -125,66 +128,36 @@ class SBrickManagerImpl extends SBrickManagerBase {
     // Private methods
     //
 
-    private final BroadcastReceiver scanBroadcastReceiver = new BroadcastReceiver() {
+    private final BluetoothAdapter.LeScanCallback leScanCallback = new BluetoothAdapter.LeScanCallback() {
         @Override
-        public void onReceive(Context context, Intent intent) {
-            Log.i(TAG, "mScanBroadcastReceiver.onReceive...");
+        public void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord) {
+            Log.i(TAG, "onScanResult...");
 
-            switch (intent.getAction()) {
-                case BluetoothAdapter.ACTION_DISCOVERY_STARTED:
-                    Log.i(TAG, "  ACTION_DISCOVERY_STARTED");
-                    isScanning = true;
-                    LocalBroadcastManager.getInstance(context).sendBroadcast(new Intent(ACTION_START_SBRICK_SCAN));
-                    break;
+            if (device != null && device.getName() != null) {
+                if (device.getName().equalsIgnoreCase("sbrick")) {
+                    if (!sbrickMap.containsKey(device.getAddress())) {
+                        Log.i(TAG, "  Storing SBrick.");
+                        Log.i(TAG, "    Device address    : " + device.getAddress());
+                        Log.i(TAG, "    Device name       : " + device.getName());
 
-                case BluetoothAdapter.ACTION_DISCOVERY_FINISHED:
-                    Log.i(TAG, "  ACTION_DISCOVERY_FINISHED");
-                    isScanning = false;
-                    LocalBroadcastManager.getInstance(context).sendBroadcast(new Intent(ACTION_STOP_SBRICK_SCAN));
-                    break;
+                        SBrick sbrick = new SBrickImpl(context, device);
+                        sbrickMap.put(device.getAddress(), sbrick);
 
-                case BluetoothDevice.ACTION_FOUND:
-                    Log.i(TAG, "  ACTION_FOUND");
-
-                    BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                    BluetoothClass bluetoothClass = device.getBluetoothClass();
-
-                    if (device != null) {
-                        if (device.getName().equalsIgnoreCase("sbrick")) {
-                            if (!sbrickMap.containsKey(device.getAddress())) {
-                                Log.i(TAG, "  Storing SBrick.");
-                                Log.i(TAG, "    Device address    : " + device.getAddress());
-                                Log.i(TAG, "    Device name       : " + device.getName());
-
-                                SBrick sbrick = new SBrickImpl(context, device);
-                                sbrickMap.put(device.getAddress(), sbrick);
-
-                                Intent sendIntent = new Intent();
-                                sendIntent.setAction(ACTION_FOUND_AN_SBRICK);
-                                sendIntent.putExtra(EXTRA_SBRICK_NAME, device.getName());
-                                sendIntent.putExtra(EXTRA_SBRICK_ADDRESS, device.getAddress());
-                                LocalBroadcastManager.getInstance(context).sendBroadcast(sendIntent);
-                            } else {
-                                Log.i(TAG, "  Sbrick has already been discovered.");
-                            }
-                        } else {
-                            Log.i(TAG, "  Device is not an SBrick.");
-                            Log.i(TAG, "    Name: " + device.getName());
-                        }
+                        Intent sendIntent = new Intent();
+                        sendIntent.setAction(ACTION_FOUND_AN_SBRICK);
+                        sendIntent.putExtra(EXTRA_SBRICK_NAME, device.getName());
+                        sendIntent.putExtra(EXTRA_SBRICK_ADDRESS, device.getAddress());
+                        LocalBroadcastManager.getInstance(context).sendBroadcast(sendIntent);
+                    } else {
+                        Log.i(TAG, "  Sbrick has already been discovered.");
                     }
-                    else {
-                        Log.i(TAG, "  Device is null.");
-                    }
-
-                    break;
-
-                case BluetoothDevice.ACTION_ACL_CONNECTED:
-                    Log.i(TAG, "  ACTION_ACL_CONNECTED");
-                    break;
-
-                case BluetoothDevice.ACTION_ACL_DISCONNECTED:
-                    Log.i(TAG, "  ACTION_ACL_DISCONNECTED");
-                    break;
+                } else {
+                    Log.i(TAG, "  Device is not an SBrick.");
+                    Log.i(TAG, "    Name: " + device.getName());
+                }
+            }
+            else {
+                Log.i(TAG, "  Device is null.");
             }
         }
     };

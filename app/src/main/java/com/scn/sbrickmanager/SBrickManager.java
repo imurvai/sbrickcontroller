@@ -12,8 +12,6 @@ public interface SBrickManager {
     //
 
     // Broadcast actions
-    String ACTION_START_SBRICK_SCAN = "com.scn.sbrickmanager.ACTION_START_SBRICK_SCAN";
-    String ACTION_STOP_SBRICK_SCAN = "com.scn.sbrickmanager.ACTION_STOP_SBRICK_SCAN";
     String ACTION_FOUND_AN_SBRICK = "com.scn.sbrickmanager.ACTION_FOUND_AN_SBRICK";
 
     // Broadcast extras

@@ -169,15 +169,9 @@ public class SBrickMock extends SBrickBase {
     }
 
     @Override
-    public boolean sendCommand(int channel, int value, boolean invert) {
+    public boolean sendCommand(int v1, int v2, int v3, int v4) {
         Log.i(TAG, "sendCommand - " + getAddress());
-        Log.i(TAG, "  channel: " + channel);
-        Log.i(TAG, "  value:   " + value);
-        Log.i(TAG, "  invert:  " + (invert ? "true" : "false"));
 
-        if (!isConnected)
-            return false;
-
-        return true;
+        return isConnected;
     }
 }

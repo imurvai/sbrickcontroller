@@ -94,7 +94,8 @@ public class SBrickListFragment extends Fragment {
                 activity.startSBrickDetailsFragment(selectedSBrickAddress);
             }
         });
-        listViewSBricks.setAdapter(new SBrickListAdapter(getActivity()));
+        sbrickListAdapter = new SBrickListAdapter(getActivity());
+        listViewSBricks.setAdapter(sbrickListAdapter);
         registerForContextMenu(listViewSBricks);
 
         buttonScanSBricks = (Button)view.findViewById(R.id.buttonScanSBricks);
@@ -102,7 +103,24 @@ public class SBrickListFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 Log.i(TAG, "onClick...");
-                SBrickManagerHolder.getSBrickManager().startSBrickScan();
+                if (SBrickManagerHolder.getSBrickManager().startSBrickScan()) {
+                    progressDialog = Helper.showProgressDialog(SBrickListFragment.this.getActivity(), "Scanning for SBricks...", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            Log.i(TAG, "onClick...");
+                            SBrickManagerHolder.getSBrickManager().stopSBrickScan();
+                            progressDialog.dismiss();
+                            progressDialog = null;
+                        }
+                    });
+                }
+                else {
+                    Helper.showMessageBox(SBrickListFragment.this.getActivity(), "Could not start scanning for SBricks.", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                        }
+                    });
+                }
             }
         });
 
@@ -116,8 +134,6 @@ public class SBrickListFragment extends Fragment {
 
         Log.i(TAG, "  Register the SBrick local broadcast reveiver...");
         IntentFilter filter = new IntentFilter();
-        filter.addAction(SBrickManager.ACTION_START_SBRICK_SCAN);
-        filter.addAction(SBrickManager.ACTION_STOP_SBRICK_SCAN);
         filter.addAction(SBrickManager.ACTION_FOUND_AN_SBRICK);
         LocalBroadcastManager.getInstance(this.getActivity()).registerReceiver(sbrickBroadcastReceiver, filter);
     }
@@ -193,26 +209,6 @@ public class SBrickListFragment extends Fragment {
             Log.i(TAG, "sbrickBroadcastReceiver.onReceive...");
 
             switch (intent.getAction()) {
-                case SBrickManager.ACTION_START_SBRICK_SCAN:
-                    Log.i(TAG, "  ACTION_START_SBRICK_SCAN");
-
-                    progressDialog = Helper.showProgressDialog(SBrickListFragment.this.getActivity(), "Scanning for SBricks...", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            Log.i(TAG, "onClick...");
-                            SBrickManagerHolder.getSBrickManager().stopSBrickScan();
-                        }
-                    });
-                    break;
-
-                case SBrickManager.ACTION_STOP_SBRICK_SCAN:
-                    Log.i(TAG, "  ACTION_STOP_SBRICK_SCAN");
-
-                    if (progressDialog != null) {
-                        progressDialog.dismiss();
-                        progressDialog = null;
-                    }
-                    break;
 
                 case SBrickManager.ACTION_FOUND_AN_SBRICK:
                     Log.i(TAG, "  ACTION_FOUND_AN_SBRICK");

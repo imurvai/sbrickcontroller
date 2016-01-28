@@ -50,11 +50,6 @@ abstract class SBrickBase implements SBrick {
         this.name = name;
     }
 
-    @Override
-    public boolean sendCommand(int channel, boolean invert) {
-        return sendCommand(channel, 255, invert);
-    }
-
     //
     // Internal API
     //

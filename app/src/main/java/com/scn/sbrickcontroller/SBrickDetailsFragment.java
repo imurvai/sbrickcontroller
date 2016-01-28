@@ -214,16 +214,12 @@ public class SBrickDetailsFragment extends Fragment implements GameControllerAct
             return false;
 
         if ((event.getSource() & InputDevice.SOURCE_JOYSTICK) != 0 && event.getAction() == MotionEvent.ACTION_MOVE) {
-            int value1 = (int)(event.getAxisValue(MotionEvent.AXIS_X) * 255);
-            int value2 = (int)(event.getAxisValue(MotionEvent.AXIS_Y) * 255);
+            int value1 = (int)(event.getAxisValue(MotionEvent.AXIS_Y) * 255);
+            int value2 = (int)(event.getAxisValue(MotionEvent.AXIS_X) * 255);
             int value3 = (int)(event.getAxisValue(MotionEvent.AXIS_Z) * 255);
-            int value4 = (int)(event.getAxisValue(MotionEvent.AXIS_RZ) * 255);
+            int value4 = (int)(event.getAxisValue(MotionEvent.AXIS_RZ) * -255);
 
-            sbrick.sendCommand(0, Math.abs(value1), value1 < 0);
-            sbrick.sendCommand(1, Math.abs(value2), value2 < 0);
-            sbrick.sendCommand(2, Math.abs(value3), value3 < 0);
-            sbrick.sendCommand(3, Math.abs(value4), value4 < 0);
-
+            sbrick.sendCommand(value1, value2, value3, value4);
             return true;
         }
 
@@ -253,26 +249,13 @@ public class SBrickDetailsFragment extends Fragment implements GameControllerAct
 
         @Override
         public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-            int channel = -1;
-
-            if (seekBar == sbPort1)
-                channel = 0;
-            else if (seekBar == sbPort2)
-                channel = 1;
-            else if (seekBar == sbPort3)
-                channel = 2;
-            else if (seekBar == sbPort4)
-                channel = 3;
-
-            if (channel == -1)
-                return;
-
-            int seekBarCenter = getSeekBarCenter(seekBar);
-
-            int value = Math.min(255, (Math.abs(progress - seekBarCenter) * 280) / seekBarCenter);
-            boolean invert = progress < seekBarCenter;
-
-            sbrick.sendCommand(channel, value, invert);
+            int value1 = getPortValue(sbPort1);
+            int value2 = getPortValue(sbPort2);
+            int value3 = getPortValue(sbPort3);
+            int value4 = getPortValue(sbPort4);
+            if (!sbrick.sendCommand(value1, value2, value3, value4)) {
+                Log.i(TAG, "Failed to send command.");
+            }
         }
 
         @Override
@@ -282,6 +265,13 @@ public class SBrickDetailsFragment extends Fragment implements GameControllerAct
         @Override
         public void onStopTrackingTouch(SeekBar seekBar) {
             seekBar.setProgress(getSeekBarCenter(seekBar));
+        }
+
+        private int getPortValue(SeekBar seekBar) {
+            int progress = seekBar.getProgress();
+            int seekBarCenter = seekBar.getMax() / 2;
+            int value = ((progress - seekBarCenter) * 280) / seekBarCenter;
+            return Math.min(255, Math.max(-255, value));
         }
 
         private int getSeekBarCenter(SeekBar seekBar) {

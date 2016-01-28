@@ -60,15 +60,6 @@ class SBrickManagerMock extends SBrickManagerBase {
         scanAsyncTask = new AsyncTask<Void, Void, Void>() {
 
             @Override
-            protected void onPreExecute() {
-                super.onPreExecute();
-
-                Intent sendIntent = new Intent();
-                sendIntent.setAction(ACTION_START_SBRICK_SCAN);
-                LocalBroadcastManager.getInstance(context).sendBroadcast(sendIntent);
-            }
-
-            @Override
             protected Void doInBackground(Void... params) {
 
                 try {
@@ -113,18 +104,12 @@ class SBrickManagerMock extends SBrickManagerBase {
             protected void onPostExecute(Void aVoid) {
                 super.onPostExecute(aVoid);
                 scanAsyncTask = null;
-                Intent sendIntent = new Intent();
-                sendIntent.setAction(ACTION_STOP_SBRICK_SCAN);
-                LocalBroadcastManager.getInstance(context).sendBroadcast(sendIntent);
             }
 
             @Override
             protected void onCancelled() {
                 super.onCancelled();
                 scanAsyncTask = null;
-                Intent sendIntent = new Intent();
-                sendIntent.setAction(ACTION_STOP_SBRICK_SCAN);
-                LocalBroadcastManager.getInstance(context).sendBroadcast(sendIntent);
             }
         }.execute();
 

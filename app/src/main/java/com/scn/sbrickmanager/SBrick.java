@@ -48,19 +48,13 @@ public interface SBrick {
     boolean getCharacteristicsAsync();
 
     /**
-     * Sends the command to the SBrick
-     * @param channel is the channel (0-3).
-     * @param value is the value (0-255).
-     * @param invert is true if to send the invert value to the channel.
+     * Sends command to all 4 channels.
+     * Valid values are -255 to 255.
+     * @param v1 - value for channel 1.
+     * @param v2 - value for channel 2.
+     * @param v3 - value for channel 3.
+     * @param v4 - value for channel 4.
      * @return True if the command has been sent ok, false otherwise.
      */
-    boolean sendCommand(int channel, int value, boolean invert);
-
-    /**
-     * Sends the command tot the SBrick with the max value.
-     * @param channel is the channel (0-3)
-     * @param invert is true if to send the invert value to the channel.
-     * @return True if the command has been sent ok, false otherwise.
-     */
-    boolean sendCommand(int channel, boolean invert);
+    boolean sendCommand(int v1, int v2, int v3, int v4);
 }
