@@ -37,7 +37,7 @@ public class SBrickMock extends SBrickBase {
         Log.i(TAG, "  Name   : " + name);
 
         this.address = address;
-        setName(name);
+        setName(name + " " + address);
     }
 
     @Override

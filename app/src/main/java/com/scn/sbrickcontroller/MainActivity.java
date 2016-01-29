@@ -159,8 +159,8 @@ public class MainActivity extends FragmentActivity {
         getFragmentManager().popBackStack();
     }
 
-    public void startScanSBrickFragment() {
-        Log.i(TAG, "startScanSBrickFragment...");
+    public void startSBrickListFragment() {
+        Log.i(TAG, "startSBrickListFragment...");
 
         SBrickListFragment sBrickListFragment = SBrickListFragment.newInstance();
         startFragment(sBrickListFragment);
@@ -173,6 +173,20 @@ public class MainActivity extends FragmentActivity {
         startFragment(sBrickDetailsFragment);
     }
 
+    public void startControllerProfileListFragment() {
+        Log.i(TAG, "startControllerProfileListFragment...");
+
+        ControllerProfileListFragment controllerProfileListFragment = ControllerProfileListFragment.newInstance();
+        startFragment(controllerProfileListFragment);
+    }
+
+    public void startControllerFragment(String controllerProfileName) {
+        Log.i(TAG, "startControllerFragment - " + controllerProfileName);
+
+        ControllerFragment controllerFragment = ControllerFragment.newInstance(controllerProfileName);
+        startFragment(controllerFragment);
+    }
+
     //
     // Private methods
     //
@@ -182,8 +196,8 @@ public class MainActivity extends FragmentActivity {
 
         getSupportFragmentManager()
                 .beginTransaction()
-                .addToBackStack(null)
                 .replace(R.id.fragment_container, fragment)
+                .addToBackStack(null)
                 .commit();
     }
 

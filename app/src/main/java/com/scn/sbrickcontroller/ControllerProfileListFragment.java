@@ -36,8 +36,8 @@ public class ControllerProfileListFragment extends Fragment {
 
     private static final String TAG = ControllerProfileListFragment.class.getSimpleName();
 
-    private static final int MENU_ITEM_EDIT = 0;
-    private static final int MENU_ITEM_REMOVE = 1;
+    private static final int MENU_ITEM_ID_EDIT = 0;
+    private static final int MENU_ITEM_ID_REMOVE = 1;
 
     private ControllerProfileListAdapter controllerProfileListAdapter;
 
@@ -83,7 +83,11 @@ public class ControllerProfileListFragment extends Fragment {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Log.i(TAG, "onItemClick...");
 
-                // TODO: open the controller fragment
+                // Open the controller fragment
+                List<SBrickControllerProfile> profiles = new ArrayList<SBrickControllerProfile>(SBrickControllerProfileManagerHolder.getManager().getProfiles());
+                SBrickControllerProfile profile = profiles.get(position);
+                MainActivity activity = (MainActivity)getActivity();
+                activity.startControllerFragment(profile.getName());
             }
         });
         listViewControllerProfiles.setAdapter(new ControllerProfileListAdapter(getActivity()));
@@ -151,8 +155,8 @@ public class ControllerProfileListFragment extends Fragment {
             AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo)menuInfo;
             SBrickControllerProfile profile = SBrickControllerProfileManagerHolder.getManager().getProfileAt(info.position);
             menu.setHeaderTitle(profile.getName());
-            menu.add(Menu.NONE, 0, MENU_ITEM_EDIT, "Edig profile");
-            menu.add(Menu.NONE, 0, MENU_ITEM_REMOVE, "Remove profile");
+            menu.add(Menu.NONE, 0, MENU_ITEM_ID_EDIT, "Edit profile");
+            menu.add(Menu.NONE, 0, MENU_ITEM_ID_REMOVE, "Remove profile");
         }
     }
 
@@ -163,37 +167,41 @@ public class ControllerProfileListFragment extends Fragment {
         AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo)item.getMenuInfo();
         final SBrickControllerProfile profile = SBrickControllerProfileManagerHolder.getManager().getProfileAt(info.position);
 
-        if (item.getItemId() == MENU_ITEM_EDIT) {
-            Log.i(TAG, "  MENU_ITEM_EDIT");
+        switch (item.getItemId()) {
 
-            // TODO: open the profile editor with the selected profile
-        }
-        else if (item.getItemId() == MENU_ITEM_REMOVE) {
-            Log.i(TAG, "  MENU_ITEM_EDIT");
+            case MENU_ITEM_ID_EDIT:
+                Log.i(TAG, "  MENU_ITEM_ID_EDIT");
 
-            Helper.showQuestionDialog(
-                    getActivity(),
-                    "Do you really want to remove this profile?",
-                    "Yes",
-                    "No",
-                    new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            Log.i(TAG, "onClick...");
-                            SBrickControllerProfileManagerHolder.getManager().removeProfile(profile);
-                            controllerProfileListAdapter.notifyDataSetChanged();
+                // TODO: open the profile editor with the selected profile
+                return true;
+
+            case MENU_ITEM_ID_REMOVE:
+                Log.i(TAG, "  MENU_ITEM_ID_EDIT");
+
+                Helper.showQuestionDialog(
+                        getActivity(),
+                        "Do you really want to remove this profile?",
+                        "Yes",
+                        "No",
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                Log.i(TAG, "onClick...");
+                                SBrickControllerProfileManagerHolder.getManager().removeProfile(profile);
+                                controllerProfileListAdapter.notifyDataSetChanged();
+                            }
+                        },
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                // Do nothing here
+                            }
                         }
-                    },
-                    new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            // Do nothing here
-                        }
-                    }
-            );
+                );
+                return true;
         }
 
-        return true;
+        return false;
     }
 
     //

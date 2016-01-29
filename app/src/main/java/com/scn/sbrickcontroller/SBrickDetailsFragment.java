@@ -31,16 +31,12 @@ import com.scn.sbrickmanager.SBrickManagerHolder;
 public class SBrickDetailsFragment extends Fragment implements GameControllerActionListener {
 
     //
-    // Public constants
-    //
-
-    public static final String ARG_SBRICK_ADDRESS = "arg_sbrick_address";
-
-    //
     // Private members
     //
 
     private static final String TAG = SBrickDetailsFragment.class.getSimpleName();
+
+    private static final String ARG_SBRICK_ADDRESS = "arg_sbrick_address";
 
     private SBrick sbrick;
 
@@ -151,17 +147,8 @@ public class SBrickDetailsFragment extends Fragment implements GameControllerAct
                     public void onClick(DialogInterface dialog, int which) {
                         Log.i(TAG, "onClick...");
                         sbrick.disconnect();
-                    }
-                },
-                new DialogInterface.OnDismissListener() {
-                    @Override
-                    public void onDismiss(DialogInterface dialog) {
-                        Log.i(TAG, "onDissmiss...");
-
-                        if (!isCharacteristicsRead) {
-                            MainActivity activity = (MainActivity)getActivity();
-                            activity.goBackFromFragment();
-                        }
+                        MainActivity activity = (MainActivity)getActivity();
+                        activity.goBackFromFragment();
                     }
                 });
 

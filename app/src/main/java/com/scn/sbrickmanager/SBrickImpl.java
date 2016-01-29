@@ -56,13 +56,13 @@ class SBrickImpl extends SBrickBase {
 
     private byte[] quickDriveCommandBuffer = new byte[4];
     private byte[] watchdogResetCommandBuffer = new byte[2];
-    private long lastWatchdogReset = 0;
 
     private boolean readingCharacteristics = false;
     private LinkedList<SBrickCharacteristicType> characteristicsToRead = new LinkedList<>();
     private SBrickCharacteristics sBrickCharacteristics = null;
 
     private boolean sendingCommand = false;
+    private boolean sendingWatchdogCommand = false;
     private Object sendingCommandLock = new Object();
 
     //
@@ -77,7 +77,11 @@ class SBrickImpl extends SBrickBase {
         Log.i(TAG, "  name:    " + bluetoothDevice.getName());
 
         this.bluetoothDevice = bluetoothDevice;
-        setName(bluetoothDevice.getName());
+        setName(bluetoothDevice.getName() + " " + bluetoothDevice.getAddress());
+
+        // Setup watchdog command
+        watchdogResetCommandBuffer[0] = 0xd;
+        watchdogResetCommandBuffer[1] = 0x0;
     }
 
     @Override
@@ -119,6 +123,7 @@ class SBrickImpl extends SBrickBase {
         isConnected = false;
         readingCharacteristics = false;
         sendingCommand = false;
+        sendingWatchdogCommand = false;
         remoteControlCharacteristic = null;
         quickDriveCharacteristic = null;
     }
@@ -180,6 +185,7 @@ class SBrickImpl extends SBrickBase {
             sendingCommand =
                     quickDriveCharacteristic.setValue(quickDriveCommandBuffer) &&
                     bluetoothGatt.writeCharacteristic(quickDriveCharacteristic);
+            sendingWatchdogCommand = false;
 
             return sendingCommand;
         }
@@ -219,6 +225,7 @@ class SBrickImpl extends SBrickBase {
                     isConnected = false;
                     readingCharacteristics = false;
                     sendingCommand = false;
+                    sendingWatchdogCommand = false;
                     remoteControlCharacteristic = null;
                     quickDriveCharacteristic = null;
 
@@ -246,6 +253,7 @@ class SBrickImpl extends SBrickBase {
                     quickDriveCharacteristic = getGattCharacteristic(gatt, SERVICE_UUID_REMOTE_CONTROL, CHARACTERISTIC_UUID_QUICK_DRIVE);
                     isConnected = true;
                     sendingCommand = false;
+                    sendingWatchdogCommand = false;
 
                     sendLocalBroadcast(ACTION_SBRICK_CONNECTED);
                     break;
@@ -315,18 +323,16 @@ class SBrickImpl extends SBrickBase {
         public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
             Log.i(TAG, "onCharacteristicWrite...");
 
-            if (200000000 < (System.nanoTime() - lastWatchdogReset)) {
-                // Sending watchdog reset
-                Log.i(TAG, "  Reset watchdog.");
-                watchdogResetCommandBuffer[0] = 0xd;
-                watchdogResetCommandBuffer[1] = 0x0;
-                remoteControlCharacteristic.setValue(watchdogResetCommandBuffer);
-                bluetoothGatt.writeCharacteristic(remoteControlCharacteristic);
-                lastWatchdogReset = System.nanoTime();
-            }
-            else {
-                synchronized (sendingCommandLock) {
+            synchronized (sendingCommandLock) {
+                if (!sendingWatchdogCommand) {
+                    // Sending watchdog reset
+                    Log.i(TAG, "  Reset watchdog.");
+                    remoteControlCharacteristic.setValue(watchdogResetCommandBuffer);
+                    bluetoothGatt.writeCharacteristic(remoteControlCharacteristic);
+                    sendingWatchdogCommand = true;
+                } else {
                     sendingCommand = false;
+                    sendingWatchdogCommand = false;
                     Log.i(TAG, "  Command sent.");
                 }
             }

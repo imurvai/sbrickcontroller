@@ -4,11 +4,40 @@
     android:layout_height="match_parent"
     tools:context="com.scn.sbrickcontroller.MainFragment">
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal">
 
-    <Button
-        android:layout_width="189dp"
-        android:layout_height="wrap_content"
-        android:text="Scan SBricks"
-        android:id="@+id/scan_sbricks_button"
-        android:layout_gravity="center" />
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <Button
+                android:id="@+id/scan_sbricks_button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="16dp"
+                android:text="Manage SBricks"/>
+
+            <Button
+                android:id="@+id/controller_profiles_button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="16dp"
+                android:text="Controller profiles"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1">
+
+        </LinearLayout>
+
+    </LinearLayout>
+
 </FrameLayout>

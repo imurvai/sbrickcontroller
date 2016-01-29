@@ -1,34 +1,41 @@
 package com.scn.sbrickcontrollerprofilemanager;
 
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.util.Log;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * SBrick controller profile.
  */
-public class SBrickControllerProfile {
+public class SBrickControllerProfile implements Parcelable {
 
     //
     // Public constants
     //
 
-    public static final int CONTROLLER_ACTION_DPAD_LEFT_RIGHT = 1;
-    public static final int CONTROLLER_ACTION_DPAD_UP_DOWN = 2;
-    public static final int CONTROLLER_ACTION_AXIS_X = 3;
-    public static final int CONTROLLER_ACTION_AXIS_Y = 4;
-    public static final int CONTROLLER_ACTION_THUMB_L = 5;
-    public static final int CONTROLLER_ACTION_AXIS_Z = 6;
-    public static final int CONTROLLER_ACTION_AXIS_RZ = 7;
-    public static final int CONTROLLER_ACTION_THUMB_R = 8;
-    public static final int CONTROLLER_ACTION_A = 9;
-    public static final int CONTROLLER_ACTION_B = 10;
-    public static final int CONTROLLER_ACTION_X = 11;
-    public static final int CONTROLLER_ACTION_Y = 12;
-    public static final int CONTROLLER_ACTION_R1 = 13;
-    public static final int CONTROLLER_ACTION_R_TRIGGER = 14;
-    public static final int CONTROLLER_ACTION_L1 = 15;
-    public static final int CONTROLLER_ACTION_L_TRIGGER = 16;
-    public static final int CONTROLLER_ACTION_START = 17;
-    public static final int CONTROLLER_ACTION_SELECT = 18;
+    public static final String CONTROLLER_ACTION_DPAD_LEFT_RIGHT = "CONTROLLER_ACTION_DPAD_LEFT_RIGHT";
+    public static final String CONTROLLER_ACTION_DPAD_UP_DOWN = "CONTROLLER_ACTION_DPAD_UP_DOWN";
+    public static final String CONTROLLER_ACTION_AXIS_X = "CONTROLLER_ACTION_AXIS_X";
+    public static final String CONTROLLER_ACTION_AXIS_Y = "CONTROLLER_ACTION_AXIS_Y";
+    public static final String CONTROLLER_ACTION_THUMB_L = "CONTROLLER_ACTION_THUMB_L";
+    public static final String CONTROLLER_ACTION_AXIS_Z = "CONTROLLER_ACTION_AXIS_Z";
+    public static final String CONTROLLER_ACTION_AXIS_RZ = "CONTROLLER_ACTION_AXIS_RZ";
+    public static final String CONTROLLER_ACTION_THUMB_R = "CONTROLLER_ACTION_THUMB_R";
+    public static final String CONTROLLER_ACTION_A = "CONTROLLER_ACTION_A";
+    public static final String CONTROLLER_ACTION_B = "CONTROLLER_ACTION_B";
+    public static final String CONTROLLER_ACTION_X = "CONTROLLER_ACTION_X";
+    public static final String CONTROLLER_ACTION_Y = "CONTROLLER_ACTION_Y";
+    public static final String CONTROLLER_ACTION_R1 = "CONTROLLER_ACTION_R1";
+    public static final String CONTROLLER_ACTION_R_TRIGGER = "CONTROLLER_ACTION_R_TRIGGER";
+    public static final String CONTROLLER_ACTION_L1 = "CONTROLLER_ACTION_L1";
+    public static final String CONTROLLER_ACTION_L_TRIGGER = "CONTROLLER_ACTION_L_TRIGGER";
+    public static final String CONTROLLER_ACTION_START = "CONTROLLER_ACTION_START";
+    public static final String CONTROLLER_ACTION_SELECT = "CONTROLLER_ACTION_SELECT";
 
     //
     // Private members
@@ -37,25 +44,7 @@ public class SBrickControllerProfile {
     private static final String TAG = SBrickControllerProfile.class.getSimpleName();
 
     private String name;
-
-    private ControllerAction dpadLeftRightControllerAction;
-    private ControllerAction dpadUpDownControllerAction;
-    private ControllerAction axisXControllerAction;
-    private ControllerAction axisYControllerAction;
-    private ControllerAction thumbLControllerAction;
-    private ControllerAction axisZControllerAction;
-    private ControllerAction axisRZControllerAction;
-    private ControllerAction thumbRControllerAction;
-    private ControllerAction aControllerAction;
-    private ControllerAction bControllerAction;
-    private ControllerAction xControllerAction;
-    private ControllerAction yControllerAction;
-    private ControllerAction l1ControllerAction;
-    private ControllerAction lTriggerControllerAction;
-    private ControllerAction r1ControllerAction;
-    private ControllerAction rTriggerControllerAction;
-    private ControllerAction startControllerAction;
-    private ControllerAction selectTriggerControllerAction;
+    private Map<String, ControllerAction> controllerActionMap = new HashMap();
 
     //
     // Constructor
@@ -70,6 +59,21 @@ public class SBrickControllerProfile {
         this.name = name;
     }
 
+    SBrickControllerProfile(Parcel parcel) {
+
+        if (parcel == null)
+            throw new RuntimeException("parcel is null.");
+
+        name = parcel.readString();
+
+        int size = parcel.readInt();
+        for (int i = 0; i < size; i++) {
+            String controllerActionId = parcel.readString();
+            ControllerAction controllerAction = parcel.readParcelable(ControllerAction.class.getClassLoader());
+            controllerActionMap.put(controllerActionId, controllerAction);
+        }
+    }
+
     //
     // API
     //
@@ -82,45 +86,11 @@ public class SBrickControllerProfile {
      * @param controllerActionId is the controller action ID.
      * @return The controller action object.
      */
-    public ControllerAction getControllerAction(int controllerActionId) {
-        switch (controllerActionId) {
-            case CONTROLLER_ACTION_DPAD_LEFT_RIGHT:
-                return dpadLeftRightControllerAction;
-            case CONTROLLER_ACTION_DPAD_UP_DOWN:
-                return dpadUpDownControllerAction;
-            case CONTROLLER_ACTION_AXIS_X:
-                return axisXControllerAction;
-            case CONTROLLER_ACTION_AXIS_Y:
-                return axisYControllerAction;
-            case CONTROLLER_ACTION_THUMB_L:
-                return thumbLControllerAction;
-            case CONTROLLER_ACTION_AXIS_Z:
-                return axisZControllerAction;
-            case CONTROLLER_ACTION_AXIS_RZ:
-                return axisRZControllerAction;
-            case CONTROLLER_ACTION_THUMB_R:
-                return thumbRControllerAction;
-            case CONTROLLER_ACTION_A:
-                return aControllerAction;
-            case CONTROLLER_ACTION_B:
-                return bControllerAction;
-            case CONTROLLER_ACTION_X:
-                return xControllerAction;
-            case CONTROLLER_ACTION_Y:
-                return yControllerAction;
-            case CONTROLLER_ACTION_L1:
-                return l1ControllerAction;
-            case CONTROLLER_ACTION_L_TRIGGER:
-                return lTriggerControllerAction;
-            case CONTROLLER_ACTION_R1:
-                return r1ControllerAction;
-            case CONTROLLER_ACTION_R_TRIGGER:
-                return rTriggerControllerAction;
-            case CONTROLLER_ACTION_START:
-                return startControllerAction;
-            case CONTROLLER_ACTION_SELECT:
-                return selectTriggerControllerAction;
-        }
+    public ControllerAction getControllerAction(String controllerActionId) {
+        Log.i(TAG, "getControllerAction - " + controllerActionId);
+
+        if (controllerActionMap.containsKey(controllerActionId))
+            return controllerActionMap.get(controllerActionId);
 
         return null;
     }
@@ -130,46 +100,61 @@ public class SBrickControllerProfile {
      * @param controllerActionId is the controller action ID.
      * @param controllerAction is the controller action object.
      */
-    public void setControllerAction(int controllerActionId, ControllerAction controllerAction) {
-        switch (controllerActionId) {
-            case CONTROLLER_ACTION_DPAD_LEFT_RIGHT:
-                dpadLeftRightControllerAction = controllerAction;
-            case CONTROLLER_ACTION_DPAD_UP_DOWN:
-                dpadUpDownControllerAction = controllerAction;
-            case CONTROLLER_ACTION_AXIS_X:
-                axisXControllerAction = controllerAction;
-            case CONTROLLER_ACTION_AXIS_Y:
-                axisYControllerAction = controllerAction;
-            case CONTROLLER_ACTION_THUMB_L:
-                thumbLControllerAction = controllerAction;
-            case CONTROLLER_ACTION_AXIS_Z:
-                axisZControllerAction = controllerAction;
-            case CONTROLLER_ACTION_AXIS_RZ:
-                axisRZControllerAction = controllerAction;
-            case CONTROLLER_ACTION_THUMB_R:
-                thumbRControllerAction = controllerAction;
-            case CONTROLLER_ACTION_A:
-                aControllerAction = controllerAction;
-            case CONTROLLER_ACTION_B:
-                bControllerAction = controllerAction;
-            case CONTROLLER_ACTION_X:
-                xControllerAction = controllerAction;
-            case CONTROLLER_ACTION_Y:
-                yControllerAction = controllerAction;
-            case CONTROLLER_ACTION_L1:
-                l1ControllerAction = controllerAction;
-            case CONTROLLER_ACTION_L_TRIGGER:
-                lTriggerControllerAction = controllerAction;
-            case CONTROLLER_ACTION_R1:
-                r1ControllerAction = controllerAction;
-            case CONTROLLER_ACTION_R_TRIGGER:
-                rTriggerControllerAction = controllerAction;
-            case CONTROLLER_ACTION_START:
-                startControllerAction = controllerAction;
-            case CONTROLLER_ACTION_SELECT:
-                selectTriggerControllerAction = controllerAction;
+    public void setControllerAction(String controllerActionId, ControllerAction controllerAction) {
+        Log.i(TAG, "setControllerAction - " + controllerActionId);
+        controllerActionMap.put(controllerActionId, controllerAction);
+    }
+
+    /**
+     * Gets all the SBrick addresses exist in any of the controller actions.
+     * @return Collection of SBrick addresses.
+     */
+    public Collection<String> getSBrickAddresses() {
+        Log.i(TAG, "getSBrickAddresses...");
+
+        Set<String> addresses = new HashSet<>();
+
+        for (ControllerAction controllerAction : controllerActionMap.values()) {
+            addresses.add(controllerAction.getSbrickAddress());
+        }
+
+        return addresses;
+    }
+
+    //
+    // Parcelable overrides
+    //
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        if (dest == null)
+            return;
+
+        dest.writeString(name);
+        dest.writeInt(controllerActionMap.size());
+        for (Map.Entry<String, ControllerAction> entry : controllerActionMap.entrySet()) {
+            dest.writeString(entry.getKey());
+            dest.writeParcelable(entry.getValue(), flags);
         }
     }
+
+    public static final Parcelable.Creator CREATOR = new Parcelable.Creator() {
+
+        @Override
+        public Object createFromParcel(Parcel source) {
+            return new SBrickControllerProfile(source);
+        }
+
+        @Override
+        public Object[] newArray(int size) {
+            return new SBrickControllerProfile[size];
+        }
+    };
 
     //
     //
@@ -178,7 +163,7 @@ public class SBrickControllerProfile {
     /**
      * Controller action class.
      */
-    public static class ControllerAction {
+    public static class ControllerAction implements Parcelable {
 
         //
         // Private members.
@@ -212,6 +197,16 @@ public class SBrickControllerProfile {
             this.invert = invert;
         }
 
+        public ControllerAction(Parcel parcel) {
+
+            if (parcel == null)
+                throw new RuntimeException("parcel is null.");
+
+            sbrickAddress = parcel.readString();
+            channel = parcel.readInt();
+            invert = parcel.readInt() != 0;
+        }
+
         //
         // API
         //
@@ -233,5 +228,34 @@ public class SBrickControllerProfile {
          * @return True if the value has to be inverted, false otherwise.
          */
         public boolean getInvert() { return invert; }
+
+        //
+        // Parcelable methods
+        //
+
+        @Override
+        public int describeContents() {
+            return 0;
+        }
+
+        @Override
+        public void writeToParcel(Parcel dest, int flags) {
+            dest.writeString(sbrickAddress);
+            dest.writeInt(channel);
+            dest.writeInt(invert ? 1 : 0);
+        }
+
+        public static final Parcelable.Creator CREATOR = new Parcelable.Creator() {
+
+            @Override
+            public Object createFromParcel(Parcel source) {
+                return new ControllerAction(source);
+            }
+
+            @Override
+            public Object[] newArray(int size) {
+                return new ControllerAction[size];
+            }
+        };
     }
 }

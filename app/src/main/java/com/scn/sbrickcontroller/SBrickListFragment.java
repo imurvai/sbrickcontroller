@@ -1,5 +1,6 @@
 package com.scn.sbrickcontroller;
 
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -19,6 +20,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -38,7 +40,8 @@ public class SBrickListFragment extends Fragment {
 
     private static final String TAG = SBrickListFragment.class.getSimpleName();
 
-    private static final int MENU_ITEM_FORGET = 0;
+    private static final int MENU_ITEM_ID_RENAME = 0;
+    private static final int MENU_ITEM_ID_FORGET = 1;
 
     private SBrickListAdapter sbrickListAdapter;
     private ProgressDialog progressDialog;
@@ -164,7 +167,8 @@ public class SBrickListFragment extends Fragment {
             List<SBrick> sbrickList = new ArrayList<>(SBrickManagerHolder.getSBrickManager().getSBricks());
             SBrick sbrick = sbrickList.get(info.position);
             menu.setHeaderTitle(sbrick.getName());
-            menu.add(Menu.NONE, 0, MENU_ITEM_FORGET, "Forget");
+            menu.add(Menu.NONE, 0, MENU_ITEM_ID_RENAME, "Rename");
+            menu.add(Menu.NONE, 0, MENU_ITEM_ID_FORGET, "Forget");
         }
     }
 
@@ -175,28 +179,56 @@ public class SBrickListFragment extends Fragment {
         List<SBrick> sbrickList = new ArrayList<>(SBrickManagerHolder.getSBrickManager().getSBricks());
         final SBrick sbrick = sbrickList.get(info.position);
 
-        Helper.showQuestionDialog(
-                getActivity(),
-                "Do you really want to forget this SBrick?",
-                "Yes",
-                "No",
-                new DialogInterface.OnClickListener() {
+        switch (item.getItemId()) {
+
+            case MENU_ITEM_ID_RENAME:
+                final EditText et = new EditText(getActivity());
+                et.setText(sbrick.getName());
+
+                AlertDialog.Builder ab = new AlertDialog.Builder(getActivity());
+                ab.setTitle("Rename the SBRick");
+                ab.setView(et);
+                ab.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        Log.i(TAG, "onClick...");
-                        SBrickManagerHolder.getSBrickManager().forgetSBrick(sbrick.getAddress());
+                        String newName = et.getText().toString();
+                        sbrick.setName(newName);
                         sbrickListAdapter.notifyDataSetChanged();
                     }
-                },
-                new DialogInterface.OnClickListener() {
+                });
+                ab.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        // Do nothing here
                     }
-                }
-        );
+                });
+                ab.show();
+                return true;
 
-        return true;
+            case MENU_ITEM_ID_FORGET:
+                Helper.showQuestionDialog(
+                        getActivity(),
+                        "Do you really want to forget this SBrick?",
+                        "Yes",
+                        "No",
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                Log.i(TAG, "onClick...");
+                                SBrickManagerHolder.getSBrickManager().forgetSBrick(sbrick.getAddress());
+                                sbrickListAdapter.notifyDataSetChanged();
+                            }
+                        },
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                // Do nothing here
+                            }
+                        }
+                );
+                return true;
+        }
+
+        return false;
     }
 
     //
