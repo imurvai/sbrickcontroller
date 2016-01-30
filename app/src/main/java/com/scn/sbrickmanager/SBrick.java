@@ -2,15 +2,29 @@ package com.scn.sbrickmanager;
 
 public interface SBrick {
 
+    /**
+     * SBrick characteristic types.
+     */
+    enum SBrickCharacteristicType {
+        DeviceName,
+        Appearance,
+        ModelNumber,
+        FirmwareRevision,
+        HardwareRevision,
+        SoftwareRevision,
+        ManufacturerName,
+        Unknown
+    };
+
     // Broadcast actions
     String ACTION_SBRICK_CONNECTED = "com.scn.sbrick.ACTION_SBRICK_CONNECTED";
     String ACTION_SBRICK_DISCONNECTED = "com.scn.sbrick.ACTION_SBRICK_DISCONNECTED";
     String ACTION_SBRICK_CHARACTERISTIC_READ = "com.scn.sbrick.ACTION_SBRICK_CHARACTERISTIC_READ";
 
     // Broadcast extras
-    String EXTRA_SBRICK_NAME = "com.scn.sbrick.EXTRA_SBRICK_NAME";
     String EXTRA_SBRICK_ADDRESS = "com.scn.sbrick.EXTRA_SBRICK_ADDRESS";
-    String EXTRA_CHARACTERISTICS = "com.scn.sbrick.EXTRA_CHARACTERISTICS";
+    String EXTRA_CHARACTERISTIC_TYPE = "com.scn.sbrick.EXTRA_CHARACTERISTIC_TYPE";
+    String EXTRA_CHARACTERISTIC_VALUE = "com.scn.sbrick.EXTRA_CHARACTERISTIC_VALUE";
 
     /**
      * @return The address of the SBrick.
@@ -41,11 +55,26 @@ public interface SBrick {
     void disconnect();
 
     /**
-     * Starts reading all relevant characteristics of the SBrick.
-     * When read the appropriate broadcast message is sent.
-     * @return True if the reading has been started ok, false otherwise.
+     * Checks if the SBrick is connected.
+     * @return true if connected, false otherwise.
      */
-    boolean getCharacteristicsAsync();
+    boolean isConnected();
+
+    /**
+     * Starts reading the specified characteristic.
+     * A broadcast message will be sent with the value.
+     * @param characteristicType identifies the characteristic to read.
+     * @return True if the reading started ok, false otherwise.
+     */
+    boolean readCharacteristic(SBrickCharacteristicType characteristicType);
+
+    /**
+     * Sends command to the specified channel.
+     * @param channel - channel (0-3)
+     * @param value - value (-255-22)
+     * @return True if the command has been sent ok, false otherwise.
+     */
+    boolean sendCommand(int channel, int value);
 
     /**
      * Sends command to all 4 channels.

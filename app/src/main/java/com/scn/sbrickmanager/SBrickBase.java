@@ -10,21 +10,6 @@ import android.util.Log;
  */
 abstract class SBrickBase implements SBrick {
 
-    /**
-     * SBrick characteristic types.
-     */
-    enum SBrickCharacteristicType {
-        DeviceName,
-        Appearance,
-        ModelNumber,
-        FirmwareRevision,
-        HardwareRevision,
-        SoftwareRevision,
-        ManufacturerName,
-        QuickDrive,
-        Unknown
-    };
-
     //
     // Private members
     //
@@ -63,7 +48,6 @@ abstract class SBrickBase implements SBrick {
     protected Intent buildBroadcastIntent(String action) {
         Intent intent = new Intent();
         intent.setAction(action);
-        intent.putExtra(EXTRA_SBRICK_NAME, getName());
         intent.putExtra(EXTRA_SBRICK_ADDRESS, getAddress());
         return intent;
     }

@@ -44,12 +44,28 @@ class SBrickControllerProfileManagerImpl implements SBrickControllerProfileManag
 
     @Override
     public synchronized void loadProfiles() {
+        Log.i(TAG, "loadProfiles...");
 
+        controllerProfiles.clear();
+
+        // Temp
+        SBrickControllerProfile profile = new SBrickControllerProfile("TestProfile");
+        String sbrickAddress = "00:07:80:2E:2C:05";
+        SBrickControllerProfile.ControllerAction action1 = new SBrickControllerProfile.ControllerAction(sbrickAddress, 0, false);
+        SBrickControllerProfile.ControllerAction action2 = new SBrickControllerProfile.ControllerAction(sbrickAddress, 1, false);
+        SBrickControllerProfile.ControllerAction action3 = new SBrickControllerProfile.ControllerAction(sbrickAddress, 2, false);
+        SBrickControllerProfile.ControllerAction action4 = new SBrickControllerProfile.ControllerAction(sbrickAddress, 3, true);
+        SBrickControllerProfile.ControllerAction action5 = new SBrickControllerProfile.ControllerAction(sbrickAddress, 3, false);
+        profile.setControllerAction(SBrickControllerProfile.CONTROLLER_ACTION_AXIS_X, action2);
+        profile.setControllerAction(SBrickControllerProfile.CONTROLLER_ACTION_AXIS_RZ, action4);
+        profile.setControllerAction(SBrickControllerProfile.CONTROLLER_ACTION_L_TRIGGER, action4);
+        profile.setControllerAction(SBrickControllerProfile.CONTROLLER_ACTION_R_TRIGGER, action5);
+        controllerProfiles.add(profile);
     }
 
     @Override
     public synchronized void saveProfiles() {
-
+        Log.i(TAG, "saveProfiles...");
     }
 
     @Override
@@ -69,51 +85,13 @@ class SBrickControllerProfileManagerImpl implements SBrickControllerProfileManag
     }
 
     @Override
-    public synchronized SBrickControllerProfile getProfile(String name) {
-        Log.i(TAG, "getProfile - " + name);
-
-        for (SBrickControllerProfile profile : controllerProfiles) {
-            if (profile.getName() == name)
-                return profile;
-        }
-
-        Log.w(TAG, "  profile not found.");
-        return null;
-    }
-
-    @Override
     public synchronized SBrickControllerProfile addNewProfile() {
         Log.i(TAG, "addNewProfile...");
 
-        String name = "Controller profile";
-        if (getProfile(name) != null) {
-            for (int i = 1; ; i++) {
-                String nameWithPostfix = name + " " + i;
-                if (getProfile(nameWithPostfix) != null) {
-                    name = nameWithPostfix;
-                    break;
-                }
-            }
-        }
-
+        String name = "My profile";
         SBrickControllerProfile profile = new SBrickControllerProfile(name);
         controllerProfiles.add(profile);
         return profile;
-    }
-
-    @Override
-    public synchronized boolean renameProfile(SBrickControllerProfile profile, String newName) {
-        Log.i(TAG, "renameProfile...");
-        Log.i(TAG, "  from: " + profile.getName());
-        Log.i(TAG, "  to:   " + newName);
-
-        if (getProfile(newName) != null) {
-            Log.w(TAG, "  Profile with the same name already exists.");
-            return false;
-        }
-
-        profile.setName(newName);
-        return true;
     }
 
     @Override

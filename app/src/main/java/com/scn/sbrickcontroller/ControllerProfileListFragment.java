@@ -87,10 +87,11 @@ public class ControllerProfileListFragment extends Fragment {
                 List<SBrickControllerProfile> profiles = new ArrayList<SBrickControllerProfile>(SBrickControllerProfileManagerHolder.getManager().getProfiles());
                 SBrickControllerProfile profile = profiles.get(position);
                 MainActivity activity = (MainActivity)getActivity();
-                activity.startControllerFragment(profile.getName());
+                activity.startControllerFragment(profile);
             }
         });
-        listViewControllerProfiles.setAdapter(new ControllerProfileListAdapter(getActivity()));
+        controllerProfileListAdapter = new ControllerProfileListAdapter(getActivity());
+        listViewControllerProfiles.setAdapter(controllerProfileListAdapter);
         registerForContextMenu(listViewControllerProfiles);
 
         buttonAddControllerProfile = (Button)view.findViewById(R.id.buttonAddControllerProfile);
@@ -155,8 +156,8 @@ public class ControllerProfileListFragment extends Fragment {
             AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo)menuInfo;
             SBrickControllerProfile profile = SBrickControllerProfileManagerHolder.getManager().getProfileAt(info.position);
             menu.setHeaderTitle(profile.getName());
-            menu.add(Menu.NONE, 0, MENU_ITEM_ID_EDIT, "Edit profile");
-            menu.add(Menu.NONE, 0, MENU_ITEM_ID_REMOVE, "Remove profile");
+            menu.add(Menu.NONE, MENU_ITEM_ID_EDIT, 0, "Edit profile");
+            menu.add(Menu.NONE, MENU_ITEM_ID_REMOVE, 0, "Remove profile");
         }
     }
 

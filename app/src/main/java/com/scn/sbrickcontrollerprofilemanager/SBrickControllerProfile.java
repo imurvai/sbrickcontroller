@@ -78,8 +78,17 @@ public class SBrickControllerProfile implements Parcelable {
     // API
     //
 
+    /**
+     * Gets the name of the profile.
+     * @return the name.
+     */
     public String getName() { return name; }
-    void setName(String name) { this.name = name; }
+
+    /**
+     * Sets the name of the profile.
+     * @param name
+     */
+    public void setName(String name) { this.name = name; }
 
     /**
      * Gets the controller action specified by its ID.

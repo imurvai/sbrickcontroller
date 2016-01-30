@@ -32,24 +32,9 @@ public interface SBrickControllerProfileManager {
     SBrickControllerProfile getProfileAt(int position);
 
     /**
-     * Gets the SBrick controller profile specified by its name.
-     * @param name is the name of the profile to get.
-     * @return The SBrick controller profile or null if not found.
-     */
-    SBrickControllerProfile getProfile(String name);
-
-    /**
      * Adds a new blank SBrick controller profile.
      */
     SBrickControllerProfile addNewProfile();
-
-    /**
-     * Renames the profile.
-     * @param profile to rename.
-     * @param newName is the new name.
-     * @return True if renameing was successful, false otherwise.
-     */
-    boolean renameProfile(SBrickControllerProfile profile, String newName);
 
     /**
      * Removes the SBrick controller profile.

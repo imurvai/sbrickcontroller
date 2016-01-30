@@ -20,10 +20,8 @@ public class SBrickMock extends SBrickBase {
     private final String address;
 
     private boolean isConnected = false;
-    private boolean isReadingCharacterictics = false;
 
     private AsyncTask<Void, Void, Void> connectionAsyncTask = null;
-    private AsyncTask<Void, Void, Void> readCharacteristicsAsyncTask = null;
 
     //
     // API
@@ -108,70 +106,59 @@ public class SBrickMock extends SBrickBase {
     }
 
     @Override
-    public boolean getCharacteristicsAsync() {
-        Log.i(TAG, "getCharacteristicsAsync - " + getAddress());
+    public boolean isConnected() {
+        return isConnected;
+    }
+
+    @Override
+    public boolean readCharacteristic(SBrickCharacteristicType characteristicType) {
+        Log.i(TAG, "readCharacteristic - " + getAddress());
 
         if (!isConnected) {
             Log.i(TAG, "  Not connected yet.");
             return false;
         }
 
-        if (isReadingCharacterictics) {
-            Log.i(TAG, "  Already reading characteristics.");
-            return false;
+        String value = "N/A";
+        switch (characteristicType) {
+            case DeviceName:
+                value = "SCNBrick";
+                break;
+            case ModelNumber:
+                value = "12345";
+                break;
+            case FirmwareRevision:
+            case HardwareRevision:
+            case SoftwareRevision:
+                value = "1.0";
+                break;
+            case ManufacturerName:
+                value = "SCN";
+                break;
+
+            case Appearance:
+                value = "0";
+                break;
         }
 
-        isReadingCharacterictics = true;
-        readCharacteristicsAsyncTask = new AsyncTask<Void, Void, Void>() {
-
-            @Override
-            protected Void doInBackground(Void... params) {
-
-                try {
-                    Thread.sleep(300);
-                }
-                catch (Exception ex) {
-                }
-
-                SBrickCharacteristics characteristics = new SBrickCharacteristics();
-                characteristics.setAddress(getAddress());
-                characteristics.setDeviceName("SCNBrick");
-                characteristics.setModelNumber("1");
-                characteristics.setFirmwareRevision("1.0");
-                characteristics.setHardwareRevision("1.0");
-                characteristics.setSoftwareRevision("1.0");
-                characteristics.setManufacturerName("SCN");
-
-                Intent intent = new Intent();
-                intent.setAction(ACTION_SBRICK_CHARACTERISTIC_READ);
-                intent.putExtra(EXTRA_CHARACTERISTICS, characteristics);
-                LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
-
-                return null;
-            }
-
-            @Override
-            protected void onCancelled() {
-                super.onCancelled();
-                isReadingCharacterictics = false;
-                readCharacteristicsAsyncTask = null;
-            }
-
-            @Override
-            protected void onPostExecute(Void aVoid) {
-                super.onPostExecute(aVoid);
-                isReadingCharacterictics = false;
-                readCharacteristicsAsyncTask = null;
-            }
-        }.execute();
-
+        Intent intent = new Intent();
+        intent.setAction(ACTION_SBRICK_CHARACTERISTIC_READ);
+        intent.putExtra(EXTRA_SBRICK_ADDRESS, getAddress());
+        intent.putExtra(EXTRA_CHARACTERISTIC_TYPE, characteristicType);
+        intent.putExtra(EXTRA_CHARACTERISTIC_VALUE, value);
+        LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
         return true;
+    }
+
+    @Override
+    public boolean sendCommand(int channel, int value) {
+        Log.i(TAG, "sendCommand - " + getAddress());
+        return isConnected;
     }
 
     @Override
     public boolean sendCommand(int v1, int v2, int v3, int v4) {
         Log.i(TAG, "sendCommand - " + getAddress());
-
         return isConnected;
     }
 }

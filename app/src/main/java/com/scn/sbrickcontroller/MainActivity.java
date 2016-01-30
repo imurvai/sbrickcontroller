@@ -14,6 +14,7 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 
+import com.scn.sbrickcontrollerprofilemanager.SBrickControllerProfile;
 import com.scn.sbrickmanager.SBrickManagerHolder;
 
 /**
@@ -180,10 +181,10 @@ public class MainActivity extends FragmentActivity {
         startFragment(controllerProfileListFragment);
     }
 
-    public void startControllerFragment(String controllerProfileName) {
-        Log.i(TAG, "startControllerFragment - " + controllerProfileName);
+    public void startControllerFragment(SBrickControllerProfile controllerProfile) {
+        Log.i(TAG, "startControllerFragment - " + controllerProfile.getName());
 
-        ControllerFragment controllerFragment = ControllerFragment.newInstance(controllerProfileName);
+        ControllerFragment controllerFragment = ControllerFragment.newInstance(controllerProfile);
         startFragment(controllerFragment);
     }
 
@@ -206,7 +207,7 @@ public class MainActivity extends FragmentActivity {
 
         FragmentManager fm = getSupportFragmentManager();
         for (Fragment fr : fm.getFragments()) {
-            if (fr.isVisible()) {
+            if (fr != null && fr.isVisible()) {
                 return fr;
             }
         }

@@ -167,8 +167,8 @@ public class SBrickListFragment extends Fragment {
             List<SBrick> sbrickList = new ArrayList<>(SBrickManagerHolder.getSBrickManager().getSBricks());
             SBrick sbrick = sbrickList.get(info.position);
             menu.setHeaderTitle(sbrick.getName());
-            menu.add(Menu.NONE, 0, MENU_ITEM_ID_RENAME, "Rename");
-            menu.add(Menu.NONE, 0, MENU_ITEM_ID_FORGET, "Forget");
+            menu.add(Menu.NONE, MENU_ITEM_ID_RENAME, 0, "Rename");
+            menu.add(Menu.NONE, MENU_ITEM_ID_FORGET, 0, "Forget");
         }
     }
 

@@ -1,7 +1,5 @@
 package com.scn.sbrickcontroller;
 
-import android.content.Context;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -9,22 +7,17 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.scn.sbrickcontrollerprofilemanager.SBrickControllerProfile;
-import com.scn.sbrickcontrollerprofilemanager.SBrickControllerProfileManagerHolder;
 
 
 public class EditControllerProfileFragment extends Fragment {
-
-    //
-    // Public constants
-    //
-
-    public static final String ARG_CONTROLLER_PROFILE_NAME = "arg_controller_profile_name";
 
     //
     // Private members
     //
 
     private static final String TAG = EditControllerProfileFragment.class.getSimpleName();
+
+    private static final String ARG_CONTROLLER_PROFILE = "arg_controller_profile";
 
     SBrickControllerProfile profile;
 
@@ -33,14 +26,13 @@ public class EditControllerProfileFragment extends Fragment {
     //
 
     public EditControllerProfileFragment() {
-        // Required empty public constructor
     }
 
-    public static EditControllerProfileFragment newInstance(String controllerProfileName) {
+    public static EditControllerProfileFragment newInstance(SBrickControllerProfile controllerProfile) {
         EditControllerProfileFragment fragment = new EditControllerProfileFragment();
 
         Bundle args = new Bundle();
-        args.putString(ARG_CONTROLLER_PROFILE_NAME, controllerProfileName);
+        args.putParcelable(ARG_CONTROLLER_PROFILE, controllerProfile);
         fragment.setArguments(args);
 
         return fragment;
@@ -55,13 +47,7 @@ public class EditControllerProfileFragment extends Fragment {
         super.onCreate(savedInstanceState);
 
         if (getArguments() != null) {
-            String profileName = getArguments().getString(ARG_CONTROLLER_PROFILE_NAME);
-            if (profileName == null) {
-                profile = SBrickControllerProfileManagerHolder.getManager().addNewProfile();
-            }
-            else {
-                profile = SBrickControllerProfileManagerHolder.getManager().getProfile(profileName);
-            }
+            profile = getArguments().getParcelable(ARG_CONTROLLER_PROFILE);
         }
     }
 

@@ -55,8 +55,6 @@ public class SBrickDetailsFragment extends Fragment implements GameControllerAct
 
     private ProgressDialog progressDialog;
 
-    private boolean isCharacteristicsRead = false;
-
     //
     // Constructors
     //
@@ -139,21 +137,31 @@ public class SBrickDetailsFragment extends Fragment implements GameControllerAct
         filter.addAction(SBrick.ACTION_SBRICK_CHARACTERISTIC_READ);
         LocalBroadcastManager.getInstance(getActivity()).registerReceiver(sbrickBroadcastReceiver, filter);
 
-        progressDialog = Helper.showProgressDialog(
-                SBrickDetailsFragment.this.getActivity(),
-                "Connecting to SBrick...",
-                new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        Log.i(TAG, "onClick...");
-                        sbrick.disconnect();
-                        MainActivity activity = (MainActivity)getActivity();
-                        activity.goBackFromFragment();
-                    }
-                });
-
-        if (!sbrick.connect()) {
-            getCharacteristics();
+        if (sbrick.connect()) {
+            progressDialog = Helper.showProgressDialog(
+                    SBrickDetailsFragment.this.getActivity(),
+                    "Connecting to SBrick...",
+                    new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            Log.i(TAG, "onClick...");
+                            sbrick.disconnect();
+                            MainActivity activity = (MainActivity)SBrickDetailsFragment.this.getActivity();
+                            activity.goBackFromFragment();
+                        }
+                    });
+        }
+        else {
+            Helper.showMessageBox(
+                    SBrickDetailsFragment.this.getActivity(),
+                    "Failed to start connecting to SBrick.",
+                    new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            MainActivity activity = (MainActivity)SBrickDetailsFragment.this.getActivity();
+                            activity.goBackFromFragment();
+                        }
+                    });
         }
 
         super.onResume();
@@ -197,7 +205,7 @@ public class SBrickDetailsFragment extends Fragment implements GameControllerAct
     @Override
     public boolean onGenericMotionEvent(MotionEvent event) {
 
-        if (!isCharacteristicsRead)
+        if (!sbrick.isConnected())
             return false;
 
         if ((event.getSource() & InputDevice.SOURCE_JOYSTICK) != 0 && event.getAction() == MotionEvent.ACTION_MOVE) {
@@ -216,21 +224,6 @@ public class SBrickDetailsFragment extends Fragment implements GameControllerAct
     //
     // Private methods and classes
     //
-
-    private void getCharacteristics() {
-        Log.i(TAG, "getCharacteristics");
-
-        if (progressDialog != null) {
-            progressDialog.setMessage("Reading SBrick details...");
-        }
-
-        if (!sbrick.getCharacteristicsAsync()) {
-            if (progressDialog != null) {
-                progressDialog.dismiss();
-                progressDialog = null;
-            }
-        }
-    }
 
     private final SeekBar.OnSeekBarChangeListener seekBarChangeListener = new SeekBar.OnSeekBarChangeListener() {
 
@@ -267,6 +260,7 @@ public class SBrickDetailsFragment extends Fragment implements GameControllerAct
     };
 
     private final BroadcastReceiver sbrickBroadcastReceiver = new BroadcastReceiver() {
+
         @Override
         public void onReceive(Context context, Intent intent) {
             Log.i(TAG, "sbrickBroadcastReceiver.onReceive...");
@@ -275,8 +269,18 @@ public class SBrickDetailsFragment extends Fragment implements GameControllerAct
                 case SBrick.ACTION_SBRICK_CONNECTED:
                     Log.i(TAG, "  ACTION_SBRICK_CONNECTED");
 
-                    if (!isCharacteristicsRead)
-                        getCharacteristics();
+                    if (progressDialog != null) {
+                        progressDialog.dismiss();
+                        progressDialog = null;
+                    }
+
+                    sbrick.readCharacteristic(SBrick.SBrickCharacteristicType.DeviceName);
+                    sbrick.readCharacteristic(SBrick.SBrickCharacteristicType.FirmwareRevision);
+                    sbrick.readCharacteristic(SBrick.SBrickCharacteristicType.HardwareRevision);
+                    sbrick.readCharacteristic(SBrick.SBrickCharacteristicType.SoftwareRevision);
+                    sbrick.readCharacteristic(SBrick.SBrickCharacteristicType.ManufacturerName);
+                    sbrick.readCharacteristic(SBrick.SBrickCharacteristicType.ModelNumber);
+                    sbrick.readCharacteristic(SBrick.SBrickCharacteristicType.Appearance);
 
                     break;
 
@@ -288,25 +292,40 @@ public class SBrickDetailsFragment extends Fragment implements GameControllerAct
                         progressDialog = null;
                     }
 
+                    MainActivity activity = (MainActivity)getActivity();
+                    activity.goBackFromFragment();
+
                     break;
 
                 case SBrick.ACTION_SBRICK_CHARACTERISTIC_READ:
                     Log.i(TAG, "  ACTION_SBRICK_CHARACTERISTIC_READ");
 
-                    isCharacteristicsRead = true;
+                    try {
+                        SBrick.SBrickCharacteristicType characteristicType = SBrick.SBrickCharacteristicType.valueOf(intent.getStringExtra(SBrick.EXTRA_CHARACTERISTIC_TYPE));
+                        String value = intent.getStringExtra(SBrick.EXTRA_CHARACTERISTIC_VALUE);
 
-                    if (progressDialog != null) {
-                        progressDialog.dismiss();
-                        progressDialog = null;
+                        switch (characteristicType) {
+                            case DeviceName:
+                                twDeviceName.setText(value);
+                                break;
+                            case ModelNumber:
+                                twModelNumber.setText(value);
+                                break;
+                            case FirmwareRevision:
+                                twFirmwareRevision.setText(value);
+                                break;
+                            case HardwareRevision:
+                                twHardwareRevision.setText(value);
+                                break;
+                            case SoftwareRevision:
+                                twSoftwareRevision.setText(value);
+                                break;
+                            case ManufacturerName:
+                                twManufacturerName.setText(value);
+                                break;
+                        }
                     }
-
-                    SBrickCharacteristics characteristics = intent.getParcelableExtra(SBrick.EXTRA_CHARACTERISTICS);
-                    twDeviceName.setText(characteristics.getDeviceName());
-                    twModelNumber.setText(characteristics.getModelNumber());
-                    twFirmwareRevision.setText(characteristics.getFirmwareRevision());
-                    twHardwareRevision.setText(characteristics.getHardwareRevision());
-                    twSoftwareRevision.setText(characteristics.getSoftwareRevision());
-                    twManufacturerName.setText(characteristics.getManufacturerName());
+                    catch (Exception ex) {}
 
                     break;
             }
