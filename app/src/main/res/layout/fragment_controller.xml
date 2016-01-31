@@ -2,12 +2,15 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.scn.sbrickcontroller.ControllerFragment">
+    tools:context="com.scn.sbrickcontroller.ControllerFragment"
+    android:background="#ffffff">
 
-    <!-- TODO: Update blank fragment layout -->
-    <TextView
-        android:layout_width="match_parent"
+    <ImageView
+        android:layout_width="wrap_content"
         android:layout_height="match_parent"
-        android:text="@string/hello_blank_fragment" />
+        android:background="@drawable/sbrick_controller"
+        android:adjustViewBounds="true"
+        android:scaleType="center"
+        android:layout_margin="16dp" />
 
 </FrameLayout>

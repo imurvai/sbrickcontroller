@@ -58,8 +58,8 @@ class SBrickControllerProfileManagerImpl implements SBrickControllerProfileManag
         SBrickControllerProfile.ControllerAction action5 = new SBrickControllerProfile.ControllerAction(sbrickAddress, 3, false);
         profile.setControllerAction(SBrickControllerProfile.CONTROLLER_ACTION_AXIS_X, action2);
         profile.setControllerAction(SBrickControllerProfile.CONTROLLER_ACTION_AXIS_RZ, action4);
-        profile.setControllerAction(SBrickControllerProfile.CONTROLLER_ACTION_L_TRIGGER, action4);
-        profile.setControllerAction(SBrickControllerProfile.CONTROLLER_ACTION_R_TRIGGER, action5);
+        profile.setControllerAction(SBrickControllerProfile.CONTROLLER_ACTION_R_TRIGGER, action4);
+        profile.setControllerAction(SBrickControllerProfile.CONTROLLER_ACTION_L_TRIGGER, action5);
         controllerProfiles.add(profile);
     }
 

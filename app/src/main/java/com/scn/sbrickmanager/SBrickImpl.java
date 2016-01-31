@@ -12,17 +12,15 @@ import android.content.Intent;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Objects;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.UUID;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingDeque;
-import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.Semaphore;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.TimeUnit;
 
 /**
  * SBrick real implementation.
@@ -60,6 +58,7 @@ class SBrickImpl extends SBrickBase {
 
     private LinkedBlockingDeque<Command> commandQueue = new LinkedBlockingDeque<>(100);
     private Semaphore commandSendingSemaphore = new Semaphore(1);
+    private Timer watchdogTimer = null;
 
     private int[] channelValues = new int[] { 0, 0, 0, 0 };
 
@@ -319,6 +318,37 @@ class SBrickImpl extends SBrickBase {
         }
 
         return false;
+    }
+
+    private synchronized void startWatchdogTimer() {
+        Log.i(TAG, "startWatchdogTimer...");
+
+        if (watchdogTimer != null) {
+            Log.w(TAG, "  Watchdog timer already started.");
+            return;
+        }
+
+        watchdogTimer = new Timer();
+        watchdogTimer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                Log.i(TAG, "watchdogScheduler.run...");
+                Command command = Command.initWatchdog();
+                commandQueue.offerFirst(command);
+            }
+        }, 0, 200);
+    }
+
+    private synchronized void stopWatchdogTimer() {
+        Log.i(TAG, "stopWatchdogTimer...");
+
+        if (watchdogTimer == null) {
+            Log.i(TAG, " Warchdog timer already stopped.");
+            return;
+        }
+
+        watchdogTimer.cancel();
+        watchdogTimer = null;
     }
 
     private final BluetoothGattCallback gattCallback = new BluetoothGattCallback() {

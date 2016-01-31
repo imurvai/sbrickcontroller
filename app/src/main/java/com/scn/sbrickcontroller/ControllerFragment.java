@@ -25,7 +25,9 @@ import com.scn.sbrickmanager.SBrickManagerHolder;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 
 public class ControllerFragment extends Fragment implements GameControllerActionListener {
@@ -164,44 +166,56 @@ public class ControllerFragment extends Fragment implements GameControllerAction
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
+        Log.i(TAG, "onKeyDown...");
 
-        if ((event.getSource() & InputDevice.SOURCE_GAMEPAD) != 0) {
-
-        }
+//        if ((event.getSource() & InputDevice.SOURCE_GAMEPAD) != 0) {
+//            Log.i(TAG, "  gamepad event.");
+//
+//            return true;
+//        }
         return false;
     }
 
     @Override
     public boolean onKeyUp(int keyCode, KeyEvent event) {
+        Log.i(TAG, "onKeyUp...");
+
+//        if ((event.getSource() & InputDevice.SOURCE_GAMEPAD) != 0) {
+//            Log.i(TAG, "  gamepad event.");
+//            return true;
+//        }
         return false;
     }
 
     @Override
     public boolean onGenericMotionEvent(MotionEvent event) {
+        Log.i(TAG, "onGenericMotionEvent...");
 
         if ((event.getSource() & InputDevice.SOURCE_JOYSTICK) != 0 && event.getAction() == MotionEvent.ACTION_MOVE) {
+            Log.i(TAG, "  Joystick event.");
 
-            int motionEventId = event.getAction();
-            String controllerActionId = getSBrickControllerActionIdForMotionEventId(motionEventId);
-            if (controllerActionId == null)
-                return true;
+            Map<String, Integer[]> channelNewValuesMap = new HashMap<>();
 
-            SBrickControllerProfile.ControllerAction controllerAction = profile.getControllerAction(controllerActionId);
-            if (controllerAction == null)
-                return true;
+            processMotionEvent(event, MotionEvent.AXIS_X, SBrickControllerProfile.CONTROLLER_ACTION_AXIS_X, channelNewValuesMap);
+            processMotionEvent(event, MotionEvent.AXIS_Y, SBrickControllerProfile.CONTROLLER_ACTION_AXIS_Y, channelNewValuesMap);
+            processMotionEvent(event, MotionEvent.AXIS_Z, SBrickControllerProfile.CONTROLLER_ACTION_AXIS_Z, channelNewValuesMap);
+            processMotionEvent(event, MotionEvent.AXIS_RZ, SBrickControllerProfile.CONTROLLER_ACTION_AXIS_RZ, channelNewValuesMap);
+            processMotionEvent(event, MotionEvent.AXIS_THROTTLE, SBrickControllerProfile.CONTROLLER_ACTION_R_TRIGGER, channelNewValuesMap);
+            processMotionEvent(event, MotionEvent.AXIS_BRAKE, SBrickControllerProfile.CONTROLLER_ACTION_L_TRIGGER, channelNewValuesMap);
 
-            String address = controllerAction.getSbrickAddress();
-            int channel = controllerAction.getChannel();
-            int value = (int)(event.getAxisValue(motionEventId) * (controllerAction.getInvert() ? -255 : 255));
+            for (String sbrickAddress: channelNewValuesMap.keySet()) {
+                SBrick sbrick = sbricksMap.get(sbrickAddress);
 
-            if (channelValuesMap.get(address)[channel] == value)
-                return true;
+                int[] values = channelValuesMap.get(sbrickAddress);
+                Integer[] newValues = channelNewValuesMap.get(sbrickAddress);
 
-            channelValuesMap.get(address)[channel] = value;
+                int v1 = (newValues[0] != null && Math.abs(values[0]) < Math.abs(newValues[0])) ? newValues[0] : values[0];
+                int v2 = (newValues[1] != null && Math.abs(values[1]) < Math.abs(newValues[1])) ? newValues[1] : values[1];
+                int v3 = (newValues[2] != null && Math.abs(values[2]) < Math.abs(newValues[2])) ? newValues[2] : values[2];
+                int v4 = (newValues[3] != null && Math.abs(values[3]) < Math.abs(newValues[3])) ? newValues[3] : values[3];
 
-            SBrick sbrick = sbricksMap.get(address);
-            int[] values = channelValuesMap.get(address);
-            sbrick.sendCommand(values[0], values[1], values[2], values[3]);
+                sbrick.sendCommand(v1, v2, v3, v4);
+            }
 
             return true;
         }
@@ -253,35 +267,27 @@ public class ControllerFragment extends Fragment implements GameControllerAction
         return true;
     }
 
-    private String setChannelValue(MotionEvent event, int motionEventId) {
-        String controllerActionId = getSBrickControllerActionIdForMotionEventId(motionEventId);
-        if (controllerActionId == null)
-            return null;
+    private void processMotionEvent(MotionEvent event, int motionEventId, String controllerActionId, Map<String, Integer[]> channelNewValuesMap) {
 
         SBrickControllerProfile.ControllerAction controllerAction = profile.getControllerAction(controllerActionId);
-        if (controllerAction != null) {
-            String address = controllerAction.getSbrickAddress();
-            int channel = controllerAction.getChannel();
-            int value = (int)(event.getAxisValue(motionEventId) * (controllerAction.getInvert() ? -255 : 255));
-
-            if (channelValuesMap.get(address)[channel] != value) {
-                channelValuesMap.get(address)[channel] = value;
-                return address;
-            }
+        if (controllerAction == null) {
+            return;
         }
-        return null;
-    }
 
-    private String getSBrickControllerActionIdForMotionEventId(int motionEventId) {
-        switch (motionEventId) {
-            case MotionEvent.AXIS_X: return SBrickControllerProfile.CONTROLLER_ACTION_AXIS_X;
-            case MotionEvent.AXIS_Y: return SBrickControllerProfile.CONTROLLER_ACTION_AXIS_Y;
-            case MotionEvent.AXIS_Z: return SBrickControllerProfile.CONTROLLER_ACTION_AXIS_Z;
-            case MotionEvent.AXIS_RZ: return SBrickControllerProfile.CONTROLLER_ACTION_AXIS_RZ;
-            case MotionEvent.AXIS_THROTTLE: return SBrickControllerProfile.CONTROLLER_ACTION_L_TRIGGER;
-            case MotionEvent.AXIS_BRAKE: return SBrickControllerProfile.CONTROLLER_ACTION_R_TRIGGER;
-        }
-        return null;
+        String sbrickAddress = controllerAction.getSbrickAddress();
+        int channel = controllerAction.getChannel();
+        int value = (int)(event.getAxisValue(motionEventId) * (controllerAction.getInvert() ? -255 : 255));
+
+        // Joystick not always goes back to 0 exactly
+        if (Math.abs(value) < 10)
+            value = 0;
+
+        if (!channelNewValuesMap.containsKey(sbrickAddress))
+            channelNewValuesMap.put(sbrickAddress, new Integer[4]);
+
+        Integer oldValue = (channelNewValuesMap.get(sbrickAddress))[channel];
+        if (oldValue == null || Math.abs(oldValue.intValue()) < Math.abs(value))
+            channelNewValuesMap.get(sbrickAddress)[channel] = new Integer(value);
     }
 
     private final BroadcastReceiver sbrickBroadcastReceiver = new BroadcastReceiver() {
