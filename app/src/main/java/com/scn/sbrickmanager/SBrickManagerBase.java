@@ -41,22 +41,32 @@ abstract class SBrickManagerBase implements SBrickManager {
     }
 
     //
-    // SBrickManager overrides
+    // Protected abstract methods
     //
 
+    protected abstract SBrick createSBrick(String sbrickAddress);
+
+    //
+    // SBrickManager overrides
+    //
 
     @Override
     public void loadSBricks() {
         Log.i(TAG, "loadSBricks...");
 
-        SharedPreferences prefs = context.getSharedPreferences(SBrickMapPreferencesName, Context.MODE_PRIVATE);
+        try {
+            SharedPreferences prefs = context.getSharedPreferences(SBrickMapPreferencesName, Context.MODE_PRIVATE);
 
-        sbrickMap.clear();
+            sbrickMap.clear();
 
-        HashMap<String, String> sbrickAddressAndNameMap = (HashMap<String, String>)prefs.getAll();
-        for (String sbrickAddress : sbrickAddressAndNameMap.keySet()) {
-            SBrick sbrick = getSBrick(sbrickAddress);
-            sbrick.setName(sbrickAddressAndNameMap.get(sbrickAddress));
+            HashMap<String, String> sbrickAddressAndNameMap = (HashMap<String, String>)prefs.getAll();
+            for (String sbrickAddress : sbrickAddressAndNameMap.keySet()) {
+                SBrick sbrick = createSBrick(sbrickAddress);
+                sbrick.setName(sbrickAddressAndNameMap.get(sbrickAddress));
+            }
+        }
+        catch (Exception ex) {
+            Log.e(TAG, "Error during loading SBricks.", ex);
         }
     }
 
@@ -64,18 +74,23 @@ abstract class SBrickManagerBase implements SBrickManager {
     public void saveSBricks() {
         Log.i(TAG, "saveSBricks...");
 
-        SharedPreferences prefs = context.getSharedPreferences(SBrickMapPreferencesName, Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = prefs.edit();
+        try {
+            SharedPreferences prefs = context.getSharedPreferences(SBrickMapPreferencesName, Context.MODE_PRIVATE);
+            SharedPreferences.Editor editor = prefs.edit();
 
-        // Clear first
-        editor.clear();
+            // Clear first
+            editor.clear();
 
-        // Write the sbricks
-        for (String sbrickAddress : sbrickMap.keySet()) {
-            editor.putString(sbrickAddress, sbrickMap.get(sbrickAddress).getName());
+            // Write the sbricks
+            for (String sbrickAddress : sbrickMap.keySet()) {
+                editor.putString(sbrickAddress, sbrickMap.get(sbrickAddress).getName());
+            }
+
+            editor.commit();
         }
-
-        editor.commit();
+        catch (Exception ex) {
+            Log.e(TAG, "Error during saving SBricks.", ex);
+        }
     }
 
     @Override

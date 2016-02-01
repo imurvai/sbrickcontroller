@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
+    android:orientation="horizontal"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginLeft="16dp"
@@ -8,17 +8,47 @@
     android:layout_marginTop="8dp"
     android:layout_marginBottom="8dp">
 
-    <TextView android:id="@+id/textview_sbrick_name"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:textSize="24dp"
-        android:text="deviceName" />
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:orientation="vertical">
 
-    <TextView android:id="@+id/textview_sbrick_address"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:textSize="18dp"
-        android:layout_marginLeft="8dp"
-        android:text="address" />
+        <TextView android:id="@+id/textview_sbrick_name"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:textSize="24dp"
+            android:text="deviceName" />
 
+        <TextView android:id="@+id/textview_sbrick_address"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:textSize="18dp"
+            android:layout_marginLeft="8dp"
+            android:text="address" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/rename_sbrick_button"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_margin="8dp"
+            android:background="@android:drawable/ic_menu_edit"
+            android:focusable="false"
+            android:focusableInTouchMode="false" />
+
+        <Button
+            android:id="@+id/forget_sbrick_button"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_margin="8dp"
+            android:background="@android:drawable/ic_delete"
+            android:focusable="false"
+            android:focusableInTouchMode="false" />
+    </LinearLayout>
 </LinearLayout>

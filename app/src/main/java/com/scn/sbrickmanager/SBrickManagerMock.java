@@ -35,6 +35,24 @@ class SBrickManagerMock extends SBrickManagerBase {
     }
 
     //
+    // SBrickManagerBase overrides
+    //
+
+    @Override
+    protected SBrick createSBrick(String sbrickAddress) {
+        Log.i(TAG, "createSBrick - " + sbrickAddress);
+
+        if (sbrickMap.containsKey(sbrickAddress)) {
+            Log.i(TAG, "  SBrick has already been created.");
+            return sbrickMap.get(sbrickAddress);
+        }
+
+        SBrick sbrick = new SBrickMock(context, sbrickAddress, "SCNBrick");
+        sbrickMap.put(sbrickAddress, sbrick);
+        return sbrick;
+    }
+
+    //
     // SBrickManager overrides
     //
 
@@ -75,19 +93,16 @@ class SBrickManagerMock extends SBrickManagerBase {
 
                         // 'Found' an SBrick
                         String address = sbrickAddresses[i];
-                        String name = "SBrick";
                         if (!sbrickMap.containsKey(address)) {
                             Log.i(TAG, "  Storing SBrick.");
-                            Log.i(TAG, "    Device name       : " + name);
                             Log.i(TAG, "    Device address    : " + address);
 
-                            SBrick sbrick = new SBrickMock(context, address, SBrickName);
-                            sbrickMap.put(address, sbrick);
+                            SBrick sbrick = createSBrick(address);
 
                             Intent sendIntent = new Intent();
                             sendIntent.setAction(ACTION_FOUND_AN_SBRICK);
-                            sendIntent.putExtra(EXTRA_SBRICK_NAME, name);
                             sendIntent.putExtra(EXTRA_SBRICK_ADDRESS, address);
+                            sendIntent.putExtra(EXTRA_SBRICK_NAME, sbrick.getName());
                             LocalBroadcastManager.getInstance(context).sendBroadcast(sendIntent);
                         } else {
                             Log.i(TAG, "  Sbrick has already been discovered.");
@@ -135,8 +150,7 @@ class SBrickManagerMock extends SBrickManagerBase {
         if (sbrickMap.containsKey(sbrickAddress))
             return sbrickMap.get(sbrickAddress);
 
-        SBrick sbrick = new SBrickMock(context, sbrickAddress, SBrickName);
-        sbrickMap.put(sbrickAddress, sbrick);
-        return sbrick;
+        Log.i(TAG, "  BSrick not found.");
+        return null;
     }
 }

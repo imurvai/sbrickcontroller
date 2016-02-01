@@ -74,7 +74,7 @@ class SBrickImpl extends SBrickBase {
         Log.i(TAG, "  name:    " + bluetoothDevice.getName());
 
         this.bluetoothDevice = bluetoothDevice;
-        setName(bluetoothDevice.getName() + " " + bluetoothDevice.getAddress());
+        setName(bluetoothDevice.getName());
     }
 
     @Override

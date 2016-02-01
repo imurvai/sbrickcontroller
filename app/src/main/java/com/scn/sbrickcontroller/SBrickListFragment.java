@@ -24,6 +24,7 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.scn.sbrickcontrollerprofilemanager.SBrickControllerProfileManagerHolder;
 import com.scn.sbrickmanager.SBrick;
 import com.scn.sbrickmanager.SBrickManager;
 import com.scn.sbrickmanager.SBrickManagerHolder;
@@ -39,9 +40,6 @@ public class SBrickListFragment extends Fragment {
     //
 
     private static final String TAG = SBrickListFragment.class.getSimpleName();
-
-    private static final int MENU_ITEM_ID_RENAME = 0;
-    private static final int MENU_ITEM_ID_FORGET = 1;
 
     private SBrickListAdapter sbrickListAdapter;
     private ProgressDialog progressDialog;
@@ -99,7 +97,6 @@ public class SBrickListFragment extends Fragment {
         });
         sbrickListAdapter = new SBrickListAdapter(getActivity());
         listViewSBricks.setAdapter(sbrickListAdapter);
-        registerForContextMenu(listViewSBricks);
 
         buttonScanSBricks = (Button)view.findViewById(R.id.buttonScanSBricks);
         buttonScanSBricks.setOnClickListener(new View.OnClickListener() {
@@ -149,86 +146,14 @@ public class SBrickListFragment extends Fragment {
         Log.i(TAG, "  Unregister the SBrick local broadcast receiver...");
         LocalBroadcastManager.getInstance(this.getActivity()).unregisterReceiver(sbrickBroadcastReceiver);
 
-        Log.i(TAG, "  Stop the SBrick scan. Just in case...");
         SBrickManagerHolder.getSBrickManager().stopSBrickScan();
+        SBrickManagerHolder.getSBrickManager().saveSBricks();
 
         Log.i(TAG, "  Dismiss the progress dialog if open...");
         if (progressDialog != null) {
             progressDialog.dismiss();
             progressDialog = null;
         }
-    }
-
-    @Override
-    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
-
-        if (v == listViewSBricks) {
-            AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo)menuInfo;
-            List<SBrick> sbrickList = new ArrayList<>(SBrickManagerHolder.getSBrickManager().getSBricks());
-            SBrick sbrick = sbrickList.get(info.position);
-            menu.setHeaderTitle(sbrick.getName());
-            menu.add(Menu.NONE, MENU_ITEM_ID_RENAME, 0, "Rename");
-            menu.add(Menu.NONE, MENU_ITEM_ID_FORGET, 0, "Forget");
-        }
-    }
-
-    @Override
-    public boolean onContextItemSelected(MenuItem item) {
-
-        AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo)item.getMenuInfo();
-        List<SBrick> sbrickList = new ArrayList<>(SBrickManagerHolder.getSBrickManager().getSBricks());
-        final SBrick sbrick = sbrickList.get(info.position);
-
-        switch (item.getItemId()) {
-
-            case MENU_ITEM_ID_RENAME:
-                final EditText et = new EditText(getActivity());
-                et.setText(sbrick.getName());
-
-                AlertDialog.Builder ab = new AlertDialog.Builder(getActivity());
-                ab.setTitle("Rename the SBRick");
-                ab.setView(et);
-                ab.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        String newName = et.getText().toString();
-                        sbrick.setName(newName);
-                        sbrickListAdapter.notifyDataSetChanged();
-                    }
-                });
-                ab.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                    }
-                });
-                ab.show();
-                return true;
-
-            case MENU_ITEM_ID_FORGET:
-                Helper.showQuestionDialog(
-                        getActivity(),
-                        "Do you really want to forget this SBrick?",
-                        "Yes",
-                        "No",
-                        new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                Log.i(TAG, "onClick...");
-                                SBrickManagerHolder.getSBrickManager().forgetSBrick(sbrick.getAddress());
-                                sbrickListAdapter.notifyDataSetChanged();
-                            }
-                        },
-                        new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                // Do nothing here
-                            }
-                        }
-                );
-                return true;
-        }
-
-        return false;
     }
 
     //
@@ -288,12 +213,65 @@ public class SBrickListFragment extends Fragment {
                 rowView = inflater.inflate(R.layout.sbrick_list_item, parent, false);
             }
 
-            SBrick sbrick = (SBrick)getItem(position);
+            final SBrick sbrick = (SBrick)getItem(position);
 
             TextView twSBrickName = (TextView)rowView.findViewById(R.id.textview_sbrick_name);
             TextView twSBrickAddress = (TextView)rowView.findViewById(R.id.textview_sbrick_address);
             twSBrickName.setText(sbrick.getName());
             twSBrickAddress.setText(sbrick.getAddress());
+
+            Button btnRenameSBrick = (Button)rowView.findViewById(R.id.rename_sbrick_button);
+            btnRenameSBrick.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    final EditText et = new EditText(context);
+                    et.setText(sbrick.getName());
+
+                    AlertDialog.Builder ab = new AlertDialog.Builder(context);
+                    ab.setTitle("Rename the SBRick");
+                    ab.setView(et);
+                    ab.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            String newName = et.getText().toString();
+                            sbrick.setName(newName);
+                            SBrickListAdapter.this.notifyDataSetChanged();
+                        }
+                    });
+                    ab.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                        }
+                    });
+                    ab.show();
+                }
+            });
+
+            Button btnForgetSBrick = (Button)rowView.findViewById(R.id.forget_sbrick_button);
+            btnForgetSBrick.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Helper.showQuestionDialog(
+                            context,
+                            "Do you really want to forget this SBrick?",
+                            "Yes",
+                            "No",
+                            new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    Log.i(TAG, "onClick...");
+                                    SBrickManagerHolder.getSBrickManager().forgetSBrick(sbrick.getAddress());
+                                    SBrickListAdapter.this.notifyDataSetChanged();
+                                }
+                            },
+                            new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    // Do nothing here
+                                }
+                            });
+                }
+            });
 
             return rowView;
         }

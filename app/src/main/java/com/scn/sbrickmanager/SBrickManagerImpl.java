@@ -53,6 +53,25 @@ class SBrickManagerImpl extends SBrickManagerBase {
     }
 
     //
+    // SBrickManagerBase overrides
+    //
+
+    @Override
+    protected synchronized SBrick createSBrick(String sbrickAddress) {
+        Log.i(TAG, "createSBrick - " + sbrickAddress);
+
+        if (sbrickMap.containsKey(sbrickAddress)) {
+            Log.i(TAG, "  SBrick is already in the map.");
+            return sbrickMap.get(sbrickAddress);
+        }
+
+        BluetoothDevice sbrickDevice = bluetoothAdapter.getRemoteDevice(sbrickAddress);
+        SBrick sbrick = new SBrickImpl(context, sbrickDevice);
+        sbrickMap.put(sbrickAddress, sbrick);
+        return sbrick;
+    }
+
+    //
     // SBrickManager overrides
     //
 
@@ -79,7 +98,7 @@ class SBrickManagerImpl extends SBrickManagerBase {
     }
 
     @Override
-    public boolean startSBrickScan() {
+    public synchronized boolean startSBrickScan() {
         Log.i(TAG, "startSBrickScan...");
 
         if (isScanning) {
@@ -97,7 +116,7 @@ class SBrickManagerImpl extends SBrickManagerBase {
     }
 
     @Override
-    public void stopSBrickScan() {
+    public synchronized void stopSBrickScan() {
         Log.i(TAG, "stopSBrickScan...");
 
         bluetoothAdapter.stopLeScan(leScanCallback);
@@ -105,22 +124,14 @@ class SBrickManagerImpl extends SBrickManagerBase {
     }
 
     @Override
-    public SBrick getSBrick(String sbrickAddress) {
+    public synchronized SBrick getSBrick(String sbrickAddress) {
         Log.i(TAG, "getSBrick - " + sbrickAddress);
 
         if (sbrickMap.containsKey(sbrickAddress)) {
-            Log.i(TAG, "  SBrick device has already been created.");
             return sbrickMap.get(sbrickAddress);
         }
 
-        Log.i(TAG, "  Create the SBrick device...");
-        BluetoothDevice sbrickDevice = bluetoothAdapter.getRemoteDevice(sbrickAddress);
-        if (sbrickDevice != null) {
-            SBrick sbrick = new SBrickImpl(context, sbrickDevice);
-            sbrickMap.put(sbrickAddress, sbrick);
-            return sbrick;
-        }
-
+        Log.w(TAG, "  SBrick not found.");
         return null;
     }
 
@@ -130,7 +141,7 @@ class SBrickManagerImpl extends SBrickManagerBase {
 
     private final BluetoothAdapter.LeScanCallback leScanCallback = new BluetoothAdapter.LeScanCallback() {
         @Override
-        public void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord) {
+        public synchronized void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord) {
             Log.i(TAG, "onScanResult...");
 
             if (device != null && device.getName() != null) {
