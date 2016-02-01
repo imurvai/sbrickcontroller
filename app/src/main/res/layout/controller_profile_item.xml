@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="horizontal"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -13,7 +14,8 @@
         android:layout_height="match_parent"
         android:layout_weight="1">
 
-        <TextView android:id="@+id/textviewControllerProfileName"
+        <TextView
+            android:id="@+id/textview_controller_profile_name"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:textSize="32dp"
@@ -30,7 +32,7 @@
         android:orientation="horizontal">
 
         <Button
-            android:id="@+id/edit_controller_profile_button"
+            android:id="@+id/button_edit_controller_profile"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:layout_margin="8dp"
@@ -38,7 +40,7 @@
             android:focusable="false" />
 
         <Button
-            android:id="@+id/delete_controller_profile_button"
+            android:id="@+id/button_delete_controller_profile"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:layout_margin="8dp"

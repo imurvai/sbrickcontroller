@@ -53,7 +53,7 @@ public class MainFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_main, container, false);
 
-        Button buttonManageSBricks = (Button)view.findViewById(R.id.scan_sbricks_button);
+        Button buttonManageSBricks = (Button)view.findViewById(R.id.button_scan_sbricks);
         buttonManageSBricks.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -62,7 +62,7 @@ public class MainFragment extends Fragment {
             }
         });
 
-        Button buttonControllerProfiles = (Button)view.findViewById(R.id.controller_profiles_button);
+        Button buttonControllerProfiles = (Button)view.findViewById(R.id.button_controller_profiles);
         buttonControllerProfiles.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

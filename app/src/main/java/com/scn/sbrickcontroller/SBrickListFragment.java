@@ -11,10 +11,7 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
-import android.view.ContextMenu;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -24,7 +21,6 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.scn.sbrickcontrollerprofilemanager.SBrickControllerProfileManagerHolder;
 import com.scn.sbrickmanager.SBrick;
 import com.scn.sbrickmanager.SBrickManager;
 import com.scn.sbrickmanager.SBrickManagerHolder;
@@ -81,7 +77,7 @@ public class SBrickListFragment extends Fragment {
         View view =  inflater.inflate(R.layout.fragment_sbrick_list, container, false);
 
         Log.i(TAG, "  Setup the list view adapter...");
-        listViewSBricks = (ListView)view.findViewById(R.id.listViewSBricks);
+        listViewSBricks = (ListView)view.findViewById(R.id.listview_sbricks);
         listViewSBricks.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -98,7 +94,7 @@ public class SBrickListFragment extends Fragment {
         sbrickListAdapter = new SBrickListAdapter(getActivity());
         listViewSBricks.setAdapter(sbrickListAdapter);
 
-        buttonScanSBricks = (Button)view.findViewById(R.id.buttonScanSBricks);
+        buttonScanSBricks = (Button)view.findViewById(R.id.button_scan_sbricks);
         buttonScanSBricks.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -220,7 +216,7 @@ public class SBrickListFragment extends Fragment {
             twSBrickName.setText(sbrick.getName());
             twSBrickAddress.setText(sbrick.getAddress());
 
-            Button btnRenameSBrick = (Button)rowView.findViewById(R.id.rename_sbrick_button);
+            Button btnRenameSBrick = (Button)rowView.findViewById(R.id.button_rename_sbrick);
             btnRenameSBrick.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -247,7 +243,7 @@ public class SBrickListFragment extends Fragment {
                 }
             });
 
-            Button btnForgetSBrick = (Button)rowView.findViewById(R.id.forget_sbrick_button);
+            Button btnForgetSBrick = (Button)rowView.findViewById(R.id.button_forget_sbrick);
             btnForgetSBrick.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {

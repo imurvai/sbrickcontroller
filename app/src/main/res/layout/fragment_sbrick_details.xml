@@ -1,4 +1,5 @@
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -9,7 +10,6 @@
         xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
-        android:scrollbars="none"
         android:layout_weight="1" >
 
         <LinearLayout
@@ -33,10 +33,10 @@
                 android:text="Display name" />
 
             <EditText
+                android:id="@+id/edittext_display_name"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceSmall"
-                android:id="@+id/editTextDisplayName"
                 android:text="N/A"
                 android:padding="4dp"/>
 
@@ -67,11 +67,11 @@
                         android:padding="4dp" />
 
                     <TextView
+                        android:id="@+id/textview_device_name"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:textAppearance="?android:attr/textAppearanceSmall"
                         android:text="N/A"
-                        android:id="@+id/textViewDeviceName"
                         android:layout_column="1"
                         android:padding="4dp" />
                 </TableRow>
@@ -89,11 +89,11 @@
                         android:padding="4dp" />
 
                     <TextView
+                        android:id="@+id/textview_address"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:textAppearance="?android:attr/textAppearanceSmall"
                         android:text="N/A"
-                        android:id="@+id/textViewAddress"
                         android:layout_column="1"
                         android:padding="4dp" />
                 </TableRow>
@@ -109,30 +109,30 @@
                 android:paddingTop="16dp"/>
 
             <SeekBar
+                android:id="@+id/seekbar_port1"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:id="@+id/seekBarPort1"
                 android:max="100"
                 android:padding="4dp" />
 
             <SeekBar
+                android:id="@+id/seekbar_port2"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:id="@+id/seekBarPort2"
                 android:max="100"
                 android:padding="4dp" />
 
             <SeekBar
+                android:id="@+id/seekbar_port3"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:id="@+id/seekBarPort3"
                 android:max="100"
                 android:padding="4dp" />
 
             <SeekBar
+                android:id="@+id/seekbar_port4"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:id="@+id/seekBarPort4"
                 android:max="100"
                 android:padding="4dp" />
 
@@ -164,11 +164,11 @@
                         android:padding="4dp" />
 
                     <TextView
+                        android:id="@+id/textview_model_number"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:textAppearance="?android:attr/textAppearanceSmall"
                         android:text="N/A"
-                        android:id="@+id/textViewModelNumber"
                         android:layout_column="2"
                         android:padding="4dp" />
 
@@ -187,11 +187,11 @@
                         android:padding="4dp" />
 
                     <TextView
+                        android:id="@+id/textview_firmware_revision"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:textAppearance="?android:attr/textAppearanceSmall"
                         android:text="N/A"
-                        android:id="@+id/textViewFirmwareRevision"
                         android:layout_column="2"
                         android:padding="4dp" />
                 </TableRow>
@@ -209,11 +209,11 @@
                         android:padding="4dp" />
 
                     <TextView
+                        android:id="@+id/textview_hardware_revision"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:textAppearance="?android:attr/textAppearanceSmall"
                         android:text="N/A"
-                        android:id="@+id/textViewHardwareRevision"
                         android:layout_column="2"
                         android:padding="4dp" />
 
@@ -232,11 +232,11 @@
                         android:padding="4dp" />
 
                     <TextView
+                        android:id="@+id/textview_software_revision"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:textAppearance="?android:attr/textAppearanceSmall"
                         android:text="N/A"
-                        android:id="@+id/textViewSoftwareRevision"
                         android:layout_column="2"
                         android:padding="4dp" />
 
@@ -255,18 +255,15 @@
                         android:padding="4dp" />
 
                     <TextView
+                        android:id="@+id/textview_manufacturer_name"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:textAppearance="?android:attr/textAppearanceSmall"
                         android:text="N/A"
-                        android:id="@+id/textViewManufacturerName"
                         android:layout_column="2"
                         android:padding="4dp" />
                 </TableRow>
             </TableLayout>
-
         </LinearLayout>
-
     </ScrollView>
-
 </FrameLayout>

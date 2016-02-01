@@ -21,7 +21,6 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.scn.sbrickmanager.SBrick;
-import com.scn.sbrickmanager.SBrickCharacteristics;
 import com.scn.sbrickmanager.SBrickManagerHolder;
 
 
@@ -98,18 +97,18 @@ public class SBrickDetailsFragment extends Fragment implements GameControllerAct
 
         View view = inflater.inflate(R.layout.fragment_sbrick_details, container, false);
 
-        etDisplayName = (EditText)view.findViewById(R.id.editTextDisplayName);
-        twDeviceName = (TextView)view.findViewById(R.id.textViewDeviceName);
-        twAddress = (TextView)view.findViewById(R.id.textViewAddress);
-        twModelNumber = (TextView)view.findViewById(R.id.textViewModelNumber);
-        twFirmwareRevision = (TextView)view.findViewById(R.id.textViewFirmwareRevision);
-        twHardwareRevision = (TextView)view.findViewById(R.id.textViewHardwareRevision);
-        twSoftwareRevision = (TextView)view.findViewById(R.id.textViewSoftwareRevision);
-        twManufacturerName = (TextView)view.findViewById(R.id.textViewManufacturerName);
-        sbPort1 = (SeekBar)view.findViewById(R.id.seekBarPort1);
-        sbPort2 = (SeekBar)view.findViewById(R.id.seekBarPort2);
-        sbPort3 = (SeekBar)view.findViewById(R.id.seekBarPort3);
-        sbPort4 = (SeekBar)view.findViewById(R.id.seekBarPort4);
+        etDisplayName = (EditText)view.findViewById(R.id.edittext_display_name);
+        twDeviceName = (TextView)view.findViewById(R.id.textview_device_name);
+        twAddress = (TextView)view.findViewById(R.id.textview_address);
+        twModelNumber = (TextView)view.findViewById(R.id.textview_model_number);
+        twFirmwareRevision = (TextView)view.findViewById(R.id.textview_firmware_revision);
+        twHardwareRevision = (TextView)view.findViewById(R.id.textview_hardware_revision);
+        twSoftwareRevision = (TextView)view.findViewById(R.id.textview_software_revision);
+        twManufacturerName = (TextView)view.findViewById(R.id.textview_manufacturer_name);
+        sbPort1 = (SeekBar)view.findViewById(R.id.seekbar_port1);
+        sbPort2 = (SeekBar)view.findViewById(R.id.seekbar_port2);
+        sbPort3 = (SeekBar)view.findViewById(R.id.seekbar_port3);
+        sbPort4 = (SeekBar)view.findViewById(R.id.seekbar_port4);
 
         twAddress.setText(sbrick.getAddress());
         etDisplayName.setText(sbrick.getName());

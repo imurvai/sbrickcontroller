@@ -115,6 +115,17 @@ public class SBrickControllerProfile implements Parcelable {
     }
 
     /**
+     * Removes the controller action.
+     * @param controllerActionId is the controller action ID.
+     */
+    public void removeControllerAction(String controllerActionId) {
+        Log.i(TAG, "deleteControllerAction...");
+
+        if (controllerActionMap.containsKey(controllerActionId))
+            controllerActionMap.remove(controllerActionId);
+    }
+
+    /**
      * Gets all the SBrick addresses exist in any of the controller actions.
      * @return Collection of SBrick addresses.
      */

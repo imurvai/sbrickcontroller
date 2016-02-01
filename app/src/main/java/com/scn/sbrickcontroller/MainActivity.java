@@ -188,6 +188,13 @@ public class MainActivity extends FragmentActivity {
         startFragment(controllerFragment);
     }
 
+    public void startEditControllerProfileFragment(SBrickControllerProfile profile) {
+        Log.i(TAG, "startEditControllerProfileFragment...");
+
+        EditControllerProfileFragment editControllerProfileFragment = EditControllerProfileFragment.newInstance(profile);
+        startFragment(editControllerProfileFragment);
+    }
+
     //
     // Private methods
     //

@@ -5,10 +5,7 @@ import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.util.Log;
-import android.view.ContextMenu;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -19,8 +16,6 @@ import android.widget.TextView;
 
 import com.scn.sbrickcontrollerprofilemanager.SBrickControllerProfile;
 import com.scn.sbrickcontrollerprofilemanager.SBrickControllerProfileManagerHolder;
-import com.scn.sbrickmanager.SBrick;
-import com.scn.sbrickmanager.SBrickManagerHolder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -73,7 +68,7 @@ public class ControllerProfileListFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_controller_profile_list, container, false);
 
-        listViewControllerProfiles = (ListView)view.findViewById(R.id.listViewControllerProfiles);
+        listViewControllerProfiles = (ListView)view.findViewById(R.id.listView_controller_profiles);
         listViewControllerProfiles.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -89,13 +84,15 @@ public class ControllerProfileListFragment extends Fragment {
         controllerProfileListAdapter = new ControllerProfileListAdapter(getActivity());
         listViewControllerProfiles.setAdapter(controllerProfileListAdapter);
 
-        buttonAddControllerProfile = (Button)view.findViewById(R.id.buttonAddControllerProfile);
+        buttonAddControllerProfile = (Button)view.findViewById(R.id.button_add_controller_profile);
         buttonAddControllerProfile.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Log.i(TAG, "onClick...");
 
-                // TODO: open the controller profile editor with a blank profile
+                SBrickControllerProfile newProfile = SBrickControllerProfileManagerHolder.getManager().addNewProfile();
+                MainActivity activity = (MainActivity)getActivity();
+                activity.startEditControllerProfileFragment(newProfile);
             }
         });
 
@@ -182,18 +179,22 @@ public class ControllerProfileListFragment extends Fragment {
 
             final SBrickControllerProfile profile = (SBrickControllerProfile) getItem(position);
 
-            TextView twControllerProfileName = (TextView)rowView.findViewById(R.id.textviewControllerProfileName);
+            TextView twControllerProfileName = (TextView)rowView.findViewById(R.id.textview_controller_profile_name);
             twControllerProfileName.setText(profile.getName());
 
-            Button btnEditProfile = (Button)rowView.findViewById(R.id.edit_controller_profile_button);
+            Button btnEditProfile = (Button)rowView.findViewById(R.id.button_edit_controller_profile);
             btnEditProfile.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    // TODO: open the profile editor
+                    Log.i(TAG, "onClick...");
+
+                    SBrickControllerProfile newProfile = SBrickControllerProfileManagerHolder.getManager().addNewProfile();
+                    MainActivity activity = (MainActivity)context;
+                    activity.startEditControllerProfileFragment(profile);
                 }
             });
 
-            Button btnDeleteProfile = (Button)rowView.findViewById(R.id.delete_controller_profile_button);
+            Button btnDeleteProfile = (Button)rowView.findViewById(R.id.button_delete_controller_profile);
             btnDeleteProfile.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
