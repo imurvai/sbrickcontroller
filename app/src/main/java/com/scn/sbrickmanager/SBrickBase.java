@@ -21,9 +21,17 @@ abstract class SBrickBase implements SBrick {
     private String name = null;
 
     //
-    // SBrick overrides
+    // Object overrides
     //
 
+    @Override
+    public String toString() {
+        return getName();
+    }
+
+    //
+    // SBrick overrides
+    //
 
     @Override
     public String getName() {

@@ -157,7 +157,7 @@ public class MainActivity extends FragmentActivity {
 
     public void goBackFromFragment() {
         Log.i(TAG, "goBackFromFragment...");
-        getFragmentManager().popBackStack();
+        getSupportFragmentManager().popBackStack();
     }
 
     public void startSBrickListFragment() {
@@ -193,6 +193,13 @@ public class MainActivity extends FragmentActivity {
 
         EditControllerProfileFragment editControllerProfileFragment = EditControllerProfileFragment.newInstance(profile);
         startFragment(editControllerProfileFragment);
+    }
+
+    public void startEditControllerActionFragment(SBrickControllerProfile profile, String controllerActionId) {
+        Log.i(TAG, "startEditControllerActionFragment...");
+
+        EditControllerActionFragment editControllerActionFragment = EditControllerActionFragment.newInstance(profile, controllerActionId);
+        startFragment(editControllerActionFragment);
     }
 
     //

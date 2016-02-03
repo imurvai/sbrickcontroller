@@ -78,7 +78,11 @@ public class EditControllerProfileFragment extends Fragment {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Log.i(TAG, "onItemClick...");
-                // TODO: open the controller action editor
+
+                String controllerActionId = ControllerActionListAdapter.getControllerActionId(position);
+
+                MainActivity activity = (MainActivity)EditControllerProfileFragment.this.getActivity();
+                activity.startEditControllerActionFragment(profile, controllerActionId);
             }
         });
         conrollerActionListAdapter = new ControllerActionListAdapter(getActivity(), profile);
@@ -151,14 +155,14 @@ public class EditControllerProfileFragment extends Fragment {
                 rowView = inflater.inflate(R.layout.controller_action_item, parent, false);
             }
 
-            final SBrickControllerProfile.ControllerAction controllerAction = (SBrickControllerProfile.ControllerAction) getItem(position);
+            final String controllerActionName = SBrickControllerProfile.getControllerActionName(getControllerActionId(position));
+            final SBrickControllerProfile.ControllerAction controllerAction = (SBrickControllerProfile.ControllerAction)getItem(position);
 
             TextView twControllerActionName = (TextView)rowView.findViewById(R.id.textview_controller_action_name);
             TextView twSBrickAddress = (TextView)rowView.findViewById(R.id.textview_sbrick_address);
             TextView twChannel = (TextView)rowView.findViewById(R.id.textview_channel);
             TextView twInvert = (TextView)rowView.findViewById(R.id.textview_invert);
 
-            final String controllerActionName = getControllerActionName(position);
             twControllerActionName.setText(controllerActionName);
             twSBrickAddress.setText(controllerAction != null ? controllerAction.getSbrickAddress() : "-");
             twChannel.setText(controllerAction != null ? Integer.toString(controllerAction.getChannel()) : "-");
@@ -198,7 +202,7 @@ public class EditControllerProfileFragment extends Fragment {
         // Private methods
         //
 
-        private String getControllerActionId(int position) {
+        public static String getControllerActionId(int position) {
             switch (position) {
                 case 0: return SBrickControllerProfile.CONTROLLER_ACTION_DPAD_LEFT_RIGHT;
                 case 1: return SBrickControllerProfile.CONTROLLER_ACTION_DPAD_UP_DOWN;
@@ -218,30 +222,6 @@ public class EditControllerProfileFragment extends Fragment {
                 case 15: return SBrickControllerProfile.CONTROLLER_ACTION_L_TRIGGER;
                 case 16: return SBrickControllerProfile.CONTROLLER_ACTION_START;
                 case 17: return SBrickControllerProfile.CONTROLLER_ACTION_SELECT;
-            }
-            return "";
-        }
-
-        private String getControllerActionName(int position) {
-            switch (position) {
-                case 0: return "Dpad horizontal";
-                case 1: return "Dpad vertical";
-                case 2: return "Left joy horizontal";
-                case 3: return "Left joy vertical";
-                case 4: return "Left thumb";
-                case 5: return "Right joy horizontal";
-                case 6: return "Right joy vertical";
-                case 7: return "Right thumb";
-                case 8: return "Button A";
-                case 9: return "Button B";
-                case 10: return "Button X";
-                case 11: return "Button Y";
-                case 12: return "Right trigger button";
-                case 13: return "Right trigger";
-                case 14: return "Left trigger button";
-                case 15: return "Left trigger";
-                case 16: return "Start button";
-                case 17: return "Select button";
             }
             return "";
         }

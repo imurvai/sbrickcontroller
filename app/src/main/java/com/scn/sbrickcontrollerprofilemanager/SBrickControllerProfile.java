@@ -141,6 +141,35 @@ public class SBrickControllerProfile implements Parcelable {
         return addresses;
     }
 
+    /**
+     * Gets the user friendly controller action name.
+     * @param controllerActionId
+     * @return The controller action name.
+     */
+    public static String getControllerActionName(String controllerActionId) {
+        switch (controllerActionId) {
+            case CONTROLLER_ACTION_DPAD_LEFT_RIGHT: return "Dpad horizontal";
+            case CONTROLLER_ACTION_DPAD_UP_DOWN: return "Dpad vertical";
+            case CONTROLLER_ACTION_AXIS_X: return "Left joy horizontal";
+            case CONTROLLER_ACTION_AXIS_Y: return "Left joy vertical";
+            case CONTROLLER_ACTION_THUMB_L: return "Left thumb";
+            case CONTROLLER_ACTION_AXIS_Z: return "Right joy horizontal";
+            case CONTROLLER_ACTION_AXIS_RZ: return "Right joy vertical";
+            case CONTROLLER_ACTION_THUMB_R: return "Right thumb";
+            case CONTROLLER_ACTION_A: return "Button A";
+            case CONTROLLER_ACTION_B: return "Button B";
+            case CONTROLLER_ACTION_X: return "Button X";
+            case CONTROLLER_ACTION_Y: return "Button Y";
+            case CONTROLLER_ACTION_R1: return "Right trigger button";
+            case CONTROLLER_ACTION_R_TRIGGER: return "Right trigger";
+            case CONTROLLER_ACTION_L1: return "Left trigger button";
+            case CONTROLLER_ACTION_L_TRIGGER: return "Left trigger";
+            case CONTROLLER_ACTION_START: return "Start button";
+            case CONTROLLER_ACTION_SELECT: return "Select button";
+        }
+        return "";
+    }
+
     //
     // Parcelable overrides
     //
