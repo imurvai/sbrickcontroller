@@ -122,10 +122,7 @@ public class ControllerProfileListFragment extends Fragment {
         Log.i(TAG, "onResume...");
         super.onResume();
 
-        try {
-            SBrickControllerProfileManagerHolder.getManager().loadProfiles();
-        }
-        catch (Exception ex) {
+        if (!SBrickControllerProfileManagerHolder.getManager().loadProfiles()) {
             Helper.showMessageBox(
                     getActivity(),
                     "Could not load controller profiles.",
@@ -134,7 +131,7 @@ public class ControllerProfileListFragment extends Fragment {
                         public void onClick(DialogInterface dialog, int which) {
                             Log.i(TAG, "onClick...");
                         }
-            });
+                    });
         }
     }
 
@@ -143,10 +140,7 @@ public class ControllerProfileListFragment extends Fragment {
         Log.i(TAG, "onPause...");
         super.onPause();
 
-        try {
-            SBrickControllerProfileManagerHolder.getManager().saveProfiles();
-        }
-        catch (Exception ex) {
+        if (!SBrickControllerProfileManagerHolder.getManager().saveProfiles()) {
             Helper.showMessageBox(
                     getActivity(),
                     "Could not save controller profiles.",

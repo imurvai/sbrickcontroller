@@ -212,7 +212,7 @@ public class SBrickListFragment extends Fragment {
             final SBrick sbrick = (SBrick)getItem(position);
 
             TextView twSBrickName = (TextView)rowView.findViewById(R.id.textview_sbrick_name);
-            TextView twSBrickAddress = (TextView)rowView.findViewById(R.id.textview_sbrick_address);
+            TextView twSBrickAddress = (TextView)rowView.findViewById(R.id.textview_sbrick_name);
             twSBrickName.setText(sbrick.getName());
             twSBrickAddress.setText(sbrick.getAddress());
 

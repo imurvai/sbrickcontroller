@@ -8,6 +8,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 
+import com.scn.sbrickcontrollerprofilemanager.SBrickControllerProfileManagerHolder;
+
 
 /**
  * The main fragment.
@@ -51,6 +53,8 @@ public class MainFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        Log.i(TAG, "onCreateView...");
+
         View view = inflater.inflate(R.layout.fragment_main, container, false);
 
         Button buttonManageSBricks = (Button)view.findViewById(R.id.button_scan_sbricks);
@@ -72,5 +76,14 @@ public class MainFragment extends Fragment {
         });
 
         return view;
+    }
+
+    @Override
+    public void onResume() {
+        Log.i(TAG, "onResume...");
+        super.onResume();
+
+        // When coming back from the Profile list save the profiles.
+        SBrickControllerProfileManagerHolder.getManager().saveProfiles();
     }
 }

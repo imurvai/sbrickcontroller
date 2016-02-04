@@ -10,6 +10,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
@@ -40,6 +41,10 @@ public class EditControllerActionFragment extends Fragment {
     private String controllerActionId;
     private List<SBrick> sbricks;
 
+    private String selectedSBrickAddress;
+    private int selectedChannel;
+    private boolean selectedInvert;
+
     //
     // Constructors
     //
@@ -65,8 +70,9 @@ public class EditControllerActionFragment extends Fragment {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
-
+        Log.i(TAG, "onCreate...");
         super.onCreate(savedInstanceState);
+
         if (getArguments() != null) {
             profile = getArguments().getParcelable(ARG_CONTROLLER_PROFILE);
             controllerActionId = getArguments().getString(ARG_CONTROLLER_ACTION_ID);
@@ -77,54 +83,66 @@ public class EditControllerActionFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        Log.i(TAG, "onCreateView...");
+
         View view = inflater.inflate(R.layout.fragment_edit_controller_action, container, false);
 
         TextView twControllerActionName = (TextView)view.findViewById(R.id.textview_controller_action_name);
         twControllerActionName.setText(SBrickControllerProfile.getControllerActionName(controllerActionId));
 
+        SBrickControllerProfile.ControllerAction controllerAction = profile.getControllerAction(controllerActionId);
+        if (controllerAction != null) {
+            selectedSBrickAddress = controllerAction.getSbrickAddress();
+            selectedChannel = controllerAction.getChannel();
+            selectedInvert = controllerAction.getInvert();
+        }
+        else {
+            selectedSBrickAddress = sbricks.get(0).getAddress();
+            selectedChannel = 0;
+            selectedInvert = false;
+        }
+
         Spinner spSelectSBrick = (Spinner)view.findViewById(R.id.spinner_select_sbrick);
         spSelectSBrick.setAdapter(new ArrayAdapter<SBrick>(getActivity(), android.R.layout.simple_list_item_1, sbricks));
+        spSelectSBrick.setSelection(sbricks.indexOf(SBrickManagerHolder.getSBrickManager().getSBrick(selectedSBrickAddress)));
         spSelectSBrick.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 Log.i(TAG, "sbSelectSBrick.onItemClick...");
-
-                // TODO: set the SBrick on the action
+                selectedSBrickAddress = sbricks.get(position).getAddress();
             }
 
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
                 Log.i(TAG, "sbSelectSBrick.onNothingSelected...");
-
-                // TODO: set the SBrick on the action
+                // Do nothing here
             }
         });
 
         Spinner spSelectChannel = (Spinner)view.findViewById(R.id.spinnel_select_channel);
         spSelectChannel.setAdapter(new ArrayAdapter<Integer>(getActivity(), android.R.layout.simple_list_item_1, new Integer[] { 1, 2, 3, 4 }));
+        spSelectChannel.setSelection(selectedChannel);
         spSelectChannel.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 Log.i(TAG, "spSelectChannel.onItemSelected...");
-
-                // TODO: set the channel on the action
+                selectedChannel = position;
             }
 
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
                 Log.i(TAG, "spSelectChannel.onNothingSelected...");
-
-                // TODO: set the channel on the action
+                // Do nothing here
             }
         });
 
         Switch swInvertChannel = (Switch)view.findViewById(R.id.switch_invert_channel);
-        swInvertChannel.setOnClickListener(new View.OnClickListener() {
+        swInvertChannel.setChecked(selectedInvert);
+        swInvertChannel.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
-            public void onClick(View v) {
-                Log.i(TAG, "swInvertChannel.onClick...");
-
-                // TODO: set the invert on the action
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                Log.i(TAG, "onCheckedChanged...");
+                selectedInvert = isChecked;
             }
         });
 
@@ -134,7 +152,8 @@ public class EditControllerActionFragment extends Fragment {
             public void onClick(View v) {
                 Log.i(TAG, "btnOk.onClick...");
 
-                // TODO: set action in profile
+                SBrickControllerProfile.ControllerAction newControllerAction = new SBrickControllerProfile.ControllerAction(selectedSBrickAddress, selectedChannel, selectedInvert);
+                profile.setControllerAction(controllerActionId, newControllerAction);
 
                 MainActivity activity = (MainActivity)getActivity();
                 activity.goBackFromFragment();

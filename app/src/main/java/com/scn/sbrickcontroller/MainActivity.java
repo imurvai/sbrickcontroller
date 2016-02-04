@@ -15,6 +15,7 @@ import android.view.KeyEvent;
 import android.view.MotionEvent;
 
 import com.scn.sbrickcontrollerprofilemanager.SBrickControllerProfile;
+import com.scn.sbrickcontrollerprofilemanager.SBrickControllerProfileManagerHolder;
 import com.scn.sbrickmanager.SBrickManagerHolder;
 
 /**
@@ -91,6 +92,9 @@ public class MainActivity extends FragmentActivity {
     protected void onPause() {
         Log.i(TAG, "onPause...");
         super.onPause();
+
+        SBrickManagerHolder.getSBrickManager().saveSBricks();
+        SBrickControllerProfileManagerHolder.getManager().saveProfiles();
 
         if (!SBrickManagerHolder.getSBrickManager().isBLESupported())
             return;

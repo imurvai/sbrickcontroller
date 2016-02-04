@@ -11,12 +11,12 @@ public interface SBrickControllerProfileManager {
     /**
      * Loads the SBrick controller profiles.
      */
-    void loadProfiles() throws IOException;
+    boolean loadProfiles();
 
     /**
      * Saves the SBrick controller profiles.
      */
-    void saveProfiles() throws IOException;
+    boolean saveProfiles();
 
     /**
      * Gets the previously loaded SBrick controller profiles.

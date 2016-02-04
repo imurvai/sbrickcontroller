@@ -1,6 +1,5 @@
 package com.scn.sbrickcontroller;
 
-import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
@@ -17,7 +16,10 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.scn.sbrickcontrollerprofilemanager.SBrickControllerProfile;
+import com.scn.sbrickmanager.SBrick;
 import com.scn.sbrickmanager.SBrickManagerHolder;
+
+import org.w3c.dom.Text;
 
 
 public class EditControllerProfileFragment extends Fragment {
@@ -70,9 +72,6 @@ public class EditControllerProfileFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_edit_controller_profile, container, false);
 
-        etProfileName = (EditText)view.findViewById(R.id.edittext_controller_profile_name);
-        etProfileName.setText(profile.getName());
-
         lwControllerActions = (ListView)view.findViewById(R.id.listview_conroller_actions);
         lwControllerActions.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -102,8 +101,6 @@ public class EditControllerProfileFragment extends Fragment {
     public void onPause() {
         Log.i(TAG, "onPause...");
 
-        profile.setName(etProfileName.getText().toString());
-
         super.onPause();
     }
 
@@ -117,6 +114,9 @@ public class EditControllerProfileFragment extends Fragment {
         // Private members
         //
 
+        private static final int ViewTypeProfileName = 0;
+        private static final int ViewTypeControllerAction = 1;
+
         private Context context;
         private SBrickControllerProfile profile;
 
@@ -129,71 +129,124 @@ public class EditControllerProfileFragment extends Fragment {
         // BaseAdapter overrides
         //
 
+
+        @Override
+        public int getViewTypeCount() {
+            // profile name and controller actions
+            return 2;
+        }
+
         @Override
         public int getCount() {
-            return 18;
+            // profile name + 18 controller action
+            return 19;
+        }
+
+        @Override
+        public int getItemViewType(int position) {
+            // profile name: 0
+            // controller actions: 1
+            return position == 0 ? ViewTypeProfileName : ViewTypeControllerAction;
         }
 
         @Override
         public Object getItem(int position) {
-            String controllerActionId = getControllerActionId(position);
-            SBrickControllerProfile.ControllerAction controllerAction = profile.getControllerAction(controllerActionId);
-            return controllerAction;
+            if (position == 0) {
+                // Profile name
+                return profile.getName();
+            }
+            else {
+                // Controller action
+                String controllerActionId = getControllerActionId(position - 1);
+                SBrickControllerProfile.ControllerAction controllerAction = profile.getControllerAction(controllerActionId);
+                return controllerAction;
+            }
         }
 
         @Override
         public long getItemId(int position) {
-            return 0;
+            return position;
         }
 
         @Override
         public View getView(final int position, View convertView, ViewGroup parent) {
             View rowView = convertView;
 
-            if (rowView == null) {
-                LayoutInflater inflater = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-                rowView = inflater.inflate(R.layout.controller_action_item, parent, false);
+            switch (getItemViewType(position)) {
+
+                case ViewTypeProfileName:
+
+                    if (rowView == null) {
+                        LayoutInflater inflater = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+                        rowView = inflater.inflate(R.layout.controller_action_head_item, parent, false);
+                    }
+
+                    EditText etProfileName = (EditText)rowView.findViewById(R.id.edittext_controller_profile_name);
+                    etProfileName.setText(profile.getName());
+
+                    break;
+
+                case ViewTypeControllerAction:
+
+                    if (rowView == null) {
+                        LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+                        rowView = inflater.inflate(R.layout.controller_action_item, parent, false);
+                    }
+
+                    final String controllerActionName = SBrickControllerProfile.getControllerActionName(getControllerActionId(position - 1));
+                    final SBrickControllerProfile.ControllerAction controllerAction = (SBrickControllerProfile.ControllerAction)getItem(position);
+
+                    TextView twControllerActionName = (TextView) rowView.findViewById(R.id.textview_controller_action_name);
+                    TextView twSBrickName = (TextView) rowView.findViewById(R.id.textview_sbrick_name);
+                    TextView twChannel = (TextView) rowView.findViewById(R.id.textview_channel);
+                    TextView twInvert = (TextView) rowView.findViewById(R.id.textview_invert);
+
+                    if (controllerAction != null) {
+                        String sbrickAddress = controllerAction.getSbrickAddress();
+                        SBrick sbrick = SBrickManagerHolder.getSBrickManager().getSBrick(sbrickAddress);
+
+                        twControllerActionName.setText(controllerActionName);
+                        twSBrickName.setText(sbrick != null ? sbrick.getName() : "?????");
+                        twChannel.setText(Integer.toString(controllerAction.getChannel() + 1));
+                        twInvert.setText(controllerAction.getInvert() ? "Invert" : "Non-invert");
+                    }
+                    else {
+                        twControllerActionName.setText(controllerActionName);
+                        twSBrickName.setText("-");
+                        twChannel.setText("-");
+                        twInvert.setText("-");
+                    }
+
+                    Button btnDeleteControllerAction = (Button) rowView.findViewById(R.id.button_delete_controller_action);
+                    btnDeleteControllerAction.setVisibility(controllerAction != null ? View.VISIBLE : View.INVISIBLE);
+                    btnDeleteControllerAction.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            Helper.showQuestionDialog(
+                                    context,
+                                    "Do you really want to delete this action?",
+                                    "Yes",
+                                    "No",
+                                    new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which) {
+                                            Log.i(TAG, "onClick...");
+                                            profile.removeControllerAction(getControllerActionId(position));
+                                            ControllerActionListAdapter.this.notifyDataSetChanged();
+                                        }
+                                    },
+                                    new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which) {
+                                            // Do nothing here
+                                        }
+                                    });
+                        }
+                    });
+
+                    break;
+
             }
-
-            final String controllerActionName = SBrickControllerProfile.getControllerActionName(getControllerActionId(position));
-            final SBrickControllerProfile.ControllerAction controllerAction = (SBrickControllerProfile.ControllerAction)getItem(position);
-
-            TextView twControllerActionName = (TextView)rowView.findViewById(R.id.textview_controller_action_name);
-            TextView twSBrickAddress = (TextView)rowView.findViewById(R.id.textview_sbrick_address);
-            TextView twChannel = (TextView)rowView.findViewById(R.id.textview_channel);
-            TextView twInvert = (TextView)rowView.findViewById(R.id.textview_invert);
-
-            twControllerActionName.setText(controllerActionName);
-            twSBrickAddress.setText(controllerAction != null ? controllerAction.getSbrickAddress() : "-");
-            twChannel.setText(controllerAction != null ? Integer.toString(controllerAction.getChannel()) : "-");
-            twInvert.setText(controllerAction != null ? (controllerAction.getInvert() ? "Invert" : "Non-invert") : "-");
-
-            Button btnDeleteControllerAction = (Button)rowView.findViewById(R.id.button_delete_controller_action);
-            btnDeleteControllerAction.setVisibility(controllerAction != null ? View.VISIBLE : View.INVISIBLE);
-            btnDeleteControllerAction.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Helper.showQuestionDialog(
-                            context,
-                            "Do you really want to delete this action?",
-                            "Yes",
-                            "No",
-                            new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    Log.i(TAG, "onClick...");
-                                    profile.removeControllerAction(getControllerActionId(position));
-                                    ControllerActionListAdapter.this.notifyDataSetChanged();
-                                }
-                            },
-                            new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    // Do nothing here
-                                }
-                            });
-                }
-            });
 
             return rowView;
         }

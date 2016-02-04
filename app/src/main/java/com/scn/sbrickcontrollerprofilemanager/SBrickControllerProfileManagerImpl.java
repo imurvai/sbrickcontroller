@@ -43,7 +43,7 @@ class SBrickControllerProfileManagerImpl implements SBrickControllerProfileManag
     //
 
     @Override
-    public synchronized void loadProfiles() {
+    public synchronized boolean loadProfiles() {
         Log.i(TAG, "loadProfiles...");
 
         controllerProfiles.clear();
@@ -61,11 +61,15 @@ class SBrickControllerProfileManagerImpl implements SBrickControllerProfileManag
         profile.setControllerAction(SBrickControllerProfile.CONTROLLER_ACTION_R_TRIGGER, action4);
         profile.setControllerAction(SBrickControllerProfile.CONTROLLER_ACTION_L_TRIGGER, action5);
         controllerProfiles.add(profile);
+
+        return true;
     }
 
     @Override
-    public synchronized void saveProfiles() {
+    public synchronized boolean saveProfiles() {
         Log.i(TAG, "saveProfiles...");
+
+        return true;
     }
 
     @Override
