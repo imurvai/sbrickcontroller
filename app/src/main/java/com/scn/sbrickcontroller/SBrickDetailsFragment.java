@@ -86,9 +86,6 @@ public class SBrickDetailsFragment extends Fragment implements GameControllerAct
 
         String sbrickAddress = getArguments().getString(ARG_SBRICK_ADDRESS);
         sbrick = SBrickManagerHolder.getSBrickManager().getSBrick(sbrickAddress);
-
-        if (sbrick == null)
-            throw new RuntimeException("Can't find SBrick - " + sbrickAddress);
     }
 
     @Override

@@ -1,5 +1,6 @@
 package com.scn.sbrickmanager;
 
+import android.bluetooth.BluetoothGattCharacteristic;
 import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
@@ -18,8 +19,6 @@ public class SBrickMock extends SBrickBase {
     private final static String TAG = SBrickMock.class.getSimpleName();
 
     private final String address;
-
-    private boolean isConnected = false;
 
     private AsyncTask<Void, Void, Void> connectionAsyncTask = null;
 
@@ -44,7 +43,7 @@ public class SBrickMock extends SBrickBase {
     }
 
     @Override
-    public boolean connect() {
+    public synchronized boolean connect() {
         Log.i(TAG, "connect - " + getAddress());
 
         if (isConnected) {
@@ -72,17 +71,19 @@ public class SBrickMock extends SBrickBase {
             }
 
             @Override
-            protected void onCancelled() {
+            protected synchronized void onCancelled() {
                 super.onCancelled();
                 isConnected = false;
                 connectionAsyncTask = null;
             }
 
             @Override
-            protected void onPostExecute(Void aVoid) {
+            protected synchronized void onPostExecute(Void aVoid) {
                 super.onPostExecute(aVoid);
                 isConnected = true;
                 connectionAsyncTask = null;
+                isConnected = true;
+                startCommandProcessing();
                 sendLocalBroadcast(ACTION_SBRICK_CONNECTED);
             }
         }.execute();
@@ -91,74 +92,78 @@ public class SBrickMock extends SBrickBase {
     }
 
     @Override
-    public void disconnect() {
+    public synchronized void disconnect() {
         Log.i(TAG, "disconnect - " + getAddress());
+
+        if (connectionAsyncTask != null)
+            connectionAsyncTask.cancel(true);
 
         if (!isConnected) {
             Log.i(TAG, "  Already disconnected.");
             return;
         }
 
-        if (connectionAsyncTask != null)
-            connectionAsyncTask.cancel(true);
-
         isConnected = false;
     }
 
-    @Override
-    public boolean isConnected() {
-        return isConnected;
-    }
+    //
+    // SBrickBase overrides
+    //
 
     @Override
-    public boolean readCharacteristic(SBrickCharacteristicType characteristicType) {
-        Log.i(TAG, "readCharacteristic - " + getAddress());
+    protected boolean processCommand(Command command) {
+        Log.i(TAG, "processCommand...");
 
-        if (!isConnected) {
-            Log.i(TAG, "  Not connected yet.");
-            return false;
+        switch (command.getCommandType()) {
+
+            case READ_CHARACTERISTIC:
+
+                String value = "N/A";
+                SBrickCharacteristicType characteristicType = (SBrickCharacteristicType)command.getCommandParameter();
+
+                switch (characteristicType) {
+                    case DeviceName:
+                        value = "SCNBrick";
+                        break;
+
+                    case ModelNumber:
+                        value = "0";
+                        break;
+
+                    case FirmwareRevision:
+                    case HardwareRevision:
+                    case SoftwareRevision:
+                        value = "1.0";
+                        break;
+
+                    case ManufacturerName:
+                        value = "SCN";
+                        break;
+
+                    case Appearance:
+                        value = "0";
+                        break;
+
+                    default:
+                        Log.i(TAG, "  Unknown characteristic.");
+                        break;
+                }
+
+                Intent intent = new Intent();
+                intent.setAction(ACTION_SBRICK_CHARACTERISTIC_READ);
+                intent.putExtra(EXTRA_SBRICK_ADDRESS, getAddress());
+                intent.putExtra(EXTRA_CHARACTERISTIC_TYPE, characteristicType.name());
+                intent.putExtra(EXTRA_CHARACTERISTIC_VALUE, value);
+                LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
+
+            case SEND_QUICK_DRIVE:
+            case SEND_REMOTE_CONTROL:
+            case RESET_WATCHDOG:
+                // Do nothing
+                break;
         }
 
-        String value = "N/A";
-        switch (characteristicType) {
-            case DeviceName:
-                value = "SCNBrick";
-                break;
-            case ModelNumber:
-                value = "12345";
-                break;
-            case FirmwareRevision:
-            case HardwareRevision:
-            case SoftwareRevision:
-                value = "1.0";
-                break;
-            case ManufacturerName:
-                value = "SCN";
-                break;
-
-            case Appearance:
-                value = "0";
-                break;
-        }
-
-        Intent intent = new Intent();
-        intent.setAction(ACTION_SBRICK_CHARACTERISTIC_READ);
-        intent.putExtra(EXTRA_SBRICK_ADDRESS, getAddress());
-        intent.putExtra(EXTRA_CHARACTERISTIC_TYPE, characteristicType);
-        intent.putExtra(EXTRA_CHARACTERISTIC_VALUE, value);
-        LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
+        commandSendingSemaphore.release();
         return true;
-    }
-
-    @Override
-    public boolean sendCommand(int channel, int value) {
-        Log.i(TAG, "sendCommand - " + getAddress());
-        return isConnected;
-    }
-
-    @Override
-    public boolean sendCommand(int v1, int v2, int v3, int v4) {
-        Log.i(TAG, "sendCommand - " + getAddress());
-        return isConnected;
     }
 }

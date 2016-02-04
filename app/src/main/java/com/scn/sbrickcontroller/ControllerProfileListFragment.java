@@ -16,6 +16,8 @@ import android.widget.TextView;
 
 import com.scn.sbrickcontrollerprofilemanager.SBrickControllerProfile;
 import com.scn.sbrickcontrollerprofilemanager.SBrickControllerProfileManagerHolder;
+import com.scn.sbrickmanager.SBrick;
+import com.scn.sbrickmanager.SBrickManagerHolder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -77,8 +79,24 @@ public class ControllerProfileListFragment extends Fragment {
                 // Open the controller fragment
                 List<SBrickControllerProfile> profiles = new ArrayList<SBrickControllerProfile>(SBrickControllerProfileManagerHolder.getManager().getProfiles());
                 SBrickControllerProfile profile = profiles.get(position);
-                MainActivity activity = (MainActivity)getActivity();
-                activity.startControllerFragment(profile);
+
+                if (validateProfile(profile)) {
+                    MainActivity activity = (MainActivity)getActivity();
+                    activity.startControllerFragment(profile);
+                }
+                else {
+                    Helper.showMessageBox(
+                            ControllerProfileListFragment.this.getActivity(),
+                            "Some of the SBricks in this profile is unknown. Please do a scan and edit the profile.",
+                            new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    Log.i(TAG, "onClick...");
+                                    // Do nothing here.
+                                }
+                            }
+                    );
+                }
             }
         });
         controllerProfileListAdapter = new ControllerProfileListAdapter(getActivity());
@@ -144,6 +162,20 @@ public class ControllerProfileListFragment extends Fragment {
     //
     // Private methods and classes
     //
+
+    private boolean validateProfile(SBrickControllerProfile profile) {
+        Log.i(TAG, "validateProfile - " + profile.getName());
+
+        boolean allSBrickOk = true;
+        for (String sbrickAddress : profile.getSBrickAddresses()) {
+            if (SBrickManagerHolder.getSBrickManager().getSBrick(sbrickAddress) == null) {
+                Log.i(TAG, "  SBrick (" + sbrickAddress + ") is unknown.");
+                allSBrickOk = false;
+            }
+        }
+
+        return allSBrickOk;
+    }
 
     private static class ControllerProfileListAdapter extends BaseAdapter {
 
