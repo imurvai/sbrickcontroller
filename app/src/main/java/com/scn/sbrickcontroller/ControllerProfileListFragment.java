@@ -79,11 +79,20 @@ public class ControllerProfileListFragment extends Fragment {
                 List<SBrickControllerProfile> profiles = new ArrayList<SBrickControllerProfile>(SBrickControllerProfileManagerHolder.getManager().getProfiles());
                 SBrickControllerProfile profile = profiles.get(position);
 
-                if (validateProfile(profile)) {
-                    MainActivity activity = (MainActivity)getActivity();
-                    activity.startControllerFragment(profile);
+                if (profile.getSBrickAddresses().size() == 0) {
+                    Helper.showMessageBox(
+                            ControllerProfileListFragment.this.getActivity(),
+                            "Please add controller actions to the profile first.",
+                            new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    // Do nothing here
+                                }
+                            });
+                    return;
                 }
-                else {
+
+                if (!validateProfile(profile)) {
                     Helper.showMessageBox(
                             ControllerProfileListFragment.this.getActivity(),
                             "Some of the SBricks in this profile is unknown. Please do a scan and edit the profile.",
@@ -93,9 +102,12 @@ public class ControllerProfileListFragment extends Fragment {
                                     Log.i(TAG, "onClick...");
                                     // Do nothing here.
                                 }
-                            }
-                    );
+                            });
+                    return;
                 }
+
+                MainActivity activity = (MainActivity)getActivity();
+                activity.startControllerFragment(profile);
             }
         });
         controllerProfileListAdapter = new ControllerProfileListAdapter(getActivity());

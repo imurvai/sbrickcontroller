@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.scn.sbrickcontroller" >
+<manifest
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.scn.sbrickcontroller"
+    android:versionCode="1"
+    android:versionName="0.1">
 
     <!-- Permissions and features -->
 
@@ -16,7 +19,7 @@
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
         android:label="SBrickController"
-        android:theme="@style/AppTheme" >
+        android:theme="@style/Theme.AppCompat.Light.DarkActionBar">
 
         <!-- Activities -->
 
