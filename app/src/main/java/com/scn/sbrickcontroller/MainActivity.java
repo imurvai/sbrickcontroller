@@ -11,9 +11,12 @@ import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.ActionBarActivity;
+import android.util.AttributeSet;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
+import android.view.View;
+import android.widget.Button;
 
 import com.scn.sbrickcontrollerprofilemanager.SBrickControllerProfile;
 import com.scn.sbrickcontrollerprofilemanager.SBrickControllerProfileManagerHolder;
@@ -24,7 +27,7 @@ import java.util.List;
 /**
  * The one and only activity.
  */
-public class MainActivity extends ActionBarActivity {
+public class MainActivity extends BaseActivity {
 
     //
     // Private members
@@ -55,55 +58,23 @@ public class MainActivity extends ActionBarActivity {
 
         setContentView(R.layout.activity_main);
 
-        if (findViewById(R.id.fragment_container) != null) {
-
-            if (savedInstanceState != null) {
-                Log.i(TAG, "  savedInstanceState is not null.");
-                return;
+        Button btnManageSBricks = (Button)findViewById(R.id.button_scan_sbricks);
+        btnManageSBricks.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.i(TAG, "btnManageSBricks.onClick...");
+                startActivity(new Intent(MainActivity.this, SBrickListActivity.class));
             }
+        });
 
-            Log.i(TAG, "  Create the main fragment...");
-            MainFragment mainFragment = MainFragment.newInstance();
-            getSupportFragmentManager()
-                    .beginTransaction()
-                    .add(R.id.fragment_container, mainFragment)
-                    .commit();
-        }
-    }
-
-    @Override
-    protected void onResume() {
-        Log.i(TAG, "onResume...");
-        super.onResume();
-
-        if (!SBrickManagerHolder.getManager().isBLESupported())
-            return;
-
-        Log.i(TAG, "  Register the BluetoothAdapter broadcast receiver...");
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
-        registerReceiver(bluetoothAdapterBroadcastReceiver, filter);
-
-        if (!SBrickManagerHolder.getManager().isBluetoothOn()) {
-            Log.i(TAG, "  Bluetooth is off, ask to turn it on...");
-            Intent intent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            startActivityForResult(intent, REQUEST_ENABLE_BLUETOOTH);
-        }
-    }
-
-    @Override
-    protected void onPause() {
-        Log.i(TAG, "onPause...");
-        super.onPause();
-
-        SBrickManagerHolder.getManager().saveSBricks();
-        SBrickControllerProfileManagerHolder.getManager().saveProfiles();
-
-        if (!SBrickManagerHolder.getManager().isBLESupported())
-            return;
-
-        Log.i(TAG, "  Unregister the BluetoothAdapter broadcast receiver...");
-        unregisterReceiver(bluetoothAdapterBroadcastReceiver);
+        Button btnControllerProfiles = (Button)findViewById(R.id.button_controller_profiles);
+        btnControllerProfiles.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.i(TAG, "btnControllerControllerProfiles.onClick...");
+                startActivity(new Intent(MainActivity.this, ControllerProfileListActivity.class));
+            }
+        });
     }
 
     @Override
@@ -131,19 +102,11 @@ public class MainActivity extends ActionBarActivity {
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
 
-        Fragment fr = getVisibleFragment();
-        if (fr != null && fr instanceof GameControllerActionListener && ((GameControllerActionListener) fr).onKeyDown(keyCode, event))
-            return true;
-
         return super.onKeyDown(keyCode, event);
     }
 
     @Override
     public boolean onKeyUp(int keyCode, KeyEvent event) {
-
-        Fragment fr = getVisibleFragment();
-        if (fr != null && fr instanceof GameControllerActionListener && ((GameControllerActionListener) fr).onKeyUp(keyCode, event))
-            return true;
 
         return super.onKeyUp(keyCode, event);
     }
@@ -151,143 +114,11 @@ public class MainActivity extends ActionBarActivity {
     @Override
     public boolean onGenericMotionEvent(MotionEvent event) {
 
-        Fragment fr = getVisibleFragment();
-        if (fr != null && fr instanceof GameControllerActionListener && ((GameControllerActionListener) fr).onGenericMotionEvent(event))
-            return true;
-
         return super.onGenericMotionEvent(event);
-    }
-
-    //
-    // API
-    //
-
-    public void goBackFromFragment() {
-        Log.i(TAG, "goBackFromFragment...");
-        getSupportFragmentManager().popBackStack();
-    }
-
-    public void startSBrickListFragment() {
-        Log.i(TAG, "startSBrickListFragment...");
-
-        SBrickListFragment sBrickListFragment = SBrickListFragment.newInstance();
-        startFragment(sBrickListFragment);
-    }
-
-    public void startSBrickDetailsFragment(String sbrickAddress) {
-        Log.i(TAG, "startSBrickDetailsFragment - " + sbrickAddress);
-
-        SBrickDetailsFragment sBrickDetailsFragment = SBrickDetailsFragment.newInstance(sbrickAddress);
-        startFragment(sBrickDetailsFragment);
-    }
-
-    public void startControllerProfileListFragment() {
-        Log.i(TAG, "startControllerProfileListFragment...");
-
-        ControllerProfileListFragment controllerProfileListFragment = ControllerProfileListFragment.newInstance();
-        startFragment(controllerProfileListFragment);
-    }
-
-    public void startControllerFragment(SBrickControllerProfile controllerProfile) {
-        Log.i(TAG, "startControllerFragment - " + controllerProfile.getName());
-
-        ControllerFragment controllerFragment = ControllerFragment.newInstance(controllerProfile);
-        startFragment(controllerFragment);
-    }
-
-    public void startEditControllerProfileFragment(int profileIndex, SBrickControllerProfile profile) {
-        Log.i(TAG, "startEditControllerProfileFragment...");
-
-        EditControllerProfileFragment editControllerProfileFragment = EditControllerProfileFragment.newInstance(profileIndex, profile);
-        startFragment(editControllerProfileFragment);
-    }
-
-    public void startEditControllerActionFragment(int profileIndex, String controllerActionId, List<String> sbrickAddresses) {
-        Log.i(TAG, "startEditControllerActionFragment...");
-
-        EditControllerActionFragment editControllerActionFragment = EditControllerActionFragment.newInstance(profileIndex, controllerActionId, sbrickAddresses);
-        startFragment(editControllerActionFragment);
     }
 
     //
     // Private methods
     //
 
-    private void startFragment(Fragment fragment) {
-        Log.i(TAG, "startFragment...");
-
-        getSupportFragmentManager()
-                .beginTransaction()
-                .replace(R.id.fragment_container, fragment)
-                .addToBackStack(null)
-                .commit();
-    }
-
-    private Fragment getVisibleFragment() {
-        Log.i(TAG, "getVisibleFragment...");
-
-        FragmentManager fm = getSupportFragmentManager();
-        for (Fragment fr : fm.getFragments()) {
-            if (fr != null && fr.isVisible()) {
-                return fr;
-            }
-        }
-
-        Log.i(TAG, "  No visible fragment found.");
-        return null;
-    }
-
-    private BroadcastReceiver bluetoothAdapterBroadcastReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            Log.i(TAG, "bluetoothAdapterBroadcastReceiver.onReceive");
-
-            final String action = intent.getAction();
-
-            if (action == BluetoothAdapter.ACTION_STATE_CHANGED) {
-                Log.i(TAG, "  BluetoothAdapter.ACTION_STATE_CHANGED");
-
-                final int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR);
-                logBluetoothAdapterState(state);
-
-                if (state == BluetoothAdapter.STATE_OFF) {
-                    Log.i(TAG, "  Ask to turn the bluetooth adapter on...");
-                    Intent intent2 = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-                    startActivityForResult(intent2, REQUEST_ENABLE_BLUETOOTH);
-                }
-            }
-        }
-    };
-
-    private void logBluetoothAdapterState(int state) {
-        switch (state) {
-            case BluetoothAdapter.STATE_CONNECTED:
-                Log.i(TAG, "  STATE_CONNECTED");
-                break;
-            case BluetoothAdapter.STATE_CONNECTING:
-                Log.i(TAG, "  STATE_CONNECTING");
-                break;
-            case BluetoothAdapter.STATE_DISCONNECTED:
-                Log.i(TAG, "  STATE_DISCONNECTED");
-                break;
-            case BluetoothAdapter.STATE_DISCONNECTING:
-                Log.i(TAG, "  STATE_DISCONNECTING");
-                break;
-            case BluetoothAdapter.STATE_OFF:
-                Log.i(TAG, "  STATE_OFF");
-                break;
-            case BluetoothAdapter.STATE_ON:
-                Log.i(TAG, "  STATE_ON");
-                break;
-            case BluetoothAdapter.STATE_TURNING_OFF:
-                Log.i(TAG, "  STATE_TURNING_OFF");
-                break;
-            case BluetoothAdapter.STATE_TURNING_ON:
-                Log.i(TAG, "  STATE_TURNING_ON");
-                break;
-            default:
-                Log.i(TAG, "  unknown state.");
-                break;
-        }
-    }
 }

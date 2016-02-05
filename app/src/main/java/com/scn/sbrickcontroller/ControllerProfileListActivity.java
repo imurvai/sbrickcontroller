@@ -2,8 +2,8 @@ package com.scn.sbrickcontroller;
 
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -21,16 +21,13 @@ import com.scn.sbrickmanager.SBrickManagerHolder;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Controller profile list fragment.
- */
-public class ControllerProfileListFragment extends Fragment {
+public class ControllerProfileListActivity extends BaseActivity {
 
     //
     // Private members
     //
 
-    private static final String TAG = ControllerProfileListFragment.class.getSimpleName();
+    private static final String TAG = ControllerProfileListActivity.class.getSimpleName();
 
     private ControllerProfileListAdapter controllerProfileListAdapter;
 
@@ -38,38 +35,17 @@ public class ControllerProfileListFragment extends Fragment {
     private Button buttonAddControllerProfile;
 
     //
-    // Constructors
-    //
-
-    public ControllerProfileListFragment() {
-    }
-
-    public static ControllerProfileListFragment newInstance() {
-        ControllerProfileListFragment fragment = new ControllerProfileListFragment();
-
-        Bundle args = new Bundle();
-        fragment.setArguments(args);
-
-        return fragment;
-    }
-
-    //
     // Fragment overrides
     //
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        Log.i(TAG, "onCreate...");
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_controller_profile_list);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        if (getArguments() != null) {
-        }
-    }
-
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_controller_profile_list, container, false);
-
-        listViewControllerProfiles = (ListView)view.findViewById(R.id.listView_controller_profiles);
+        listViewControllerProfiles = (ListView)findViewById(R.id.listView_controller_profiles);
         listViewControllerProfiles.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -81,7 +57,7 @@ public class ControllerProfileListFragment extends Fragment {
 
                 if (profile.getSBrickAddresses().size() == 0) {
                     Helper.showMessageBox(
-                            ControllerProfileListFragment.this.getActivity(),
+                            ControllerProfileListActivity.this,
                             "Please add controller actions to the profile first.",
                             new DialogInterface.OnClickListener() {
                                 @Override
@@ -94,7 +70,7 @@ public class ControllerProfileListFragment extends Fragment {
 
                 if (!validateProfile(profile)) {
                     Helper.showMessageBox(
-                            ControllerProfileListFragment.this.getActivity(),
+                            ControllerProfileListActivity.this,
                             "Some of the SBricks in this profile is unknown. Please do a scan and edit the profile.",
                             new DialogInterface.OnClickListener() {
                                 @Override
@@ -106,14 +82,15 @@ public class ControllerProfileListFragment extends Fragment {
                     return;
                 }
 
-                MainActivity activity = (MainActivity)getActivity();
-                activity.startControllerFragment(profile);
+                Intent intent = new Intent(ControllerProfileListActivity.this, ControllerActivity.class);
+                intent.putExtra(Constants.EXTRA_CONTROLLER_PROFILE, profile);
+                startActivity(intent);
             }
         });
-        controllerProfileListAdapter = new ControllerProfileListAdapter(getActivity());
+        controllerProfileListAdapter = new ControllerProfileListAdapter(this);
         listViewControllerProfiles.setAdapter(controllerProfileListAdapter);
 
-        buttonAddControllerProfile = (Button)view.findViewById(R.id.button_add_controller_profile);
+        buttonAddControllerProfile = (Button)findViewById(R.id.button_add_controller_profile);
         buttonAddControllerProfile.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -122,30 +99,18 @@ public class ControllerProfileListFragment extends Fragment {
                 SBrickControllerProfile profile = SBrickControllerProfileManagerHolder.getManager().addProfile("My profile");
                 int profileIndex = SBrickControllerProfileManagerHolder.getManager().getProfiles().indexOf(profile);
 
-                MainActivity activity = (MainActivity)getActivity();
-                activity.startEditControllerProfileFragment(profileIndex, profile);
+                Intent intent = new Intent(ControllerProfileListActivity.this, EditControllerProfileActivity.class);
+                intent.putExtra(Constants.EXTRA_CONTROLLER_PROFILE_INDEX, profileIndex);
+                intent.putExtra(Constants.EXTRA_CONTROLLER_PROFILE, profile);
+                startActivity(intent);
             }
         });
-
-        return view;
     }
 
     @Override
     public void onResume() {
         Log.i(TAG, "onResume...");
         super.onResume();
-
-        if (!SBrickControllerProfileManagerHolder.getManager().loadProfiles()) {
-            Helper.showMessageBox(
-                    getActivity(),
-                    "Could not load controller profiles.",
-                    new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            Log.i(TAG, "onClick...");
-                        }
-                    });
-        }
     }
 
     @Override
@@ -155,12 +120,11 @@ public class ControllerProfileListFragment extends Fragment {
 
         if (!SBrickControllerProfileManagerHolder.getManager().saveProfiles()) {
             Helper.showMessageBox(
-                    getActivity(),
+                    this,
                     "Could not save controller profiles.",
                     new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-                            Log.i(TAG, "onClick...");
                         }
                     });
         }
@@ -215,7 +179,7 @@ public class ControllerProfileListFragment extends Fragment {
 
             if (rowView == null) {
                 LayoutInflater inflater = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-                rowView = inflater.inflate(R.layout.controller_profile_item, parent, false);
+                rowView = inflater.inflate(R.layout.listview_item_controller_profile, parent, false);
             }
 
             final SBrickControllerProfile profile = (SBrickControllerProfile)getItem(position);
@@ -231,8 +195,10 @@ public class ControllerProfileListFragment extends Fragment {
 
                     int profileIndex = SBrickControllerProfileManagerHolder.getManager().getProfiles().indexOf(profile);
 
-                    MainActivity activity = (MainActivity)context;
-                    activity.startEditControllerProfileFragment(profileIndex, profile);
+                    Intent intent = new Intent(context, EditControllerProfileActivity.class);
+                    intent.putExtra(Constants.EXTRA_CONTROLLER_PROFILE_INDEX, profileIndex);
+                    intent.putExtra(Constants.EXTRA_CONTROLLER_PROFILE, profile);
+                    context.startActivity(intent);
                 }
             });
 

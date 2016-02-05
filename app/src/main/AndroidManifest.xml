@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.scn.sbrickcontroller"
     android:versionCode="1"
     android:versionName="0.1">
@@ -10,10 +9,11 @@
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
 
-    <uses-feature android:name="android.hardware.bluetooth_le" android:required="true"/>
+    <uses-feature
+        android:name="android.hardware.bluetooth_le"
+        android:required="true" />
 
     <!-- Application -->
-
     <application
         android:name=".MyApplication"
         android:allowBackup="true"
@@ -26,14 +26,79 @@
         <activity
             android:name=".MainActivity"
             android:label="SBrickController"
-            android:screenOrientation="landscape"
-            android:configChanges="orientation|keyboardHidden">
+            android:configChanges="orientation|keyboardHidden"
+            android:screenOrientation="landscape">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".SBrickListActivity"
+            android:label="SBrick list"
+            android:configChanges="orientation|keyboardHidden"
+            android:screenOrientation="landscape"
+            android:parentActivityName=".MainActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.scn.sbrickcontroller.MainActivity" />
+        </activity>
+
+        <activity
+            android:name=".SBrickDetailsActivity"
+            android:label="SBrick details"
+            android:configChanges="orientation|keyboardHidden"
+            android:screenOrientation="landscape"
+            android:parentActivityName=".SBrickListActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.scn.sbrickcontroller.SBrickListActivity" />
+        </activity>
+
+        <activity
+            android:name=".ControllerProfileListActivity"
+            android:label="@string/title_activity_controller_profile_list"
+            android:configChanges="orientation|keyboardHidden"
+            android:screenOrientation="landscape"
+            android:parentActivityName=".MainActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.scn.sbrickcontroller.MainActivity" />
+        </activity>
+
+        <activity
+            android:name=".EditControllerProfileActivity"
+            android:label="@string/title_activity_edit_controller_profile"
+            android:configChanges="orientation|keyboardHidden"
+            android:screenOrientation="landscape"
+            android:parentActivityName=".ControllerProfileListActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.scn.sbrickcontroller.ControllerProfileListActivity" />
+        </activity>
+
+        <activity
+            android:name=".EditControllerActionActivity"
+            android:label="@string/title_activity_edit_controller_action"
+            android:configChanges="orientation|keyboardHidden"
+            android:screenOrientation="landscape"
+            android:parentActivityName=".EditControllerProfileActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.scn.sbrickcontroller.EditControllerProfileActivity" />
+        </activity>
+
+        <activity
+            android:name=".ControllerActivity"
+            android:label="@string/title_activity_controller"
+            android:configChanges="orientation|keyboardHidden"
+            android:screenOrientation="landscape"
+            android:parentActivityName=".ControllerProfileListActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.scn.sbrickcontroller.ControllerProfileListActivity" />
+        </activity>
     </application>
 
 </manifest>

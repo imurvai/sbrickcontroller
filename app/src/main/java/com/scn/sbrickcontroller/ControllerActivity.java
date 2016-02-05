@@ -7,8 +7,8 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
+import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.InputDevice;
 import android.view.KeyEvent;
@@ -25,16 +25,13 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-
-public class ControllerFragment extends Fragment implements GameControllerActionListener {
+public class ControllerActivity extends ActionBarActivity {
 
     //
     // Private members
     //
 
-    private static final String TAG = ControllerFragment.class.getSimpleName();
-
-    private static final String ARG_CONTROLLER_PROFILE = "arg_controller_profile";
+    private static final String TAG = ControllerActivity.class.getSimpleName();
 
     private SBrickControllerProfile profile;
     private Map<String, SBrick> sbricksMap;
@@ -45,37 +42,18 @@ public class ControllerFragment extends Fragment implements GameControllerAction
     private boolean allSBrickOk = true;
 
     //
-    // Constructors
-    //
-
-    public ControllerFragment() {
-    }
-
-    public static ControllerFragment newInstance(SBrickControllerProfile controllerProfile) {
-        ControllerFragment fragment = new ControllerFragment();
-
-        Bundle args = new Bundle();
-        args.putParcelable(ARG_CONTROLLER_PROFILE, controllerProfile);
-        fragment.setArguments(args);
-
-        return fragment;
-    }
-
-    //
-    // Fragment overrides
+    // Activity overrides
     //
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        Log.i(TAG, "onCreate...");
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_controller);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        Bundle arguments = getArguments();
-        if (arguments == null)
-            throw new RuntimeException("Controller profile name is needed for ControllerFragment.");
 
-        // Find and store the controller profile
-        profile = arguments.getParcelable(ARG_CONTROLLER_PROFILE);
-        Log.i(TAG, "  Profile name: " + profile.getName());
+        profile = getIntent().getParcelableExtra(Constants.EXTRA_CONTROLLER_PROFILE);
 
         sbricksMap = new HashMap<>();
         channelValuesMap = new HashMap<>();
@@ -93,14 +71,9 @@ public class ControllerFragment extends Fragment implements GameControllerAction
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_controller, container, false);
-        return view;
-    }
-
-    @Override
     public void onResume() {
         Log.i(TAG, "onResume...");
+        super.onResume();
 
         allSBrickOk = true;
         for (Map.Entry<String, SBrick> kvp: sbricksMap.entrySet()) {
@@ -109,14 +82,13 @@ public class ControllerFragment extends Fragment implements GameControllerAction
                 allSBrickOk = false;
 
                 Helper.showMessageBox(
-                        getActivity(),
+                        this,
                         "The SBrick stored in this profile is unknown. Please do a scan.",
                         new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 Log.i(TAG, "onClick...");
-                                MainActivity activity = (MainActivity)ControllerFragment.this.getActivity();
-                                activity.goBackFromFragment();
+                                ControllerActivity.this.finish();
                             }
                         });
             }
@@ -129,17 +101,16 @@ public class ControllerFragment extends Fragment implements GameControllerAction
             filter.addAction(SBrick.ACTION_SBRICK_CONNECTED);
             filter.addAction(SBrick.ACTION_SBRICK_DISCONNECTED);
             filter.addAction(SBrick.ACTION_SBRICK_CHARACTERISTIC_READ);
-            LocalBroadcastManager.getInstance(getActivity()).registerReceiver(sbrickBroadcastReceiver, filter);
+            LocalBroadcastManager.getInstance(this).registerReceiver(sbrickBroadcastReceiver, filter);
 
             progressDialog = Helper.showProgressDialog(
-                    ControllerFragment.this.getActivity(),
+                    this,
                     "Connecting to SBrick(s)...",
                     new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             Log.i(TAG, "onClick...");
-                            MainActivity activity = (MainActivity) getActivity();
-                            activity.goBackFromFragment();
+                            ControllerActivity.this.finish();
                         }
                     });
 
@@ -148,29 +119,27 @@ public class ControllerFragment extends Fragment implements GameControllerAction
                 progressDialog = null;
 
                 Helper.showMessageBox(
-                        ControllerFragment.this.getActivity(),
+                        this,
                         "Could not start connecting to SBricks.",
                         new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 Log.i(TAG, "onClick...");
-                                MainActivity activity = (MainActivity) getActivity();
-                                activity.goBackFromFragment();
+                                ControllerActivity.this.finish();
                             }
                         });
             }
         }
-
-        super.onResume();
     }
 
     @Override
     public void onPause() {
         Log.i(TAG, "onPause...");
+        super.onPause();
 
         if (allSBrickOk) {
             Log.i(TAG, "  Unregister the SBrick local broadcast receiver...");
-            LocalBroadcastManager.getInstance(this.getActivity()).unregisterReceiver(sbrickBroadcastReceiver);
+            LocalBroadcastManager.getInstance(this).unregisterReceiver(sbrickBroadcastReceiver);
 
             disconnectFromSBricks();
 
@@ -180,13 +149,7 @@ public class ControllerFragment extends Fragment implements GameControllerAction
                 progressDialog = null;
             }
         }
-
-        super.onPause();
     }
-
-    //
-    // GameControllerActionListener overrides
-    //
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
@@ -342,11 +305,13 @@ public class ControllerFragment extends Fragment implements GameControllerAction
                     }
 
                     progressDialog = Helper.showProgressDialog(
-                            ControllerFragment.this.getActivity(),
+                            ControllerActivity.this,
                             "Reconnecting to SBricks...",
                             new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
+                                    Log.i(TAG, "onClick...");
+                                    ControllerActivity.this.finish();
                                 }
                             });
 

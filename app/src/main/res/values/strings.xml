@@ -4,4 +4,10 @@
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="title_activity_sbrick_list">SBrickListActivity</string>
+    <string name="title_activity_sbrick_details">SBrickDetailsActivity</string>
+    <string name="title_activity_controller_profile_list">ControllerProfileListActivity</string>
+    <string name="title_activity_edit_controller_profile">EditControllerProfileActivity</string>
+    <string name="title_activity_edit_controller_action">EditControllerActionActivity</string>
+    <string name="title_activity_controller">ControllerActivity</string>
 </resources>

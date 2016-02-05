@@ -1,12 +1,10 @@
 package com.scn.sbrickcontroller;
 
-
+import android.content.Intent;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
+import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -17,27 +15,16 @@ import android.widget.TextView;
 
 import com.scn.sbrickcontrollerprofilemanager.SBrickControllerProfile;
 import com.scn.sbrickcontrollerprofilemanager.SBrickControllerProfileManagerHolder;
-import com.scn.sbrickmanager.SBrick;
-import com.scn.sbrickmanager.SBrickManagerHolder;
 
-import java.util.ArrayList;
 import java.util.List;
 
-
-/**
- * Edit controller action fragment.
- */
-public class EditControllerActionFragment extends Fragment {
+public class EditControllerActionActivity extends BaseActivity {
 
     //
     // Private members
     //
 
-    private static final String TAG = EditControllerActionFragment.class.getSimpleName();
-
-    private static final String ARG_CONTROLLER_PROFILE_INDEX = "arg_controller_profile_index";
-    private static final String ARG_CONTROLLER_ACTION_ID = "arg_controller_action_id";
-    private static final String ARG_SBRICK_ADDRESS_LIST = "arg_sbrick_address_list";
+    private static final String TAG = EditControllerActionActivity.class.getSimpleName();
 
     private SBrickControllerProfile profile;
     private String controllerActionId;
@@ -48,49 +35,23 @@ public class EditControllerActionFragment extends Fragment {
     private boolean selectedInvert;
 
     //
-    // Constructors
-    //
-
-    public EditControllerActionFragment() {
-    }
-
-    public static EditControllerActionFragment newInstance(int profileIndex, String controllerActionId, List<String> sbrickAddresses) {
-
-        EditControllerActionFragment fragment = new EditControllerActionFragment();
-
-        Bundle args = new Bundle();
-        args.putInt(ARG_CONTROLLER_PROFILE_INDEX, profileIndex);
-        args.putString(ARG_CONTROLLER_ACTION_ID, controllerActionId);
-        args.putStringArrayList(ARG_SBRICK_ADDRESS_LIST, new ArrayList<String>(sbrickAddresses));
-        fragment.setArguments(args);
-
-        return fragment;
-    }
-
-    //
-    // Fragment overrides
+    // Activity overrides
     //
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         Log.i(TAG, "onCreate...");
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_edit_controller_action);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        if (getArguments() != null) {
-            int profileIndex = getArguments().getInt(ARG_CONTROLLER_PROFILE_INDEX);
-            profile = SBrickControllerProfileManagerHolder.getManager().getProfileAt(profileIndex);
-            controllerActionId = getArguments().getString(ARG_CONTROLLER_ACTION_ID);
-            sbrickAddresses = getArguments().getStringArrayList(ARG_SBRICK_ADDRESS_LIST);
-        }
-    }
+        Intent intent = getIntent();
+        int profileIndex = intent.getIntExtra(Constants.EXTRA_CONTROLLER_PROFILE_INDEX, 0);
+        profile = SBrickControllerProfileManagerHolder.getManager().getProfileAt(profileIndex);
+        controllerActionId = intent.getStringExtra(Constants.EXTRA_CONTROLLER_ACTION_ID);
+        sbrickAddresses = intent.getStringArrayListExtra(Constants.EXTRA_SBRICK_ADDRESS_LIST);
 
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        Log.i(TAG, "onCreateView...");
-
-        View view = inflater.inflate(R.layout.fragment_edit_controller_action, container, false);
-
-        TextView twControllerActionName = (TextView)view.findViewById(R.id.textview_controller_action_name);
+        TextView twControllerActionName = (TextView)findViewById(R.id.textview_controller_action_name);
         twControllerActionName.setText(SBrickControllerProfile.getControllerActionName(controllerActionId));
 
         SBrickControllerProfile.ControllerAction controllerAction = profile.getControllerAction(controllerActionId);
@@ -105,8 +66,8 @@ public class EditControllerActionFragment extends Fragment {
             selectedInvert = false;
         }
 
-        Spinner spSelectSBrick = (Spinner)view.findViewById(R.id.spinner_select_sbrick);
-        spSelectSBrick.setAdapter(new ArrayAdapter<String>(getActivity(), android.R.layout.simple_list_item_1, sbrickAddresses));
+        Spinner spSelectSBrick = (Spinner)findViewById(R.id.spinner_select_sbrick);
+        spSelectSBrick.setAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, sbrickAddresses));
         spSelectSBrick.setSelection(sbrickAddresses.indexOf(selectedSBrickAddress));
         spSelectSBrick.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
@@ -122,8 +83,8 @@ public class EditControllerActionFragment extends Fragment {
             }
         });
 
-        Spinner spSelectChannel = (Spinner)view.findViewById(R.id.spinnel_select_channel);
-        spSelectChannel.setAdapter(new ArrayAdapter<Integer>(getActivity(), android.R.layout.simple_list_item_1, new Integer[] { 1, 2, 3, 4 }));
+        Spinner spSelectChannel = (Spinner)findViewById(R.id.spinnel_select_channel);
+        spSelectChannel.setAdapter(new ArrayAdapter<Integer>(this, android.R.layout.simple_list_item_1, new Integer[] { 1, 2, 3, 4 }));
         spSelectChannel.setSelection(selectedChannel);
         spSelectChannel.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
@@ -139,7 +100,7 @@ public class EditControllerActionFragment extends Fragment {
             }
         });
 
-        Switch swInvertChannel = (Switch)view.findViewById(R.id.switch_invert_channel);
+        Switch swInvertChannel = (Switch)findViewById(R.id.switch_invert_channel);
         swInvertChannel.setChecked(selectedInvert);
         swInvertChannel.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
@@ -149,7 +110,7 @@ public class EditControllerActionFragment extends Fragment {
             }
         });
 
-        Button btnOk = (Button)view.findViewById(R.id.button_ok);
+        Button btnOk = (Button)findViewById(R.id.button_ok);
         btnOk.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -158,35 +119,30 @@ public class EditControllerActionFragment extends Fragment {
                 SBrickControllerProfile.ControllerAction newControllerAction = new SBrickControllerProfile.ControllerAction(selectedSBrickAddress, selectedChannel, selectedInvert);
                 profile.setControllerAction(controllerActionId, newControllerAction);
 
-                MainActivity activity = (MainActivity)getActivity();
-                activity.goBackFromFragment();
+                EditControllerActionActivity.this.finish();
             }
         });
 
-        Button btnCancel = (Button)view.findViewById(R.id.button_cancel);
+        Button btnCancel = (Button)findViewById(R.id.button_cancel);
         btnCancel.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Log.i(TAG, "btnCancel.onClick...");
-                MainActivity activity = (MainActivity)getActivity();
-                activity.goBackFromFragment();
+
+                EditControllerActionActivity.this.finish();
             }
         });
-
-        return view;
     }
 
     @Override
     public void onResume() {
         Log.i(TAG, "onResume...");
-
         super.onResume();
     }
 
     @Override
     public void onPause() {
         Log.i(TAG, "onPause...");
-
         super.onPause();
     }
 }

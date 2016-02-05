@@ -2,8 +2,8 @@ package com.scn.sbrickcontroller;
 
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -20,19 +20,16 @@ import com.scn.sbrickcontrollerprofilemanager.SBrickControllerProfileManagerHold
 import com.scn.sbrickmanager.SBrick;
 import com.scn.sbrickmanager.SBrickManagerHolder;
 
+import java.util.ArrayList;
 import java.util.List;
 
-
-public class EditControllerProfileFragment extends Fragment {
+public class EditControllerProfileActivity extends BaseActivity {
 
     //
     // Private members
     //
 
-    private static final String TAG = EditControllerProfileFragment.class.getSimpleName();
-
-    private static final String ARG_CONTROLLER_PROFILE_INDEX = "arg_controller_profile_index";
-    private static final String ARG_CONTROLLER_PROFILE = "arg_controller_profile";
+    private static final String TAG = EditControllerProfileActivity.class.getSimpleName();
 
     private ListView lwControllerActions;
     private ControllerActionListAdapter conrollerActionListAdapter;
@@ -41,42 +38,21 @@ public class EditControllerProfileFragment extends Fragment {
     SBrickControllerProfile profile;
 
     //
-    // Constructors
-    //
-
-    public EditControllerProfileFragment() {
-    }
-
-    public static EditControllerProfileFragment newInstance(int controllerProfileIndex, SBrickControllerProfile controllerProfile) {
-        EditControllerProfileFragment fragment = new EditControllerProfileFragment();
-
-        Bundle args = new Bundle();
-        args.putInt(ARG_CONTROLLER_PROFILE_INDEX, controllerProfileIndex);
-        args.putParcelable(ARG_CONTROLLER_PROFILE, controllerProfile);
-        fragment.setArguments(args);
-
-        return fragment;
-    }
-
-    //
-    // Fragment overrides
+    // Activity overrides
     //
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        Log.i(TAG, "onCreate...");
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_edit_controller_profile);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        if (getArguments() != null) {
-            profileIndex = getArguments().getInt(ARG_CONTROLLER_PROFILE_INDEX);
-            profile = getArguments().getParcelable(ARG_CONTROLLER_PROFILE);
-        }
-    }
+        Intent intent = getIntent();
+        profileIndex = intent.getIntExtra(Constants.EXTRA_CONTROLLER_PROFILE_INDEX, 0);
+        profile = intent.getParcelableExtra(Constants.EXTRA_CONTROLLER_PROFILE);
 
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_edit_controller_profile, container, false);
-
-        lwControllerActions = (ListView)view.findViewById(R.id.listview_conroller_actions);
+        lwControllerActions = (ListView)findViewById(R.id.listview_conroller_actions);
         lwControllerActions.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -91,14 +67,15 @@ public class EditControllerProfileFragment extends Fragment {
                 String controllerActionId = ControllerActionListAdapter.getControllerActionId(position - 1);
                 List<String> sbrickAddresses = SBrickManagerHolder.getManager().getSBrickAddresses();
 
-                MainActivity activity = (MainActivity)EditControllerProfileFragment.this.getActivity();
-                activity.startEditControllerActionFragment(profileIndex, controllerActionId, sbrickAddresses);
+                Intent intent = new Intent(EditControllerProfileActivity.this, EditControllerActionActivity.class);
+                intent.putExtra(Constants.EXTRA_CONTROLLER_PROFILE_INDEX, profileIndex);
+                intent.putExtra(Constants.EXTRA_CONTROLLER_ACTION_ID, controllerActionId);
+                intent.putStringArrayListExtra(Constants.EXTRA_SBRICK_ADDRESS_LIST, new ArrayList(sbrickAddresses));
+                startActivity(intent);
             }
         });
-        conrollerActionListAdapter = new ControllerActionListAdapter(getActivity(), profile);
+        conrollerActionListAdapter = new ControllerActionListAdapter(this, profile);
         lwControllerActions.setAdapter(conrollerActionListAdapter);
-
-        return view;
     }
 
     @Override
@@ -189,7 +166,7 @@ public class EditControllerProfileFragment extends Fragment {
 
                     if (rowView == null) {
                         LayoutInflater inflater = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-                        rowView = inflater.inflate(R.layout.controller_action_head_item, parent, false);
+                        rowView = inflater.inflate(R.layout.listview_item_controller_action_head, parent, false);
                     }
 
                     EditText etProfileName = (EditText)rowView.findViewById(R.id.edittext_controller_profile_name);
@@ -201,7 +178,7 @@ public class EditControllerProfileFragment extends Fragment {
 
                     if (rowView == null) {
                         LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-                        rowView = inflater.inflate(R.layout.controller_action_item, parent, false);
+                        rowView = inflater.inflate(R.layout.listview_item_controller_action, parent, false);
                     }
 
                     final String controllerActionName = SBrickControllerProfile.getControllerActionName(getControllerActionId(position - 1));

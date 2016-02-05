@@ -7,12 +7,15 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
+import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,19 +26,13 @@ import android.widget.TextView;
 import com.scn.sbrickmanager.SBrick;
 import com.scn.sbrickmanager.SBrickManagerHolder;
 
-
-/**
- * SBrick details fragment.
- */
-public class SBrickDetailsFragment extends Fragment implements GameControllerActionListener {
+public class SBrickDetailsActivity extends BaseActivity {
 
     //
     // Private members
     //
 
-    private static final String TAG = SBrickDetailsFragment.class.getSimpleName();
-
-    private static final String ARG_SBRICK_ADDRESS = "arg_sbrick_address";
+    private static final String TAG = SBrickDetailsActivity.class.getSimpleName();
 
     private SBrick sbrick;
 
@@ -55,57 +52,31 @@ public class SBrickDetailsFragment extends Fragment implements GameControllerAct
     private ProgressDialog progressDialog;
 
     //
-    // Constructors
-    //
-
-    public SBrickDetailsFragment() {
-    }
-
-    public static SBrickDetailsFragment newInstance(String sbrickAddress) {
-        SBrickDetailsFragment fragment = new SBrickDetailsFragment();
-
-        Bundle args = new Bundle();
-        args.putString(ARG_SBRICK_ADDRESS, sbrickAddress);
-        fragment.setArguments(args);
-
-        return fragment;
-    }
-
-    //
-    // Fragment overrides
+    // Activity overrides
     //
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         Log.i(TAG, "onCreate...");
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_sbrick_details);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        Bundle arguments = getArguments();
-        if (arguments == null)
-            throw new RuntimeException("SBrick address is needed for SBrickDetailsFragment.");
-
-        String sbrickAddress = getArguments().getString(ARG_SBRICK_ADDRESS);
+        String sbrickAddress = getIntent().getStringExtra(Constants.EXTRA_SBRICK_ADDRESS);
         sbrick = SBrickManagerHolder.getManager().getSBrick(sbrickAddress);
-    }
 
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        Log.i(TAG, "onCreateView");
-
-        View view = inflater.inflate(R.layout.fragment_sbrick_details, container, false);
-
-        etDisplayName = (EditText)view.findViewById(R.id.edittext_display_name);
-        twDeviceName = (TextView)view.findViewById(R.id.textview_device_name);
-        twAddress = (TextView)view.findViewById(R.id.textview_address);
-        twModelNumber = (TextView)view.findViewById(R.id.textview_model_number);
-        twFirmwareRevision = (TextView)view.findViewById(R.id.textview_firmware_revision);
-        twHardwareRevision = (TextView)view.findViewById(R.id.textview_hardware_revision);
-        twSoftwareRevision = (TextView)view.findViewById(R.id.textview_software_revision);
-        twManufacturerName = (TextView)view.findViewById(R.id.textview_manufacturer_name);
-        sbPort1 = (SeekBar)view.findViewById(R.id.seekbar_port1);
-        sbPort2 = (SeekBar)view.findViewById(R.id.seekbar_port2);
-        sbPort3 = (SeekBar)view.findViewById(R.id.seekbar_port3);
-        sbPort4 = (SeekBar)view.findViewById(R.id.seekbar_port4);
+        etDisplayName = (EditText)findViewById(R.id.edittext_display_name);
+        twDeviceName = (TextView)findViewById(R.id.textview_device_name);
+        twAddress = (TextView)findViewById(R.id.textview_address);
+        twModelNumber = (TextView)findViewById(R.id.textview_model_number);
+        twFirmwareRevision = (TextView)findViewById(R.id.textview_firmware_revision);
+        twHardwareRevision = (TextView)findViewById(R.id.textview_hardware_revision);
+        twSoftwareRevision = (TextView)findViewById(R.id.textview_software_revision);
+        twManufacturerName = (TextView)findViewById(R.id.textview_manufacturer_name);
+        sbPort1 = (SeekBar)findViewById(R.id.seekbar_port1);
+        sbPort2 = (SeekBar)findViewById(R.id.seekbar_port2);
+        sbPort3 = (SeekBar)findViewById(R.id.seekbar_port3);
+        sbPort4 = (SeekBar)findViewById(R.id.seekbar_port4);
 
         twAddress.setText(sbrick.getAddress());
         etDisplayName.setText(sbrick.getName());
@@ -119,58 +90,54 @@ public class SBrickDetailsFragment extends Fragment implements GameControllerAct
         sbPort2.setProgress(sbPort2.getMax() / 2);
         sbPort3.setProgress(sbPort3.getMax() / 2);
         sbPort4.setProgress(sbPort4.getMax() / 2);
-
-        return view;
     }
 
     @Override
     public void onResume() {
         Log.i(TAG, "onResume...");
+        super.onResume();
 
         IntentFilter filter = new IntentFilter();
         filter.addAction(SBrick.ACTION_SBRICK_CONNECTED);
         filter.addAction(SBrick.ACTION_SBRICK_DISCONNECTED);
         filter.addAction(SBrick.ACTION_SBRICK_CHARACTERISTIC_READ);
-        LocalBroadcastManager.getInstance(getActivity()).registerReceiver(sbrickBroadcastReceiver, filter);
+        LocalBroadcastManager.getInstance(this).registerReceiver(sbrickBroadcastReceiver, filter);
 
         if (sbrick.connect()) {
             progressDialog = Helper.showProgressDialog(
-                    SBrickDetailsFragment.this.getActivity(),
+                    SBrickDetailsActivity.this,
                     "Connecting to SBrick...",
                     new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             Log.i(TAG, "onClick...");
                             sbrick.disconnect();
-                            MainActivity activity = (MainActivity)SBrickDetailsFragment.this.getActivity();
-                            activity.goBackFromFragment();
+                            finish();
                         }
                     });
         }
         else {
             Helper.showMessageBox(
-                    SBrickDetailsFragment.this.getActivity(),
+                    SBrickDetailsActivity.this,
                     "Failed to start connecting to SBrick.",
                     new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-                            MainActivity activity = (MainActivity)SBrickDetailsFragment.this.getActivity();
-                            activity.goBackFromFragment();
+                            finish();
                         }
                     });
         }
-
-        super.onResume();
     }
 
     @Override
     public void onPause() {
         Log.i(TAG, "onPause...");
+        super.onPause();
 
         sbrick.setName(etDisplayName.getText().toString());
 
         Log.i(TAG, "  Unregister the SBrick local broadcast receiver...");
-        LocalBroadcastManager.getInstance(this.getActivity()).unregisterReceiver(sbrickBroadcastReceiver);
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(sbrickBroadcastReceiver);
 
         Log.i(TAG, "  Disconnect from the SBrick...");
         sbrick.disconnect();
@@ -180,8 +147,35 @@ public class SBrickDetailsFragment extends Fragment implements GameControllerAct
             progressDialog.dismiss();
             progressDialog = null;
         }
+    }
 
-        super.onPause();
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        Log.i(TAG, "onCreateOptionsMenu...");
+
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu_sbrick_details, menu);
+
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        Log.i(TAG, "onOptionsItemSelected...");
+        super.onOptionsItemSelected(item);
+
+        switch (item.getItemId()) {
+
+            case R.id.menu_item_done:
+                Log.i(TAG, "  menu_item_done");
+
+                // TODO: set the sbrick name
+
+                finish();
+                return true;
+        }
+
+        return false;
     }
 
     //
@@ -288,8 +282,7 @@ public class SBrickDetailsFragment extends Fragment implements GameControllerAct
                         progressDialog = null;
                     }
 
-                    MainActivity activity = (MainActivity)getActivity();
-                    activity.goBackFromFragment();
+                    SBrickDetailsActivity.this.finish();
 
                     break;
 

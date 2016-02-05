@@ -8,10 +8,12 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -25,59 +27,33 @@ import com.scn.sbrickmanager.SBrick;
 import com.scn.sbrickmanager.SBrickManager;
 import com.scn.sbrickmanager.SBrickManagerHolder;
 
-import java.util.ArrayList;
 import java.util.List;
 
-
-public class SBrickListFragment extends Fragment {
+public class SBrickListActivity extends BaseActivity {
 
     //
     // Private members
     //
 
-    private static final String TAG = SBrickListFragment.class.getSimpleName();
+    private static final String TAG = SBrickListActivity.class.getSimpleName();
 
     private SBrickListAdapter sbrickListAdapter;
     private ProgressDialog progressDialog;
 
     private ListView listViewSBricks;
-    private Button buttonScanSBricks;
 
     //
-    // Constructors
-    //
-
-    public SBrickListFragment() {
-
-    }
-
-    public static SBrickListFragment newInstance() {
-        SBrickListFragment fragment = new SBrickListFragment();
-
-        Bundle args = new Bundle();
-        fragment.setArguments(args);
-
-        return fragment;
-    }
-
-    //
-    // Fragment overrides
+    // Activity overrides
     //
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        if (getArguments() != null) {
-        }
-    }
-
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View view =  inflater.inflate(R.layout.fragment_sbrick_list, container, false);
+        setContentView(R.layout.activity_sbrick_list);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         Log.i(TAG, "  Setup the list view adapter...");
-        listViewSBricks = (ListView)view.findViewById(R.id.listview_sbricks);
+        listViewSBricks = (ListView)findViewById(R.id.listview_sbricks);
         listViewSBricks.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -87,40 +63,14 @@ public class SBrickListFragment extends Fragment {
                 List<SBrick> sbrickList = SBrickManagerHolder.getManager().getSBricks();
                 SBrick sbrick = sbrickList.get(position);
                 String selectedSBrickAddress = sbrick.getAddress();
-                MainActivity activity = (MainActivity) getActivity();
-                activity.startSBrickDetailsFragment(selectedSBrickAddress);
+
+                Intent intent = new Intent(SBrickListActivity.this, SBrickDetailsActivity.class);
+                intent.putExtra(Constants.EXTRA_SBRICK_ADDRESS, selectedSBrickAddress);
+                startActivity(intent);
             }
         });
-        sbrickListAdapter = new SBrickListAdapter(getActivity());
+        sbrickListAdapter = new SBrickListAdapter(this);
         listViewSBricks.setAdapter(sbrickListAdapter);
-
-        buttonScanSBricks = (Button)view.findViewById(R.id.button_scan_sbricks);
-        buttonScanSBricks.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Log.i(TAG, "onClick...");
-                if (SBrickManagerHolder.getManager().startSBrickScan()) {
-                    progressDialog = Helper.showProgressDialog(SBrickListFragment.this.getActivity(), "Scanning for SBricks...", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            Log.i(TAG, "onClick...");
-                            SBrickManagerHolder.getManager().stopSBrickScan();
-                            progressDialog.dismiss();
-                            progressDialog = null;
-                        }
-                    });
-                }
-                else {
-                    Helper.showMessageBox(SBrickListFragment.this.getActivity(), "Could not start scanning for SBricks.", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                        }
-                    });
-                }
-            }
-        });
-
-        return view;
     }
 
     @Override
@@ -131,7 +81,7 @@ public class SBrickListFragment extends Fragment {
         Log.i(TAG, "  Register the SBrick local broadcast reveiver...");
         IntentFilter filter = new IntentFilter();
         filter.addAction(SBrickManager.ACTION_FOUND_AN_SBRICK);
-        LocalBroadcastManager.getInstance(this.getActivity()).registerReceiver(sbrickBroadcastReceiver, filter);
+        LocalBroadcastManager.getInstance(this).registerReceiver(sbrickBroadcastReceiver, filter);
     }
 
     @Override
@@ -140,7 +90,7 @@ public class SBrickListFragment extends Fragment {
         super.onPause();
 
         Log.i(TAG, "  Unregister the SBrick local broadcast receiver...");
-        LocalBroadcastManager.getInstance(this.getActivity()).unregisterReceiver(sbrickBroadcastReceiver);
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(sbrickBroadcastReceiver);
 
         SBrickManagerHolder.getManager().stopSBrickScan();
         SBrickManagerHolder.getManager().saveSBricks();
@@ -150,6 +100,51 @@ public class SBrickListFragment extends Fragment {
             progressDialog.dismiss();
             progressDialog = null;
         }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        Log.i(TAG, "onCreateOptionsMenu...");
+
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu_sbrick_list, menu);
+
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        Log.i(TAG, "onOptionsItemSelected...");
+        super.onOptionsItemSelected(item);
+
+        switch (item.getItemId()) {
+
+            case R.id.menu_item_start_scan:
+                Log.i(TAG, "  menu_item_start_scan");
+
+                if (SBrickManagerHolder.getManager().startSBrickScan()) {
+                    progressDialog = Helper.showProgressDialog(SBrickListActivity.this, "Scanning for SBricks...", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            Log.i(TAG, "onClick...");
+                            SBrickManagerHolder.getManager().stopSBrickScan();
+                            progressDialog.dismiss();
+                            progressDialog = null;
+                        }
+                    });
+                }
+                else {
+                    Helper.showMessageBox(SBrickListActivity.this, "Could not start scanning for SBricks.", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                        }
+                    });
+                }
+
+                return true;
+        }
+
+        return false;
     }
 
     //
@@ -205,7 +200,7 @@ public class SBrickListFragment extends Fragment {
 
             if (rowView == null) {
                 LayoutInflater inflater = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-                rowView = inflater.inflate(R.layout.sbrick_list_item, parent, false);
+                rowView = inflater.inflate(R.layout.listview_item_sbrick_list, parent, false);
             }
 
             final SBrick sbrick = (SBrick)getItem(position);
