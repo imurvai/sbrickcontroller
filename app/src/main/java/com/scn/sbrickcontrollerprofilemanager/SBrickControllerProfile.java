@@ -1,5 +1,6 @@
 package com.scn.sbrickcontrollerprofilemanager;
 
+import android.content.SharedPreferences;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.util.Log;
@@ -43,6 +44,10 @@ public class SBrickControllerProfile implements Parcelable {
 
     private static final String TAG = SBrickControllerProfile.class.getSimpleName();
 
+    private static final String ProfileNameKey = "profile_name_key";
+    private static final String ControllerActionCountKey = "controller_action_count_key";
+    private static final String ControllerActionIdKey = "controller_action_id_key";
+
     private String name;
     private Map<String, ControllerAction> controllerActionMap = new HashMap();
 
@@ -54,12 +59,26 @@ public class SBrickControllerProfile implements Parcelable {
      * Creates a new instance of the SBrickControllerProfile class.
      * @param name is the name of the profile.
      */
-    SBrickControllerProfile(String name) {
+    public SBrickControllerProfile(String name) {
         Log.i(TAG, "SBrickControllerProfile - " + name);
         this.name = name;
     }
 
+    SBrickControllerProfile(SharedPreferences prefs) {
+        Log.i(TAG, "SBrickControllerProfile from shared preferences...");
+
+        name = prefs.getString(ProfileNameKey, "");
+
+        int size = prefs.getInt(ControllerActionCountKey, 0);
+        for (int i = 0; i < size; i++) {
+            String controllerActionId = prefs.getString(ControllerActionIdKey, "");
+            ControllerAction controllerAction = new ControllerAction(prefs);
+            controllerActionMap.put(controllerActionId, controllerAction);
+        }
+    }
+
     SBrickControllerProfile(Parcel parcel) {
+        Log.i(TAG, "SBrickControllerProfile from parcel...");
 
         if (parcel == null)
             throw new RuntimeException("parcel is null.");
@@ -171,6 +190,22 @@ public class SBrickControllerProfile implements Parcelable {
     }
 
     //
+    // Internal API
+    //
+
+    void saveToPreferences(SharedPreferences.Editor editor) {
+        Log.i(TAG, "SaveProfileToPreferences - " + getName());
+
+        editor.putString(ProfileNameKey, getName());
+        editor.putInt(ControllerActionCountKey, controllerActionMap.size());
+
+        for (Map.Entry<String, ControllerAction> kvp : controllerActionMap.entrySet()) {
+            editor.putString(ControllerActionIdKey, kvp.getKey());
+            kvp.getValue().saveToPreferences(editor);
+        }
+    }
+
+    //
     // Parcelable overrides
     //
 
@@ -181,14 +216,13 @@ public class SBrickControllerProfile implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-        if (dest == null)
-            return;
+        Log.i(TAG, "writeToParcel...");
 
         dest.writeString(name);
         dest.writeInt(controllerActionMap.size());
-        for (Map.Entry<String, ControllerAction> entry : controllerActionMap.entrySet()) {
-            dest.writeString(entry.getKey());
-            dest.writeParcelable(entry.getValue(), flags);
+        for (Map.Entry<String, ControllerAction> kvp : controllerActionMap.entrySet()) {
+            dest.writeString(kvp.getKey());
+            dest.writeParcelable(kvp.getValue(), flags);
         }
     }
 
@@ -218,6 +252,12 @@ public class SBrickControllerProfile implements Parcelable {
         // Private members.
         //
 
+        private static final String TAG = ControllerAction.class.getSimpleName();
+
+        private static final String SBrickAddressKey = "sbrick_address_key";
+        private static final String ChannelKey = "channel_key";
+        private static final String InvertKey = "invert_key";
+
         private String sbrickAddress;
         private int channel;
         private boolean invert;
@@ -234,6 +274,7 @@ public class SBrickControllerProfile implements Parcelable {
          * @throws IllegalArgumentException
          */
         public ControllerAction(String sbrickAddress, int channel, boolean invert) {
+            Log.i(TAG, "ControllerAction...");
 
             if (sbrickAddress == null)
                 throw new RuntimeException("SBRick address is null;");
@@ -246,7 +287,16 @@ public class SBrickControllerProfile implements Parcelable {
             this.invert = invert;
         }
 
-        public ControllerAction(Parcel parcel) {
+        ControllerAction(SharedPreferences prefs) {
+            Log.i(TAG, "ControllerAction from shared preferences...");
+
+            sbrickAddress = prefs.getString(SBrickAddressKey, "");
+            channel = prefs.getInt(ChannelKey, 0);
+            invert = prefs.getInt(InvertKey, 0) != 0;
+        }
+
+        ControllerAction(Parcel parcel) {
+            Log.i(TAG, "ControllerAction from parcel...");
 
             if (parcel == null)
                 throw new RuntimeException("parcel is null.");
@@ -279,6 +329,18 @@ public class SBrickControllerProfile implements Parcelable {
         public boolean getInvert() { return invert; }
 
         //
+        // Internal API
+        //
+
+        void saveToPreferences(SharedPreferences.Editor editor) {
+            Log.i(TAG, "SaveToPreferences...");
+
+            editor.putString(SBrickAddressKey, sbrickAddress);
+            editor.putInt(ChannelKey, channel);
+            editor.putInt(InvertKey, invert ? 1 : 0);
+        }
+
+        //
         // Parcelable methods
         //
 
@@ -289,6 +351,8 @@ public class SBrickControllerProfile implements Parcelable {
 
         @Override
         public void writeToParcel(Parcel dest, int flags) {
+            Log.i(TAG, "writeToParcel...");
+
             dest.writeString(sbrickAddress);
             dest.writeInt(channel);
             dest.writeInt(invert ? 1 : 0);

@@ -4,8 +4,10 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Log;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -51,7 +53,7 @@ abstract class SBrickManagerBase implements SBrickManager {
     //
 
     @Override
-    public void loadSBricks() {
+    public boolean loadSBricks() {
         Log.i(TAG, "loadSBricks...");
 
         try {
@@ -67,11 +69,14 @@ abstract class SBrickManagerBase implements SBrickManager {
         }
         catch (Exception ex) {
             Log.e(TAG, "Error during loading SBricks.", ex);
+            return false;
         }
+
+        return true;
     }
 
     @Override
-    public void saveSBricks() {
+    public boolean saveSBricks() {
         Log.i(TAG, "saveSBricks...");
 
         try {
@@ -90,14 +95,29 @@ abstract class SBrickManagerBase implements SBrickManager {
         }
         catch (Exception ex) {
             Log.e(TAG, "Error during saving SBricks.", ex);
+            return false;
         }
+
+        return true;
     }
 
     @Override
-    public Collection<SBrick> getSBricks() {
+    public List<SBrick> getSBricks() {
         Log.i(TAG, "getSBricks...");
 
-        return sbrickMap.values();
+        return new ArrayList<>(sbrickMap.values());
+    }
+
+    @Override
+    public List<String> getSBrickAddresses() {
+        Log.i(TAG, "getSBrickAddresses...");
+
+        List<String> sbrickAddresses = new ArrayList<>();
+        for (SBrick sBrick : sbrickMap.values()) {
+            sbrickAddresses.add(sBrick.getAddress());
+        }
+
+        return sbrickAddresses;
     }
 
     @Override

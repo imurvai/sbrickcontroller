@@ -95,7 +95,7 @@ class SBrickManagerMock extends SBrickManagerBase {
                         String address = sbrickAddresses[i];
                         if (!sbrickMap.containsKey(address)) {
                             Log.i(TAG, "  Storing SBrick.");
-                            Log.i(TAG, "    Device address    : " + address);
+                            Log.i(TAG, "    Device address: " + address);
 
                             SBrick sbrick = createSBrick(address);
 

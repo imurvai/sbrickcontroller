@@ -16,7 +16,6 @@ import android.widget.TextView;
 
 import com.scn.sbrickcontrollerprofilemanager.SBrickControllerProfile;
 import com.scn.sbrickcontrollerprofilemanager.SBrickControllerProfileManagerHolder;
-import com.scn.sbrickmanager.SBrick;
 import com.scn.sbrickmanager.SBrickManagerHolder;
 
 import java.util.ArrayList;
@@ -108,9 +107,11 @@ public class ControllerProfileListFragment extends Fragment {
             public void onClick(View v) {
                 Log.i(TAG, "onClick...");
 
-                SBrickControllerProfile newProfile = SBrickControllerProfileManagerHolder.getManager().addNewProfile();
+                SBrickControllerProfile profile = SBrickControllerProfileManagerHolder.getManager().addProfile("My profile");
+                int profileIndex = SBrickControllerProfileManagerHolder.getManager().getProfiles().indexOf(profile);
+
                 MainActivity activity = (MainActivity)getActivity();
-                activity.startEditControllerProfileFragment(newProfile);
+                activity.startEditControllerProfileFragment(profileIndex, profile);
             }
         });
 
@@ -162,7 +163,7 @@ public class ControllerProfileListFragment extends Fragment {
 
         boolean allSBrickOk = true;
         for (String sbrickAddress : profile.getSBrickAddresses()) {
-            if (SBrickManagerHolder.getSBrickManager().getSBrick(sbrickAddress) == null) {
+            if (SBrickManagerHolder.getManager().getSBrick(sbrickAddress) == null) {
                 Log.i(TAG, "  SBrick (" + sbrickAddress + ") is unknown.");
                 allSBrickOk = false;
             }
@@ -170,6 +171,8 @@ public class ControllerProfileListFragment extends Fragment {
 
         return allSBrickOk;
     }
+
+    //
 
     private static class ControllerProfileListAdapter extends BaseAdapter {
 
@@ -191,7 +194,7 @@ public class ControllerProfileListFragment extends Fragment {
 
         @Override
         public long getItemId(int position) {
-            return 0;
+            return position;
         }
 
         @Override
@@ -203,7 +206,7 @@ public class ControllerProfileListFragment extends Fragment {
                 rowView = inflater.inflate(R.layout.controller_profile_item, parent, false);
             }
 
-            final SBrickControllerProfile profile = (SBrickControllerProfile) getItem(position);
+            final SBrickControllerProfile profile = (SBrickControllerProfile)getItem(position);
 
             TextView twControllerProfileName = (TextView)rowView.findViewById(R.id.textview_controller_profile_name);
             twControllerProfileName.setText(profile.getName());
@@ -214,9 +217,10 @@ public class ControllerProfileListFragment extends Fragment {
                 public void onClick(View v) {
                     Log.i(TAG, "onClick...");
 
-                    SBrickControllerProfile newProfile = SBrickControllerProfileManagerHolder.getManager().addNewProfile();
+                    int profileIndex = SBrickControllerProfileManagerHolder.getManager().getProfiles().indexOf(profile);
+
                     MainActivity activity = (MainActivity)context;
-                    activity.startEditControllerProfileFragment(profile);
+                    activity.startEditControllerProfileFragment(profileIndex, profile);
                 }
             });
 
@@ -245,6 +249,7 @@ public class ControllerProfileListFragment extends Fragment {
                             });
                 }
             });
+
             return rowView;
         }
     }

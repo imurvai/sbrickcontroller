@@ -2,6 +2,7 @@ package com.scn.sbrickcontrollerprofilemanager;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * SBrick controller profile manager interface.
@@ -19,10 +20,10 @@ public interface SBrickControllerProfileManager {
     boolean saveProfiles();
 
     /**
-     * Gets the previously loaded SBrick controller profiles.
-     * @return Collection of SBrick controller profiles.
+     * Gets the SBrick controller profiles.
+     * @return List of SBrick controller profiles.
      */
-    Collection<SBrickControllerProfile> getProfiles();
+    List<SBrickControllerProfile> getProfiles();
 
     /**
      * Gets the SBrick controller profile at the specified position.
@@ -32,9 +33,18 @@ public interface SBrickControllerProfileManager {
     SBrickControllerProfile getProfileAt(int position);
 
     /**
-     * Adds a new blank SBrick controller profile.
+     * Adds a new SBrick controller profile.
+     * @param name is the name of the new profile.
+     * @return The new controller profile.
      */
-    SBrickControllerProfile addNewProfile();
+    SBrickControllerProfile addProfile(String name);
+
+    /**
+     * Updates the profile at the given position with the given profile.
+     * @param position is the position where to update the profile.
+     * @param profile is the profile to update with.
+     */
+    void UpdateProfileAt(int position, SBrickControllerProfile profile);
 
     /**
      * Removes the SBrick controller profile.

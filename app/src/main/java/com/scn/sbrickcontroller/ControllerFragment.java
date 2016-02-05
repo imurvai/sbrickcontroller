@@ -18,16 +18,12 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.scn.sbrickcontrollerprofilemanager.SBrickControllerProfile;
-import com.scn.sbrickcontrollerprofilemanager.SBrickControllerProfileManagerHolder;
 import com.scn.sbrickmanager.SBrick;
-import com.scn.sbrickmanager.SBrickCharacteristics;
 import com.scn.sbrickmanager.SBrickManagerHolder;
 
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 
 public class ControllerFragment extends Fragment implements GameControllerActionListener {
@@ -87,7 +83,7 @@ public class ControllerFragment extends Fragment implements GameControllerAction
         // Find and store the SBricks addressed in the profile
         Collection<String> sbrickAddresses = profile.getSBrickAddresses();
         for (String address : sbrickAddresses) {
-            SBrick sbrick = SBrickManagerHolder.getSBrickManager().getSBrick(address);
+            SBrick sbrick = SBrickManagerHolder.getManager().getSBrick(address);
             sbricksMap.put(address, sbrick);
 
             int[] channelValues = new int[4];

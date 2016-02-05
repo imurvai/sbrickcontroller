@@ -8,9 +8,17 @@ import android.util.Log;
  */
 public class SBrickManagerHolder {
 
+    //
+    // Private members
+    //
+
     private static final String TAG = SBrickManagerHolder.class.getSimpleName();
 
-    private static SBrickManager instance = null;
+    private static SBrickManager manager = null;
+
+    //
+    // Private constructor
+    //
 
     private SBrickManagerHolder() {
     }
@@ -26,11 +34,11 @@ public class SBrickManagerHolder {
     public static void CreateSBrickManagerSingleton(Context context) {
         Log.i(TAG, "CreateSBrickManager...");
 
-        if (instance != null)
-            throw new RuntimeException("SBrickManager has already been created.");
+        if (manager != null)
+            return;
 
         boolean isRealImplementation = false;
-        instance = isRealImplementation ?
+        manager = isRealImplementation ?
                 new SBrickManagerImpl(context) :
                 new SBrickManagerMock(context);
     }
@@ -39,11 +47,11 @@ public class SBrickManagerHolder {
      * Gets the SBrickManager object.
      * @return The SBrickManager.
      */
-    public static SBrickManager getSBrickManager() {
+    public static synchronized SBrickManager getManager() {
 
-        if (instance == null)
+        if (manager == null)
             throw new RuntimeException("SBrickManager hasn't been created yet.");
 
-        return instance;
+        return manager;
     }
 }

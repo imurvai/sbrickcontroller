@@ -84,7 +84,7 @@ public class SBrickListFragment extends Fragment {
                 Log.i(TAG, "onItemClick...");
 
                 // Open the SBrick details fragment
-                List<SBrick> sbrickList = new ArrayList<>(SBrickManagerHolder.getSBrickManager().getSBricks());
+                List<SBrick> sbrickList = SBrickManagerHolder.getManager().getSBricks();
                 SBrick sbrick = sbrickList.get(position);
                 String selectedSBrickAddress = sbrick.getAddress();
                 MainActivity activity = (MainActivity) getActivity();
@@ -99,12 +99,12 @@ public class SBrickListFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 Log.i(TAG, "onClick...");
-                if (SBrickManagerHolder.getSBrickManager().startSBrickScan()) {
+                if (SBrickManagerHolder.getManager().startSBrickScan()) {
                     progressDialog = Helper.showProgressDialog(SBrickListFragment.this.getActivity(), "Scanning for SBricks...", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             Log.i(TAG, "onClick...");
-                            SBrickManagerHolder.getSBrickManager().stopSBrickScan();
+                            SBrickManagerHolder.getManager().stopSBrickScan();
                             progressDialog.dismiss();
                             progressDialog = null;
                         }
@@ -142,8 +142,8 @@ public class SBrickListFragment extends Fragment {
         Log.i(TAG, "  Unregister the SBrick local broadcast receiver...");
         LocalBroadcastManager.getInstance(this.getActivity()).unregisterReceiver(sbrickBroadcastReceiver);
 
-        SBrickManagerHolder.getSBrickManager().stopSBrickScan();
-        SBrickManagerHolder.getSBrickManager().saveSBricks();
+        SBrickManagerHolder.getManager().stopSBrickScan();
+        SBrickManagerHolder.getManager().saveSBricks();
 
         Log.i(TAG, "  Dismiss the progress dialog if open...");
         if (progressDialog != null) {
@@ -186,13 +186,12 @@ public class SBrickListFragment extends Fragment {
 
         @Override
         public int getCount() {
-            return SBrickManagerHolder.getSBrickManager().getSBricks().size();
+            return SBrickManagerHolder.getManager().getSBricks().size();
         }
 
         @Override
         public Object getItem(int position) {
-            List<SBrick> sbrickList = new ArrayList<>(SBrickManagerHolder.getSBrickManager().getSBricks());
-            return sbrickList.get(position);
+            return SBrickManagerHolder.getManager().getSBricks().get(position);
         }
 
         @Override
@@ -212,7 +211,7 @@ public class SBrickListFragment extends Fragment {
             final SBrick sbrick = (SBrick)getItem(position);
 
             TextView twSBrickName = (TextView)rowView.findViewById(R.id.textview_sbrick_name);
-            TextView twSBrickAddress = (TextView)rowView.findViewById(R.id.textview_sbrick_name);
+            TextView twSBrickAddress = (TextView)rowView.findViewById(R.id.textview_sbrick_address);
             twSBrickName.setText(sbrick.getName());
             twSBrickAddress.setText(sbrick.getAddress());
 
@@ -256,7 +255,7 @@ public class SBrickListFragment extends Fragment {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
                                     Log.i(TAG, "onClick...");
-                                    SBrickManagerHolder.getSBrickManager().forgetSBrick(sbrick.getAddress());
+                                    SBrickManagerHolder.getManager().forgetSBrick(sbrick.getAddress());
                                     SBrickListAdapter.this.notifyDataSetChanged();
                                 }
                             },

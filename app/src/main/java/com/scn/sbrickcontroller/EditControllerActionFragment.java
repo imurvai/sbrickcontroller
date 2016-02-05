@@ -16,6 +16,7 @@ import android.widget.Switch;
 import android.widget.TextView;
 
 import com.scn.sbrickcontrollerprofilemanager.SBrickControllerProfile;
+import com.scn.sbrickcontrollerprofilemanager.SBrickControllerProfileManagerHolder;
 import com.scn.sbrickmanager.SBrick;
 import com.scn.sbrickmanager.SBrickManagerHolder;
 
@@ -34,12 +35,13 @@ public class EditControllerActionFragment extends Fragment {
 
     private static final String TAG = EditControllerActionFragment.class.getSimpleName();
 
-    private static final String ARG_CONTROLLER_PROFILE = "arg_controller_profile";
+    private static final String ARG_CONTROLLER_PROFILE_INDEX = "arg_controller_profile_index";
     private static final String ARG_CONTROLLER_ACTION_ID = "arg_controller_action_id";
+    private static final String ARG_SBRICK_ADDRESS_LIST = "arg_sbrick_address_list";
 
     private SBrickControllerProfile profile;
     private String controllerActionId;
-    private List<SBrick> sbricks;
+    private List<String> sbrickAddresses;
 
     private String selectedSBrickAddress;
     private int selectedChannel;
@@ -52,13 +54,14 @@ public class EditControllerActionFragment extends Fragment {
     public EditControllerActionFragment() {
     }
 
-    public static EditControllerActionFragment newInstance(SBrickControllerProfile profile, String controllerActionId) {
+    public static EditControllerActionFragment newInstance(int profileIndex, String controllerActionId, List<String> sbrickAddresses) {
 
         EditControllerActionFragment fragment = new EditControllerActionFragment();
 
         Bundle args = new Bundle();
-        args.putParcelable(ARG_CONTROLLER_PROFILE, profile);
+        args.putInt(ARG_CONTROLLER_PROFILE_INDEX, profileIndex);
         args.putString(ARG_CONTROLLER_ACTION_ID, controllerActionId);
+        args.putStringArrayList(ARG_SBRICK_ADDRESS_LIST, new ArrayList<String>(sbrickAddresses));
         fragment.setArguments(args);
 
         return fragment;
@@ -74,11 +77,11 @@ public class EditControllerActionFragment extends Fragment {
         super.onCreate(savedInstanceState);
 
         if (getArguments() != null) {
-            profile = getArguments().getParcelable(ARG_CONTROLLER_PROFILE);
+            int profileIndex = getArguments().getInt(ARG_CONTROLLER_PROFILE_INDEX);
+            profile = SBrickControllerProfileManagerHolder.getManager().getProfileAt(profileIndex);
             controllerActionId = getArguments().getString(ARG_CONTROLLER_ACTION_ID);
+            sbrickAddresses = getArguments().getStringArrayList(ARG_SBRICK_ADDRESS_LIST);
         }
-
-        sbricks = new ArrayList<>(SBrickManagerHolder.getSBrickManager().getSBricks());
     }
 
     @Override
@@ -97,19 +100,19 @@ public class EditControllerActionFragment extends Fragment {
             selectedInvert = controllerAction.getInvert();
         }
         else {
-            selectedSBrickAddress = sbricks.get(0).getAddress();
+            selectedSBrickAddress = sbrickAddresses.get(0);
             selectedChannel = 0;
             selectedInvert = false;
         }
 
         Spinner spSelectSBrick = (Spinner)view.findViewById(R.id.spinner_select_sbrick);
-        spSelectSBrick.setAdapter(new ArrayAdapter<SBrick>(getActivity(), android.R.layout.simple_list_item_1, sbricks));
-        spSelectSBrick.setSelection(sbricks.indexOf(SBrickManagerHolder.getSBrickManager().getSBrick(selectedSBrickAddress)));
+        spSelectSBrick.setAdapter(new ArrayAdapter<String>(getActivity(), android.R.layout.simple_list_item_1, sbrickAddresses));
+        spSelectSBrick.setSelection(sbrickAddresses.indexOf(selectedSBrickAddress));
         spSelectSBrick.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 Log.i(TAG, "sbSelectSBrick.onItemClick...");
-                selectedSBrickAddress = sbricks.get(position).getAddress();
+                selectedSBrickAddress = sbrickAddresses.get(position);
             }
 
             @Override

@@ -1,6 +1,7 @@
 package com.scn.sbrickmanager;
 
 import java.util.Collection;
+import java.util.List;
 
 /**
  * SBrickManager interface.
@@ -37,12 +38,12 @@ public interface SBrickManager {
     /**
      * Loads the previously scanned SBrick device list.
      */
-    void loadSBricks();
+    boolean loadSBricks();
 
     /**
      * Saves the previously scanned SBrick device list.
      */
-    void saveSBricks();
+    boolean saveSBricks();
 
     /**
      * Starts the SBrick scanning.
@@ -57,9 +58,15 @@ public interface SBrickManager {
 
     /**
      * Gets the SBricks have been scanned previously.
-     * @return Collection of the SBricks.
+     * @return List of the SBricks.
      */
-    Collection<SBrick> getSBricks();
+    List<SBrick> getSBricks();
+
+    /**
+     * Gets the SBrick addresses.
+     * @return List of SBrick addresses.
+     */
+    List<String> getSBrickAddresses();
 
     /**
      * Gets (or creates) the SBrick specified by its address.

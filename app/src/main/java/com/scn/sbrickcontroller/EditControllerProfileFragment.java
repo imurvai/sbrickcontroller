@@ -16,10 +16,11 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.scn.sbrickcontrollerprofilemanager.SBrickControllerProfile;
+import com.scn.sbrickcontrollerprofilemanager.SBrickControllerProfileManagerHolder;
 import com.scn.sbrickmanager.SBrick;
 import com.scn.sbrickmanager.SBrickManagerHolder;
 
-import org.w3c.dom.Text;
+import java.util.List;
 
 
 public class EditControllerProfileFragment extends Fragment {
@@ -30,12 +31,13 @@ public class EditControllerProfileFragment extends Fragment {
 
     private static final String TAG = EditControllerProfileFragment.class.getSimpleName();
 
+    private static final String ARG_CONTROLLER_PROFILE_INDEX = "arg_controller_profile_index";
     private static final String ARG_CONTROLLER_PROFILE = "arg_controller_profile";
 
-    private EditText etProfileName;
     private ListView lwControllerActions;
     private ControllerActionListAdapter conrollerActionListAdapter;
 
+    int profileIndex;
     SBrickControllerProfile profile;
 
     //
@@ -45,10 +47,11 @@ public class EditControllerProfileFragment extends Fragment {
     public EditControllerProfileFragment() {
     }
 
-    public static EditControllerProfileFragment newInstance(SBrickControllerProfile controllerProfile) {
+    public static EditControllerProfileFragment newInstance(int controllerProfileIndex, SBrickControllerProfile controllerProfile) {
         EditControllerProfileFragment fragment = new EditControllerProfileFragment();
 
         Bundle args = new Bundle();
+        args.putInt(ARG_CONTROLLER_PROFILE_INDEX, controllerProfileIndex);
         args.putParcelable(ARG_CONTROLLER_PROFILE, controllerProfile);
         fragment.setArguments(args);
 
@@ -64,6 +67,7 @@ public class EditControllerProfileFragment extends Fragment {
         super.onCreate(savedInstanceState);
 
         if (getArguments() != null) {
+            profileIndex = getArguments().getInt(ARG_CONTROLLER_PROFILE_INDEX);
             profile = getArguments().getParcelable(ARG_CONTROLLER_PROFILE);
         }
     }
@@ -78,10 +82,17 @@ public class EditControllerProfileFragment extends Fragment {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Log.i(TAG, "onItemClick...");
 
-                String controllerActionId = ControllerActionListAdapter.getControllerActionId(position);
+                if (position == 0) {
+                    Log.i(TAG, "  Click on head item.");
+                    return;
+                }
+
+                int profileIndex = SBrickControllerProfileManagerHolder.getManager().getProfiles().indexOf(profile);
+                String controllerActionId = ControllerActionListAdapter.getControllerActionId(position - 1);
+                List<String> sbrickAddresses = SBrickManagerHolder.getManager().getSBrickAddresses();
 
                 MainActivity activity = (MainActivity)EditControllerProfileFragment.this.getActivity();
-                activity.startEditControllerActionFragment(profile, controllerActionId);
+                activity.startEditControllerActionFragment(profileIndex, controllerActionId, sbrickAddresses);
             }
         });
         conrollerActionListAdapter = new ControllerActionListAdapter(getActivity(), profile);
@@ -203,7 +214,7 @@ public class EditControllerProfileFragment extends Fragment {
 
                     if (controllerAction != null) {
                         String sbrickAddress = controllerAction.getSbrickAddress();
-                        SBrick sbrick = SBrickManagerHolder.getSBrickManager().getSBrick(sbrickAddress);
+                        SBrick sbrick = SBrickManagerHolder.getManager().getSBrick(sbrickAddress);
 
                         twControllerActionName.setText(controllerActionName);
                         twSBrickName.setText(sbrick != null ? sbrick.getName() : "?????");
@@ -255,7 +266,7 @@ public class EditControllerProfileFragment extends Fragment {
         // Private methods
         //
 
-        public static String getControllerActionId(int position) {
+        private static String getControllerActionId(int position) {
             switch (position) {
                 case 0: return SBrickControllerProfile.CONTROLLER_ACTION_DPAD_LEFT_RIGHT;
                 case 1: return SBrickControllerProfile.CONTROLLER_ACTION_DPAD_UP_DOWN;

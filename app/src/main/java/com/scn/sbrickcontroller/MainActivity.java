@@ -18,6 +18,8 @@ import com.scn.sbrickcontrollerprofilemanager.SBrickControllerProfile;
 import com.scn.sbrickcontrollerprofilemanager.SBrickControllerProfileManagerHolder;
 import com.scn.sbrickmanager.SBrickManagerHolder;
 
+import java.util.List;
+
 /**
  * The one and only activity.
  */
@@ -40,7 +42,7 @@ public class MainActivity extends FragmentActivity {
         Log.i(TAG, "onCreate...");
         super.onCreate(savedInstanceState);
 
-        if (!SBrickManagerHolder.getSBrickManager().isBLESupported()) {
+        if (!SBrickManagerHolder.getManager().isBLESupported()) {
             Helper.showMessageBox(this, "Your device doesn't support bluetooth low energy profile.", new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
@@ -73,7 +75,7 @@ public class MainActivity extends FragmentActivity {
         Log.i(TAG, "onResume...");
         super.onResume();
 
-        if (!SBrickManagerHolder.getSBrickManager().isBLESupported())
+        if (!SBrickManagerHolder.getManager().isBLESupported())
             return;
 
         Log.i(TAG, "  Register the BluetoothAdapter broadcast receiver...");
@@ -81,7 +83,7 @@ public class MainActivity extends FragmentActivity {
         filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
         registerReceiver(bluetoothAdapterBroadcastReceiver, filter);
 
-        if (!SBrickManagerHolder.getSBrickManager().isBluetoothOn()) {
+        if (!SBrickManagerHolder.getManager().isBluetoothOn()) {
             Log.i(TAG, "  Bluetooth is off, ask to turn it on...");
             Intent intent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivityForResult(intent, REQUEST_ENABLE_BLUETOOTH);
@@ -93,10 +95,10 @@ public class MainActivity extends FragmentActivity {
         Log.i(TAG, "onPause...");
         super.onPause();
 
-        SBrickManagerHolder.getSBrickManager().saveSBricks();
+        SBrickManagerHolder.getManager().saveSBricks();
         SBrickControllerProfileManagerHolder.getManager().saveProfiles();
 
-        if (!SBrickManagerHolder.getSBrickManager().isBLESupported())
+        if (!SBrickManagerHolder.getManager().isBLESupported())
             return;
 
         Log.i(TAG, "  Unregister the BluetoothAdapter broadcast receiver...");
@@ -192,17 +194,17 @@ public class MainActivity extends FragmentActivity {
         startFragment(controllerFragment);
     }
 
-    public void startEditControllerProfileFragment(SBrickControllerProfile profile) {
+    public void startEditControllerProfileFragment(int profileIndex, SBrickControllerProfile profile) {
         Log.i(TAG, "startEditControllerProfileFragment...");
 
-        EditControllerProfileFragment editControllerProfileFragment = EditControllerProfileFragment.newInstance(profile);
+        EditControllerProfileFragment editControllerProfileFragment = EditControllerProfileFragment.newInstance(profileIndex, profile);
         startFragment(editControllerProfileFragment);
     }
 
-    public void startEditControllerActionFragment(SBrickControllerProfile profile, String controllerActionId) {
+    public void startEditControllerActionFragment(int profileIndex, String controllerActionId, List<String> sbrickAddresses) {
         Log.i(TAG, "startEditControllerActionFragment...");
 
-        EditControllerActionFragment editControllerActionFragment = EditControllerActionFragment.newInstance(profile, controllerActionId);
+        EditControllerActionFragment editControllerActionFragment = EditControllerActionFragment.newInstance(profileIndex, controllerActionId, sbrickAddresses);
         startFragment(editControllerActionFragment);
     }
 
