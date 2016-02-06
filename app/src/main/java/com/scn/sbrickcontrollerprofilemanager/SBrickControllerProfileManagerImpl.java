@@ -107,18 +107,17 @@ class SBrickControllerProfileManagerImpl implements SBrickControllerProfileManag
     }
 
     @Override
-    public SBrickControllerProfile addProfile(String name) {
-        Log.i(TAG, "addProfile - " + name);
+    public void addProfile(SBrickControllerProfile profile) {
+        Log.i(TAG, "addProfile - " + profile.getName());
 
-        SBrickControllerProfile profile = new SBrickControllerProfile(name);
         controllerProfiles.add(profile);
-
-        return profile;
     }
 
     @Override
-    public void UpdateProfileAt(int position, SBrickControllerProfile profile) {
+    public void updateProfileAt(int position, SBrickControllerProfile profile) {
+        Log.i(TAG, "updateProfileAt - " + position);
 
+        controllerProfiles.set(position, profile);
     }
 
     @Override

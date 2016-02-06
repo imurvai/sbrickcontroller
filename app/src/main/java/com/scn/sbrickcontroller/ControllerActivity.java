@@ -12,10 +12,7 @@ import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.InputDevice;
 import android.view.KeyEvent;
-import android.view.LayoutInflater;
 import android.view.MotionEvent;
-import android.view.View;
-import android.view.ViewGroup;
 
 import com.scn.sbrickcontrollerprofilemanager.SBrickControllerProfile;
 import com.scn.sbrickmanager.SBrick;
@@ -262,7 +259,7 @@ public class ControllerActivity extends ActionBarActivity {
             return;
         }
 
-        String sbrickAddress = controllerAction.getSbrickAddress();
+        String sbrickAddress = controllerAction.getSBrickAddress();
         int channel = controllerAction.getChannel();
         int value = (int)(event.getAxisValue(motionEventId) * (controllerAction.getInvert() ? -255 : 255));
 

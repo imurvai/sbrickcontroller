@@ -1,5 +1,6 @@
 package com.scn.sbrickcontroller;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -53,9 +54,9 @@ public class ControllerProfileListActivity extends BaseActivity {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Log.i(TAG, "onItemClick...");
 
-                // Open the controller fragment
-                List<SBrickControllerProfile> profiles = new ArrayList<SBrickControllerProfile>(SBrickControllerProfileManagerHolder.getManager().getProfiles());
-                SBrickControllerProfile profile = profiles.get(position);
+                // Open the controller activity
+                SBrickControllerProfile profile = (SBrickControllerProfile)controllerProfileListAdapter.getItem(position);
+                int profileIndex = SBrickControllerProfileManagerHolder.getManager().getProfiles().indexOf(profile);
 
                 if (profile.getSBrickAddresses().size() == 0) {
                     Helper.showMessageBox(
@@ -136,18 +137,45 @@ public class ControllerProfileListActivity extends BaseActivity {
             case R.id.menu_item_add:
                 Log.i(TAG, "  menu_item_add");
 
-                SBrickControllerProfile profile = SBrickControllerProfileManagerHolder.getManager().addProfile("My profile");
-                int profileIndex = SBrickControllerProfileManagerHolder.getManager().getProfiles().indexOf(profile);
-
                 Intent intent = new Intent(ControllerProfileListActivity.this, EditControllerProfileActivity.class);
-                intent.putExtra(Constants.EXTRA_CONTROLLER_PROFILE_INDEX, profileIndex);
-                intent.putExtra(Constants.EXTRA_CONTROLLER_PROFILE, profile);
-                startActivity(intent);
+                intent.putExtra(Constants.EXTRA_REQUEST_CODE, Constants.REQUEST_NEW_CONTROLLER_PROFILE);
+                startActivityForResult(intent, Constants.REQUEST_NEW_CONTROLLER_PROFILE);
 
                 return true;
         }
 
         return false;
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        Log.i(TAG, "onOptionsItemSelected...");
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (resultCode == RESULT_OK) {
+            Log.i(TAG, "  RESULT_OK");
+
+            switch (requestCode) {
+                case Constants.REQUEST_NEW_CONTROLLER_PROFILE:
+                    Log.i(TAG, "  REQUEST_NEW_CONTROLLER_PROFILE");
+
+                    SBrickControllerProfile profile = data.getParcelableExtra(Constants.EXTRA_CONTROLLER_PROFILE);
+                    SBrickControllerProfileManagerHolder.getManager().addProfile(profile);
+
+                    break;
+
+                case Constants.REQUEST_EDIT_CONTROLLER_PROFILE:
+                    Log.i(TAG, "  REQUEST_EDIT_CONTROLLER_PROFILE");
+
+                    int profileIndex = data.getIntExtra(Constants.EXTRA_CONTROLLER_PROFILE_INDEX, 0);
+                    SBrickControllerProfile profile2 = data.getParcelableExtra(Constants.EXTRA_CONTROLLER_PROFILE);
+                    SBrickControllerProfileManagerHolder.getManager().updateProfileAt(profileIndex, profile2);
+
+                    break;
+            }
+
+            controllerProfileListAdapter.notifyDataSetChanged();
+        }
     }
 
     //
@@ -172,9 +200,9 @@ public class ControllerProfileListActivity extends BaseActivity {
 
     private static class ControllerProfileListAdapter extends BaseAdapter {
 
-        private Context context;
+        private Activity context;
 
-        ControllerProfileListAdapter(Context context) {
+        ControllerProfileListAdapter(Activity context) {
             this.context = context;
         }
 
@@ -216,9 +244,10 @@ public class ControllerProfileListActivity extends BaseActivity {
                     int profileIndex = SBrickControllerProfileManagerHolder.getManager().getProfiles().indexOf(profile);
 
                     Intent intent = new Intent(context, EditControllerProfileActivity.class);
+                    intent.putExtra(Constants.EXTRA_REQUEST_CODE, Constants.REQUEST_EDIT_CONTROLLER_PROFILE);
                     intent.putExtra(Constants.EXTRA_CONTROLLER_PROFILE_INDEX, profileIndex);
                     intent.putExtra(Constants.EXTRA_CONTROLLER_PROFILE, profile);
-                    context.startActivity(intent);
+                    context.startActivityForResult(intent, Constants.REQUEST_EDIT_CONTROLLER_PROFILE);
                 }
             });
 
@@ -234,7 +263,7 @@ public class ControllerProfileListActivity extends BaseActivity {
                             new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
-                                    Log.i(TAG, "onClick...");
+                                    Log.i(TAG, "btnDeleteProfile.onClick...");
                                     SBrickControllerProfileManagerHolder.getManager().removeProfile(profile);
                                     ControllerProfileListAdapter.this.notifyDataSetChanged();
                                 }

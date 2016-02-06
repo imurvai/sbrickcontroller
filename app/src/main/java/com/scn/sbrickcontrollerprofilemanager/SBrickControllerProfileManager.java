@@ -34,17 +34,16 @@ public interface SBrickControllerProfileManager {
 
     /**
      * Adds a new SBrick controller profile.
-     * @param name is the name of the new profile.
-     * @return The new controller profile.
+     * @param profile is the profile to add.
      */
-    SBrickControllerProfile addProfile(String name);
+    void addProfile(SBrickControllerProfile profile);
 
     /**
      * Updates the profile at the given position with the given profile.
      * @param position is the position where to update the profile.
      * @param profile is the profile to update with.
      */
-    void UpdateProfileAt(int position, SBrickControllerProfile profile);
+    void updateProfileAt(int position, SBrickControllerProfile profile);
 
     /**
      * Removes the SBrick controller profile.

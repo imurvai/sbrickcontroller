@@ -68,6 +68,7 @@ public class SBrickControllerProfile implements Parcelable {
         Log.i(TAG, "SBrickControllerProfile from shared preferences...");
 
         name = prefs.getString(ProfileNameKey, "");
+        Log.i(TAG, "  name: " + name);
 
         int size = prefs.getInt(ControllerActionCountKey, 0);
         for (int i = 0; i < size; i++) {
@@ -84,6 +85,7 @@ public class SBrickControllerProfile implements Parcelable {
             throw new RuntimeException("parcel is null.");
 
         name = parcel.readString();
+        Log.i(TAG, "  name: " + name);
 
         int size = parcel.readInt();
         for (int i = 0; i < size; i++) {
@@ -154,7 +156,7 @@ public class SBrickControllerProfile implements Parcelable {
         Set<String> addresses = new HashSet<>();
 
         for (ControllerAction controllerAction : controllerActionMap.values()) {
-            addresses.add(controllerAction.getSbrickAddress());
+            addresses.add(controllerAction.getSBrickAddress());
         }
 
         return addresses;
@@ -216,7 +218,7 @@ public class SBrickControllerProfile implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-        Log.i(TAG, "writeToParcel...");
+        Log.i(TAG, "writeToParcel - " + name);
 
         dest.writeString(name);
         dest.writeInt(controllerActionMap.size());
@@ -276,11 +278,8 @@ public class SBrickControllerProfile implements Parcelable {
         public ControllerAction(String sbrickAddress, int channel, boolean invert) {
             Log.i(TAG, "ControllerAction...");
 
-            if (sbrickAddress == null)
-                throw new RuntimeException("SBRick address is null;");
-
-            if (channel < 0 || channel > 3)
-                throw new RuntimeException("Channel must be in range [0, 3].");
+            validateSBrickAddress(sbrickAddress);
+            validateChannel(channel);
 
             this.sbrickAddress = sbrickAddress;
             this.channel = channel;
@@ -293,6 +292,9 @@ public class SBrickControllerProfile implements Parcelable {
             sbrickAddress = prefs.getString(SBrickAddressKey, "");
             channel = prefs.getInt(ChannelKey, 0);
             invert = prefs.getInt(InvertKey, 0) != 0;
+
+            validateSBrickAddress(sbrickAddress);
+            validateChannel(channel);
         }
 
         ControllerAction(Parcel parcel) {
@@ -304,6 +306,9 @@ public class SBrickControllerProfile implements Parcelable {
             sbrickAddress = parcel.readString();
             channel = parcel.readInt();
             invert = parcel.readInt() != 0;
+
+            validateSBrickAddress(sbrickAddress);
+            validateChannel(channel);
         }
 
         //
@@ -314,7 +319,16 @@ public class SBrickControllerProfile implements Parcelable {
          * Gets the SBrick address.
          * @return The SBrick address.
          */
-        public String getSbrickAddress() { return sbrickAddress; }
+        public String getSBrickAddress() { return sbrickAddress; }
+
+        /**
+         * Sets the SBrick address.
+         * @param value is the address to set.
+         */
+        public void setSBrickAddress(String value) {
+            validateSBrickAddress(value);
+            sbrickAddress = value;
+        }
 
         /**
          * Gets the channel.
@@ -323,10 +337,25 @@ public class SBrickControllerProfile implements Parcelable {
         public int getChannel() { return channel; }
 
         /**
+         * Sets the channel.
+         * @param value is the channel to set.
+         */
+        public void setChannel(int value) {
+            validateChannel(value);
+            channel = value;
+        }
+
+        /**
          * Gets the value indicating if the value has to be inverted.
          * @return True if the value has to be inverted, false otherwise.
          */
         public boolean getInvert() { return invert; }
+
+        /**
+         * Sets the invert.
+         * @param value is the new invet value.
+         */
+        public void setInvert(boolean value) { invert = value; }
 
         //
         // Internal API
@@ -370,5 +399,19 @@ public class SBrickControllerProfile implements Parcelable {
                 return new ControllerAction[size];
             }
         };
+
+        //
+        // Private methods
+        //
+
+        private void validateSBrickAddress(String address) {
+            if (address == null || address.length() == 0)
+                throw new RuntimeException("SBrick address can't be null or empty.");
+        }
+
+        private void validateChannel(int channel) {
+            if (channel < 0 || 3 < channel)
+                throw new RuntimeException("Channel must be in range [0, 3].");
+        }
     }
 }

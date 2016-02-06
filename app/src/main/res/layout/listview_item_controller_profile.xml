@@ -34,18 +34,18 @@
 
         <Button
             android:id="@+id/button_edit_controller_profile"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
             android:layout_margin="8dp"
-            android:background="@android:drawable/ic_menu_edit"
+            android:background="@drawable/ic_mode_edit_black_24dp"
             android:focusable="false" />
 
         <Button
             android:id="@+id/button_delete_controller_profile"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
             android:layout_margin="8dp"
-            android:background="@android:drawable/ic_delete"
+            android:background="@drawable/ic_delete_black_24dp"
             android:focusableInTouchMode="false"
             android:focusable="false" />
     </LinearLayout>

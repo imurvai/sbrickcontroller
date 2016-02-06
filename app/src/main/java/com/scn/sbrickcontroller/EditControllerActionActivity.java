@@ -2,7 +2,6 @@ package com.scn.sbrickcontroller;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -10,14 +9,12 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
 
 import com.scn.sbrickcontrollerprofilemanager.SBrickControllerProfile;
-import com.scn.sbrickcontrollerprofilemanager.SBrickControllerProfileManagerHolder;
 
 import java.util.List;
 
@@ -29,13 +26,10 @@ public class EditControllerActionActivity extends BaseActivity {
 
     private static final String TAG = EditControllerActionActivity.class.getSimpleName();
 
-    private SBrickControllerProfile profile;
+    private int requestCode;
     private String controllerActionId;
+    private SBrickControllerProfile.ControllerAction controllerAction;
     private List<String> sbrickAddresses;
-
-    private String selectedSBrickAddress;
-    private int selectedChannel;
-    private boolean selectedInvert;
 
     //
     // Activity overrides
@@ -49,34 +43,29 @@ public class EditControllerActionActivity extends BaseActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         Intent intent = getIntent();
-        int profileIndex = intent.getIntExtra(Constants.EXTRA_CONTROLLER_PROFILE_INDEX, 0);
-        profile = SBrickControllerProfileManagerHolder.getManager().getProfileAt(profileIndex);
+        requestCode = intent.getIntExtra(Constants.EXTRA_REQUEST_CODE, 0);
         controllerActionId = intent.getStringExtra(Constants.EXTRA_CONTROLLER_ACTION_ID);
         sbrickAddresses = intent.getStringArrayListExtra(Constants.EXTRA_SBRICK_ADDRESS_LIST);
+        if (requestCode == Constants.REQUEST_NEW_CONTROLLER_ACTION) {
+            Log.i(TAG, "  REQUEST_NEW_CONTROLLER_ACTION");
+            controllerAction = new SBrickControllerProfile.ControllerAction(sbrickAddresses.get(0), 0, false);
+        }
+        else if (requestCode == Constants.REQUEST_EDIT_CONTROLLER_ACTION) {
+            Log.i(TAG, "  REQUEST_EDIT_CONTROLLER_ACTION");
+            controllerAction = intent.getParcelableExtra(Constants.EXTRA_CONTROLLER_ACTION);
+        }
 
         TextView twControllerActionName = (TextView)findViewById(R.id.textview_controller_action_name);
         twControllerActionName.setText(SBrickControllerProfile.getControllerActionName(controllerActionId));
 
-        SBrickControllerProfile.ControllerAction controllerAction = profile.getControllerAction(controllerActionId);
-        if (controllerAction != null) {
-            selectedSBrickAddress = controllerAction.getSbrickAddress();
-            selectedChannel = controllerAction.getChannel();
-            selectedInvert = controllerAction.getInvert();
-        }
-        else {
-            selectedSBrickAddress = sbrickAddresses.get(0);
-            selectedChannel = 0;
-            selectedInvert = false;
-        }
-
         Spinner spSelectSBrick = (Spinner)findViewById(R.id.spinner_select_sbrick);
         spSelectSBrick.setAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, sbrickAddresses));
-        spSelectSBrick.setSelection(sbrickAddresses.indexOf(selectedSBrickAddress));
+        spSelectSBrick.setSelection(sbrickAddresses.indexOf(controllerAction.getSBrickAddress()));
         spSelectSBrick.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 Log.i(TAG, "sbSelectSBrick.onItemClick...");
-                selectedSBrickAddress = sbrickAddresses.get(position);
+                controllerAction.setSBrickAddress(sbrickAddresses.get(position));
             }
 
             @Override
@@ -88,12 +77,12 @@ public class EditControllerActionActivity extends BaseActivity {
 
         Spinner spSelectChannel = (Spinner)findViewById(R.id.spinnel_select_channel);
         spSelectChannel.setAdapter(new ArrayAdapter<Integer>(this, android.R.layout.simple_list_item_1, new Integer[] { 1, 2, 3, 4 }));
-        spSelectChannel.setSelection(selectedChannel);
+        spSelectChannel.setSelection(controllerAction.getChannel());
         spSelectChannel.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 Log.i(TAG, "spSelectChannel.onItemSelected...");
-                selectedChannel = position;
+                controllerAction.setChannel(position);
             }
 
             @Override
@@ -104,12 +93,12 @@ public class EditControllerActionActivity extends BaseActivity {
         });
 
         Switch swInvertChannel = (Switch)findViewById(R.id.switch_invert_channel);
-        swInvertChannel.setChecked(selectedInvert);
+        swInvertChannel.setChecked(controllerAction.getInvert());
         swInvertChannel.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 Log.i(TAG, "onCheckedChanged...");
-                selectedInvert = isChecked;
+                controllerAction.setInvert(isChecked);
             }
         });
     }
@@ -146,8 +135,10 @@ public class EditControllerActionActivity extends BaseActivity {
             case R.id.menu_item_done:
                 Log.i(TAG, "  menu_item_done");
 
-                SBrickControllerProfile.ControllerAction newControllerAction = new SBrickControllerProfile.ControllerAction(selectedSBrickAddress, selectedChannel, selectedInvert);
-                profile.setControllerAction(controllerActionId, newControllerAction);
+                Intent intent = new Intent();
+                intent.putExtra(Constants.EXTRA_CONTROLLER_ACTION_ID, controllerActionId);
+                intent.putExtra(Constants.EXTRA_CONTROLLER_ACTION, controllerAction);
+                EditControllerActionActivity.this.setResult(RESULT_OK, intent);
 
                 EditControllerActionActivity.this.finish();
                 return true;
