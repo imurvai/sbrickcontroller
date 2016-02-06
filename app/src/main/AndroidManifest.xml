@@ -58,7 +58,7 @@
 
         <activity
             android:name=".ControllerProfileListActivity"
-            android:label="@string/title_activity_controller_profile_list"
+            android:label="Controller profiles"
             android:configChanges="orientation|keyboardHidden"
             android:screenOrientation="landscape"
             android:parentActivityName=".MainActivity">
@@ -69,7 +69,7 @@
 
         <activity
             android:name=".EditControllerProfileActivity"
-            android:label="@string/title_activity_edit_controller_profile"
+            android:label="Edit controller profile"
             android:configChanges="orientation|keyboardHidden"
             android:screenOrientation="landscape"
             android:parentActivityName=".ControllerProfileListActivity">
@@ -80,7 +80,7 @@
 
         <activity
             android:name=".EditControllerActionActivity"
-            android:label="@string/title_activity_edit_controller_action"
+            android:label="Edit controller action"
             android:configChanges="orientation|keyboardHidden"
             android:screenOrientation="landscape"
             android:parentActivityName=".EditControllerProfileActivity">
@@ -91,7 +91,7 @@
 
         <activity
             android:name=".ControllerActivity"
-            android:label="@string/title_activity_controller"
+            android:label="SBrick Controller"
             android:configChanges="orientation|keyboardHidden"
             android:screenOrientation="landscape"
             android:parentActivityName=".ControllerProfileListActivity">

@@ -6,6 +6,9 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -32,7 +35,6 @@ public class ControllerProfileListActivity extends BaseActivity {
     private ControllerProfileListAdapter controllerProfileListAdapter;
 
     private ListView listViewControllerProfiles;
-    private Button buttonAddControllerProfile;
 
     //
     // Fragment overrides
@@ -89,22 +91,6 @@ public class ControllerProfileListActivity extends BaseActivity {
         });
         controllerProfileListAdapter = new ControllerProfileListAdapter(this);
         listViewControllerProfiles.setAdapter(controllerProfileListAdapter);
-
-        buttonAddControllerProfile = (Button)findViewById(R.id.button_add_controller_profile);
-        buttonAddControllerProfile.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Log.i(TAG, "onClick...");
-
-                SBrickControllerProfile profile = SBrickControllerProfileManagerHolder.getManager().addProfile("My profile");
-                int profileIndex = SBrickControllerProfileManagerHolder.getManager().getProfiles().indexOf(profile);
-
-                Intent intent = new Intent(ControllerProfileListActivity.this, EditControllerProfileActivity.class);
-                intent.putExtra(Constants.EXTRA_CONTROLLER_PROFILE_INDEX, profileIndex);
-                intent.putExtra(Constants.EXTRA_CONTROLLER_PROFILE, profile);
-                startActivity(intent);
-            }
-        });
     }
 
     @Override
@@ -128,6 +114,40 @@ public class ControllerProfileListActivity extends BaseActivity {
                         }
                     });
         }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        Log.i(TAG, "onCreateOptionsMenu...");
+
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu_controller_profile_list, menu);
+
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        Log.i(TAG, "onOptionsItemSelected...");
+        super.onOptionsItemSelected(item);
+
+        switch (item.getItemId()) {
+
+            case R.id.menu_item_add:
+                Log.i(TAG, "  menu_item_add");
+
+                SBrickControllerProfile profile = SBrickControllerProfileManagerHolder.getManager().addProfile("My profile");
+                int profileIndex = SBrickControllerProfileManagerHolder.getManager().getProfiles().indexOf(profile);
+
+                Intent intent = new Intent(ControllerProfileListActivity.this, EditControllerProfileActivity.class);
+                intent.putExtra(Constants.EXTRA_CONTROLLER_PROFILE_INDEX, profileIndex);
+                intent.putExtra(Constants.EXTRA_CONTROLLER_PROFILE, profile);
+                startActivity(intent);
+
+                return true;
+        }
+
+        return false;
     }
 
     //

@@ -34,7 +34,8 @@
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceSmall"
                 android:text="N/A"
-                android:padding="4dp"
+                android:layout_marginLeft="8dp"
+                android:layout_marginTop="8dp"
                 android:singleLine="true"
                 android:maxLength="50" />
 

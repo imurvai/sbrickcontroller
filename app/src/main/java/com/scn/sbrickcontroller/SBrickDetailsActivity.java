@@ -169,9 +169,20 @@ public class SBrickDetailsActivity extends BaseActivity {
             case R.id.menu_item_done:
                 Log.i(TAG, "  menu_item_done");
 
-                // TODO: set the sbrick name
+                String newName = etDisplayName.getText().toString();
+                if (newName.length() > 0) {
 
-                finish();
+                    sbrick.setName(newName);
+                    finish();
+                }
+                else {
+                    Helper.showMessageBox(this, "The name can't be empty.", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                        }
+                    });
+                }
+
                 return true;
         }
 

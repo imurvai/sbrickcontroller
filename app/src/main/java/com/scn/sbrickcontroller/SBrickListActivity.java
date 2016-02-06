@@ -82,6 +82,8 @@ public class SBrickListActivity extends BaseActivity {
         IntentFilter filter = new IntentFilter();
         filter.addAction(SBrickManager.ACTION_FOUND_AN_SBRICK);
         LocalBroadcastManager.getInstance(this).registerReceiver(sbrickBroadcastReceiver, filter);
+
+        sbrickListAdapter.notifyDataSetChanged();
     }
 
     @Override
@@ -224,8 +226,17 @@ public class SBrickListActivity extends BaseActivity {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             String newName = et.getText().toString();
-                            sbrick.setName(newName);
-                            SBrickListAdapter.this.notifyDataSetChanged();
+                            if (newName.length() > 0) {
+                                sbrick.setName(newName);
+                                SBrickListAdapter.this.notifyDataSetChanged();
+                            }
+                            else {
+                                Helper.showMessageBox(context, "The name can't be empty.", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                    }
+                                });
+                            }
                         }
                     });
                     ab.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {

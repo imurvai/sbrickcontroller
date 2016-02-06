@@ -6,6 +6,9 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -90,6 +93,34 @@ public class EditControllerProfileActivity extends BaseActivity {
         Log.i(TAG, "onPause...");
 
         super.onPause();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        Log.i(TAG, "onCreateOptionsMenu...");
+
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu_edit_controller_profile, menu);
+
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        Log.i(TAG, "onOptionsItemSelected...");
+        super.onOptionsItemSelected(item);
+
+        switch (item.getItemId()) {
+
+            case R.id.menu_item_done:
+                Log.i(TAG, "  menu_item_done");
+
+                // TODO: save changes on the profile
+
+                return true;
+        }
+
+        return false;
     }
 
     //

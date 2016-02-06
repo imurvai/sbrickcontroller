@@ -4,6 +4,9 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -109,29 +112,6 @@ public class EditControllerActionActivity extends BaseActivity {
                 selectedInvert = isChecked;
             }
         });
-
-        Button btnOk = (Button)findViewById(R.id.button_ok);
-        btnOk.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Log.i(TAG, "btnOk.onClick...");
-
-                SBrickControllerProfile.ControllerAction newControllerAction = new SBrickControllerProfile.ControllerAction(selectedSBrickAddress, selectedChannel, selectedInvert);
-                profile.setControllerAction(controllerActionId, newControllerAction);
-
-                EditControllerActionActivity.this.finish();
-            }
-        });
-
-        Button btnCancel = (Button)findViewById(R.id.button_cancel);
-        btnCancel.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Log.i(TAG, "btnCancel.onClick...");
-
-                EditControllerActionActivity.this.finish();
-            }
-        });
     }
 
     @Override
@@ -144,5 +124,35 @@ public class EditControllerActionActivity extends BaseActivity {
     public void onPause() {
         Log.i(TAG, "onPause...");
         super.onPause();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        Log.i(TAG, "onCreateOptionsMenu...");
+
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu_edit_controller_action, menu);
+
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        Log.i(TAG, "onOptionsItemSelected...");
+        super.onOptionsItemSelected(item);
+
+        switch (item.getItemId()) {
+
+            case R.id.menu_item_done:
+                Log.i(TAG, "  menu_item_done");
+
+                SBrickControllerProfile.ControllerAction newControllerAction = new SBrickControllerProfile.ControllerAction(selectedSBrickAddress, selectedChannel, selectedInvert);
+                profile.setControllerAction(controllerActionId, newControllerAction);
+
+                EditControllerActionActivity.this.finish();
+                return true;
+        }
+
+        return false;
     }
 }
