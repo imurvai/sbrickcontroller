@@ -36,19 +36,19 @@
 
         <Button
             android:id="@+id/button_rename_sbrick"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
             android:layout_margin="8dp"
-            android:background="@drawable/ic_mode_edit_black_24dp"
+            android:background="@drawable/ic_mode_edit_black_36dp"
             android:focusable="false"
             android:focusableInTouchMode="false" />
 
         <Button
             android:id="@+id/button_forget_sbrick"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
             android:layout_margin="8dp"
-            android:background="@drawable/ic_delete_black_24dp"
+            android:background="@drawable/ic_delete_black_36dp"
             android:focusable="false"
             android:focusableInTouchMode="false" />
     </LinearLayout>

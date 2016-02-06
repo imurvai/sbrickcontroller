@@ -27,6 +27,7 @@ public final class Constants {
     // Activity request codes
     //
 
+    public static final int REQUEST_ENABLE_BLUETOOTH = 0x1000;
     public static final int REQUEST_EDIT_CONTROLLER_PROFILE = 0x1001;
     public static final int REQUEST_NEW_CONTROLLER_PROFILE = 0x1002;
     public static final int REQUEST_EDIT_CONTROLLER_ACTION = 0x1003;

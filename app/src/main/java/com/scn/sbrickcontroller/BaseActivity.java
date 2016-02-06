@@ -11,7 +11,6 @@ import android.os.PersistableBundle;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 
-import com.scn.sbrickcontrollerprofilemanager.SBrickControllerProfileManagerHolder;
 import com.scn.sbrickmanager.SBrickManagerHolder;
 
 /**
@@ -25,12 +24,9 @@ public class BaseActivity extends ActionBarActivity {
 
     private final String TAG = "BaseActivity";
 
-    private final int REQUEST_ENABLE_BLUETOOTH = 0x1234;
-
     //
     // Activity overrides
     //
-
 
     @Override
     public void onCreate(Bundle savedInstanceState, PersistableBundle persistentState) {
@@ -65,7 +61,7 @@ public class BaseActivity extends ActionBarActivity {
         if (!SBrickManagerHolder.getManager().isBluetoothOn()) {
             Log.i(TAG, "  Bluetooth is off, ask to turn it on...");
             Intent intent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            startActivityForResult(intent, REQUEST_ENABLE_BLUETOOTH);
+            startActivityForResult(intent, Constants.REQUEST_ENABLE_BLUETOOTH);
         }
     }
 
@@ -79,6 +75,22 @@ public class BaseActivity extends ActionBarActivity {
 
         Log.i(TAG, "  Unregister the BluetoothAdapter broadcast receiver...");
         unregisterReceiver(bluetoothAdapterBroadcastReceiver);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        Log.i(TAG, "onActivityResult...");
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == Constants.REQUEST_ENABLE_BLUETOOTH) {
+            Log.i(TAG, "  REQUEST_ENABLE_BLUETOOTH");
+
+            if (resultCode != RESULT_OK) {
+                Log.i(TAG, "  Not RESULT_OK, exiting...");
+
+                // TODO: handle it
+            }
+        }
     }
 
     //
@@ -101,7 +113,7 @@ public class BaseActivity extends ActionBarActivity {
                 if (state == BluetoothAdapter.STATE_OFF) {
                     Log.i(TAG, "  Ask to turn the bluetooth adapter on...");
                     Intent intent2 = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-                    startActivityForResult(intent2, REQUEST_ENABLE_BLUETOOTH);
+                    startActivityForResult(intent2, Constants.REQUEST_ENABLE_BLUETOOTH);
                 }
             }
         }
