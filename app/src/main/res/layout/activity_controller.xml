@@ -12,7 +12,10 @@
     <ImageView
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
-        android:background="@drawable/sbrick_controller"
-        android:adjustViewBounds="true"
-        android:scaleType="center"/>
+        android:src="@drawable/sbrick_controller"
+        android:adjustViewBounds="false"
+        android:scaleType="fitCenter"
+        android:layout_alignParentEnd="false"
+        android:layout_alignParentStart="false"
+        android:layout_centerHorizontal="true" />
 </RelativeLayout>
