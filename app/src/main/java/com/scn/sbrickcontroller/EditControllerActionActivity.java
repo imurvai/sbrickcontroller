@@ -2,6 +2,7 @@ package com.scn.sbrickcontroller;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.PersistableBundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -15,7 +16,11 @@ import android.widget.Switch;
 import android.widget.TextView;
 
 import com.scn.sbrickcontrollerprofilemanager.SBrickControllerProfile;
+import com.scn.sbrickcontrollerprofilemanager.SBrickControllerProfileManagerHolder;
+import com.scn.sbrickmanager.SBrick;
+import com.scn.sbrickmanager.SBrickManagerHolder;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class EditControllerActionActivity extends BaseActivity {
@@ -25,11 +30,13 @@ public class EditControllerActionActivity extends BaseActivity {
     //
 
     private static final String TAG = EditControllerActionActivity.class.getSimpleName();
+    private static final String REQUEST_CODE_KEY = "REQUEST_CODE_KEY";
+    private static final String CONTROLLER_ACTION_ID_KEY = "CONTROLLER_ACTION_ID_KEY";
+    private static final String CONTROLLER_ACTION_KEY = "CONTROLLER_ACTION_KEY";
 
     private int requestCode;
     private String controllerActionId;
     private SBrickControllerProfile.ControllerAction controllerAction;
-    private List<String> sbrickAddresses;
 
     //
     // Activity overrides
@@ -42,30 +49,42 @@ public class EditControllerActionActivity extends BaseActivity {
         setContentView(R.layout.activity_edit_controller_action);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        Intent intent = getIntent();
-        requestCode = intent.getIntExtra(Constants.EXTRA_REQUEST_CODE, 0);
-        controllerActionId = intent.getStringExtra(Constants.EXTRA_CONTROLLER_ACTION_ID);
-        sbrickAddresses = intent.getStringArrayListExtra(Constants.EXTRA_SBRICK_ADDRESS_LIST);
-        if (requestCode == Constants.REQUEST_NEW_CONTROLLER_ACTION) {
-            Log.i(TAG, "  REQUEST_NEW_CONTROLLER_ACTION");
-            controllerAction = new SBrickControllerProfile.ControllerAction(sbrickAddresses.get(0), 0, false);
+        final List<SBrick> sbricks = SBrickManagerHolder.getManager().getSBricks();
+
+        if (savedInstanceState != null) {
+            Log.i(TAG, "  saved instance...");
+
+            requestCode = savedInstanceState.getInt(REQUEST_CODE_KEY);
+            controllerActionId = savedInstanceState.getString(CONTROLLER_ACTION_ID_KEY);
+            controllerAction = savedInstanceState.getParcelable(CONTROLLER_ACTION_KEY);
         }
-        else if (requestCode == Constants.REQUEST_EDIT_CONTROLLER_ACTION) {
-            Log.i(TAG, "  REQUEST_EDIT_CONTROLLER_ACTION");
-            controllerAction = intent.getParcelableExtra(Constants.EXTRA_CONTROLLER_ACTION);
+        else {
+            Log.i(TAG, "  new instance...");
+
+            Intent intent = getIntent();
+            requestCode = intent.getIntExtra(Constants.EXTRA_REQUEST_CODE, 0);
+            controllerActionId = intent.getStringExtra(Constants.EXTRA_CONTROLLER_ACTION_ID);
+            if (requestCode == Constants.REQUEST_NEW_CONTROLLER_ACTION) {
+                Log.i(TAG, "  REQUEST_NEW_CONTROLLER_ACTION");
+                controllerAction = new SBrickControllerProfile.ControllerAction(sbricks.get(0).getAddress(), 0, false);
+            }
+            else if (requestCode == Constants.REQUEST_EDIT_CONTROLLER_ACTION) {
+                Log.i(TAG, "  REQUEST_EDIT_CONTROLLER_ACTION");
+                controllerAction = intent.getParcelableExtra(Constants.EXTRA_CONTROLLER_ACTION);
+            }
         }
 
         TextView twControllerActionName = (TextView)findViewById(R.id.textview_controller_action_name);
         twControllerActionName.setText(SBrickControllerProfile.getControllerActionName(controllerActionId));
 
         Spinner spSelectSBrick = (Spinner)findViewById(R.id.spinner_select_sbrick);
-        spSelectSBrick.setAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, sbrickAddresses));
-        spSelectSBrick.setSelection(sbrickAddresses.indexOf(controllerAction.getSBrickAddress()));
+        spSelectSBrick.setAdapter(new ArrayAdapter<SBrick>(this, android.R.layout.simple_list_item_1, sbricks));
+        spSelectSBrick.setSelection(sbricks.indexOf(SBrickManagerHolder.getManager().getSBrick(controllerAction.getSBrickAddress())));
         spSelectSBrick.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 Log.i(TAG, "sbSelectSBrick.onItemClick...");
-                controllerAction.setSBrickAddress(sbrickAddresses.get(position));
+                controllerAction.setSBrickAddress(sbricks.get(position).getAddress());
             }
 
             @Override
@@ -113,6 +132,16 @@ public class EditControllerActionActivity extends BaseActivity {
     public void onPause() {
         Log.i(TAG, "onPause...");
         super.onPause();
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        Log.i(TAG, "onSaveInstanceState...");
+        super.onSaveInstanceState(outState);
+
+        outState.putInt(REQUEST_CODE_KEY, requestCode);
+        outState.putString(CONTROLLER_ACTION_ID_KEY, controllerActionId);
+        outState.putParcelable(CONTROLLER_ACTION_KEY, controllerAction);
     }
 
     @Override

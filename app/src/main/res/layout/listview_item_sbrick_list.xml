@@ -6,8 +6,9 @@
     android:layout_height="wrap_content"
     android:layout_marginLeft="16dp"
     android:layout_marginRight="16dp"
-    android:layout_marginTop="8dp"
-    android:layout_marginBottom="8dp">
+    android:layout_marginTop="16dp"
+    android:layout_marginBottom="16dp"
+    android:descendantFocusability="blocksDescendants">
 
     <LinearLayout
         android:layout_width="0dp"
@@ -19,7 +20,8 @@
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:textSize="24dp"
-            android:text="deviceName" />
+            android:text="deviceName"
+            android:textStyle="bold" />
 
         <TextView android:id="@+id/textview_sbrick_address"
             android:layout_width="fill_parent"
@@ -34,21 +36,25 @@
         android:layout_height="match_parent"
         android:orientation="horizontal">
 
-        <Button
+        <ImageButton
             android:id="@+id/button_rename_sbrick"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
             android:layout_margin="8dp"
-            android:background="@drawable/ic_mode_edit_black_36dp"
+            android:src="@drawable/ic_mode_edit_black_36dp"
+            android:scaleType="centerInside"
+            android:background="@android:color/transparent"
             android:focusable="false"
             android:focusableInTouchMode="false" />
 
-        <Button
+        <ImageButton
             android:id="@+id/button_forget_sbrick"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
             android:layout_margin="8dp"
-            android:background="@drawable/ic_delete_black_36dp"
+            android:src="@drawable/ic_delete_black_36dp"
+            android:scaleType="centerInside"
+            android:background="@android:color/transparent"
             android:focusable="false"
             android:focusableInTouchMode="false" />
     </LinearLayout>

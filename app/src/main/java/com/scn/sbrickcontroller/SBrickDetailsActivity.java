@@ -33,6 +33,7 @@ public class SBrickDetailsActivity extends BaseActivity {
     //
 
     private static final String TAG = SBrickDetailsActivity.class.getSimpleName();
+    private static final String SBRICK_ADDRESS_KEY = "SBRICK_ADDRESS_KEY";
 
     private SBrick sbrick;
 
@@ -62,7 +63,16 @@ public class SBrickDetailsActivity extends BaseActivity {
         setContentView(R.layout.activity_sbrick_details);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        String sbrickAddress = getIntent().getStringExtra(Constants.EXTRA_SBRICK_ADDRESS);
+        String sbrickAddress;
+        if (savedInstanceState != null) {
+            Log.i(TAG, "  saved instance...");
+            sbrickAddress = savedInstanceState.getString(SBRICK_ADDRESS_KEY);
+        }
+        else {
+            Log.i(TAG, "  new instance...");
+            sbrickAddress = getIntent().getStringExtra(Constants.EXTRA_SBRICK_ADDRESS);
+        }
+
         sbrick = SBrickManagerHolder.getManager().getSBrick(sbrickAddress);
 
         etDisplayName = (EditText)findViewById(R.id.edittext_display_name);
@@ -150,6 +160,14 @@ public class SBrickDetailsActivity extends BaseActivity {
     }
 
     @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        Log.i(TAG, "onSaveInstanceState...");
+        super.onSaveInstanceState(outState);
+
+        outState.putString(SBRICK_ADDRESS_KEY, sbrick.getAddress());
+    }
+
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         Log.i(TAG, "onCreateOptionsMenu...");
 
@@ -188,10 +206,6 @@ public class SBrickDetailsActivity extends BaseActivity {
 
         return false;
     }
-
-    //
-    // GameControllerActionListener overrides
-    //
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {

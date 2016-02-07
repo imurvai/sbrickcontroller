@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.PersistableBundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -17,6 +18,7 @@ import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -34,6 +36,9 @@ public class EditControllerProfileActivity extends BaseActivity {
     //
 
     private static final String TAG = EditControllerProfileActivity.class.getSimpleName();
+    private static final String REQUEST_CODE_KEY = "REQUEST_CODE_KEY";
+    private static final String CONTROLLER_PROFILE_INDEX_KEY = "CONTROLLER_PROFILE_INDEX_KEY";
+    private static final String CONTROLLER_PROFILE_KEY = "CONTROLLER_PROFILE_KEY";
 
     private ListView lwControllerActions;
     private ControllerActionListAdapter controllerActionListAdapter;
@@ -53,17 +58,30 @@ public class EditControllerProfileActivity extends BaseActivity {
         setContentView(R.layout.activity_edit_controller_profile);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
+        if (savedInstanceState != null) {
+            Log.i(TAG, "  saved instance...");
 
-        Intent intent = getIntent();
-        requestCode = intent.getIntExtra(Constants.EXTRA_REQUEST_CODE, 0);
-        if (requestCode == Constants.REQUEST_NEW_CONTROLLER_PROFILE) {
-            Log.i(TAG, "  REQUEST_NEW_CONTROLLER_PROFILE");
-            profile = new SBrickControllerProfile("My profile");
+            requestCode = savedInstanceState.getInt(REQUEST_CODE_KEY);
+            profileIndex = savedInstanceState.getInt(CONTROLLER_PROFILE_INDEX_KEY);
+            profile = savedInstanceState.getParcelable(CONTROLLER_PROFILE_KEY);
         }
-        else if (requestCode == Constants.REQUEST_EDIT_CONTROLLER_PROFILE) {
-            Log.i(TAG, "  REQUEST_EDIT_CONTROLLER_PROFILE");
-            profileIndex = intent.getIntExtra(Constants.EXTRA_CONTROLLER_PROFILE_INDEX, 0);
-            profile = intent.getParcelableExtra(Constants.EXTRA_CONTROLLER_PROFILE);
+        else {
+            Log.i(TAG, "  new instance...");
+
+            Intent intent = getIntent();
+            requestCode = intent.getIntExtra(Constants.EXTRA_REQUEST_CODE, 0);
+            if (requestCode == Constants.REQUEST_NEW_CONTROLLER_PROFILE) {
+                Log.i(TAG, "  REQUEST_NEW_CONTROLLER_PROFILE");
+
+                profileIndex = 0;
+                profile = new SBrickControllerProfile("My profile");
+            }
+            else if (requestCode == Constants.REQUEST_EDIT_CONTROLLER_PROFILE) {
+                Log.i(TAG, "  REQUEST_EDIT_CONTROLLER_PROFILE");
+
+                profileIndex = intent.getIntExtra(Constants.EXTRA_CONTROLLER_PROFILE_INDEX, 0);
+                profile = intent.getParcelableExtra(Constants.EXTRA_CONTROLLER_PROFILE);
+            }
         }
 
         lwControllerActions = (ListView)findViewById(R.id.listview_conroller_actions);
@@ -87,7 +105,6 @@ public class EditControllerProfileActivity extends BaseActivity {
                     Intent intent = new Intent(EditControllerProfileActivity.this, EditControllerActionActivity.class);
                     intent.putExtra(Constants.EXTRA_REQUEST_CODE, Constants.REQUEST_NEW_CONTROLLER_ACTION);
                     intent.putExtra(Constants.EXTRA_CONTROLLER_ACTION_ID, controllerActionId);
-                    intent.putStringArrayListExtra(Constants.EXTRA_SBRICK_ADDRESS_LIST, new ArrayList(sbrickAddresses));
                     startActivityForResult(intent, Constants.REQUEST_NEW_CONTROLLER_ACTION);
                 }
                 else {
@@ -97,7 +114,6 @@ public class EditControllerProfileActivity extends BaseActivity {
                     intent.putExtra(Constants.EXTRA_REQUEST_CODE, Constants.REQUEST_EDIT_CONTROLLER_ACTION);
                     intent.putExtra(Constants.EXTRA_CONTROLLER_ACTION_ID, controllerActionId);
                     intent.putExtra(Constants.EXTRA_CONTROLLER_ACTION, controllerAction);
-                    intent.putStringArrayListExtra(Constants.EXTRA_SBRICK_ADDRESS_LIST, new ArrayList(sbrickAddresses));
                     startActivityForResult(intent, Constants.REQUEST_EDIT_CONTROLLER_ACTION);
                 }
             }
@@ -118,6 +134,16 @@ public class EditControllerProfileActivity extends BaseActivity {
         Log.i(TAG, "onPause...");
 
         super.onPause();
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        Log.i(TAG, "onSaveInstanceState...");
+        super.onSaveInstanceState(outState);
+
+        outState.putInt(REQUEST_CODE_KEY, requestCode);
+        outState.putInt(CONTROLLER_PROFILE_INDEX_KEY, profileIndex);
+        outState.putParcelable(CONTROLLER_PROFILE_KEY, profile);
     }
 
     @Override
@@ -313,7 +339,7 @@ public class EditControllerProfileActivity extends BaseActivity {
                         twInvert.setText("-");
                     }
 
-                    Button btnDeleteControllerAction = (Button) rowView.findViewById(R.id.button_delete_controller_action);
+                    ImageButton btnDeleteControllerAction = (ImageButton) rowView.findViewById(R.id.button_delete_controller_action);
                     btnDeleteControllerAction.setVisibility(controllerAction != null ? View.VISIBLE : View.INVISIBLE);
                     btnDeleteControllerAction.setOnClickListener(new View.OnClickListener() {
                         @Override
@@ -341,7 +367,6 @@ public class EditControllerProfileActivity extends BaseActivity {
                     });
 
                     break;
-
             }
 
             return rowView;

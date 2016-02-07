@@ -7,6 +7,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
+import android.os.PersistableBundle;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
@@ -29,6 +30,7 @@ public class ControllerActivity extends ActionBarActivity {
     //
 
     private static final String TAG = ControllerActivity.class.getSimpleName();
+    private static final String PROFILE_KEY = "PROFILE_KEY";
 
     private SBrickControllerProfile profile;
     private Map<String, SBrick> sbricksMap;
@@ -49,8 +51,14 @@ public class ControllerActivity extends ActionBarActivity {
         setContentView(R.layout.activity_controller);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-
-        profile = getIntent().getParcelableExtra(Constants.EXTRA_CONTROLLER_PROFILE);
+        if (savedInstanceState != null) {
+            Log.i(TAG, "  saved instance...");
+            profile = savedInstanceState.getParcelable(PROFILE_KEY);
+        }
+        else {
+            Log.i(TAG, "  new instance...");
+            profile = getIntent().getParcelableExtra(Constants.EXTRA_CONTROLLER_PROFILE);
+        }
 
         sbricksMap = new HashMap<>();
         channelValuesMap = new HashMap<>();
@@ -146,6 +154,14 @@ public class ControllerActivity extends ActionBarActivity {
                 progressDialog = null;
             }
         }
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        Log.i(TAG, "onSaveInstanceState...");
+        super.onSaveInstanceState(outState);
+
+        outState.putParcelable(PROFILE_KEY, profile);
     }
 
     @Override

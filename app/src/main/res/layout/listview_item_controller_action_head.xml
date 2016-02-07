@@ -13,7 +13,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textSize="24dp"
-        android:text="Profile name:"/>
+        android:text="Profile name:"
+        android:textStyle="bold" />
 
     <EditText
         android:id="@+id/edittext_controller_profile_name"

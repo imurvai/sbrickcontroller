@@ -6,10 +6,11 @@
     android:layout_height="wrap_content"
     android:layout_marginLeft="16dp"
     android:layout_marginRight="16dp"
-    android:layout_marginTop="16dp"
-    android:layout_marginBottom="16dp">
+    android:layout_marginTop="20dp"
+    android:layout_marginBottom="20dp"
+    android:descendantFocusability="blocksDescendants">
 
-    <LinearLayout
+    <RelativeLayout
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:layout_weight="1"
@@ -24,29 +25,35 @@
             android:layout_alignParentEnd="false"
             android:layout_alignParentTop="false"
             android:layout_alignParentBottom="false"
-            android:layout_centerVertical="true" />
-    </LinearLayout>
+            android:layout_centerVertical="true"
+            android:textStyle="bold" />
+    </RelativeLayout>
 
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:orientation="horizontal">
 
-        <Button
+        <ImageButton
             android:id="@+id/button_edit_controller_profile"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
             android:layout_margin="8dp"
-            android:background="@drawable/ic_settings_black_36dp"
-            android:focusable="false" />
-
-        <Button
-            android:id="@+id/button_delete_controller_profile"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
-            android:layout_margin="8dp"
-            android:background="@drawable/ic_delete_black_36dp"
+            android:src="@drawable/ic_settings_black_36dp"
+            android:scaleType="centerInside"
+            android:background="@android:color/transparent"
             android:focusableInTouchMode="false"
-            android:focusable="false" />
+            android:focusable="false"/>
+
+        <ImageButton
+            android:id="@+id/button_delete_controller_profile"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_margin="8dp"
+            android:src="@drawable/ic_delete_black_36dp"
+            android:scaleType="centerInside"
+            android:background="@android:color/transparent"
+            android:focusableInTouchMode="false"
+            android:focusable="false"/>
     </LinearLayout>
 </LinearLayout>

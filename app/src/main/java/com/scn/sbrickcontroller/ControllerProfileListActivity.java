@@ -15,6 +15,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -34,7 +35,6 @@ public class ControllerProfileListActivity extends BaseActivity {
     private static final String TAG = ControllerProfileListActivity.class.getSimpleName();
 
     private ControllerProfileListAdapter controllerProfileListAdapter;
-
     private ListView listViewControllerProfiles;
 
     //
@@ -235,7 +235,7 @@ public class ControllerProfileListActivity extends BaseActivity {
             TextView twControllerProfileName = (TextView)rowView.findViewById(R.id.textview_controller_profile_name);
             twControllerProfileName.setText(profile.getName());
 
-            Button btnEditProfile = (Button)rowView.findViewById(R.id.button_edit_controller_profile);
+            ImageButton btnEditProfile = (ImageButton)rowView.findViewById(R.id.button_edit_controller_profile);
             btnEditProfile.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -251,7 +251,7 @@ public class ControllerProfileListActivity extends BaseActivity {
                 }
             });
 
-            Button btnDeleteProfile = (Button)rowView.findViewById(R.id.button_delete_controller_profile);
+            ImageButton btnDeleteProfile = (ImageButton)rowView.findViewById(R.id.button_delete_controller_profile);
             btnDeleteProfile.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {

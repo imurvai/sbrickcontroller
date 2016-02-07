@@ -20,6 +20,7 @@ import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -212,7 +213,7 @@ public class SBrickListActivity extends BaseActivity {
             twSBrickName.setText(sbrick.getName());
             twSBrickAddress.setText(sbrick.getAddress());
 
-            Button btnRenameSBrick = (Button)rowView.findViewById(R.id.button_rename_sbrick);
+            ImageButton btnRenameSBrick = (ImageButton)rowView.findViewById(R.id.button_rename_sbrick);
             btnRenameSBrick.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -248,7 +249,7 @@ public class SBrickListActivity extends BaseActivity {
                 }
             });
 
-            Button btnForgetSBrick = (Button)rowView.findViewById(R.id.button_forget_sbrick);
+            ImageButton btnForgetSBrick = (ImageButton)rowView.findViewById(R.id.button_forget_sbrick);
             btnForgetSBrick.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {

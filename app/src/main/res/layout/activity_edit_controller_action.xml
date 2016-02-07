@@ -23,7 +23,7 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
+                android:layout_marginBottom="20dp"
                 android:orientation="horizontal">
 
                 <TextView
@@ -57,7 +57,8 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:textAppearance="?android:attr/textAppearanceLarge"
-                        android:text="SBrick"/>
+                        android:text="SBrick"
+                        android:textStyle="bold" />
 
                     <Spinner
                         android:id="@+id/spinner_select_sbrick"
@@ -76,7 +77,8 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:textAppearance="?android:attr/textAppearanceLarge"
-                        android:text="Select channel"/>
+                        android:text="Select channel"
+                        android:textStyle="bold" />
 
                     <Spinner
                         android:id="@+id/spinnel_select_channel"
@@ -89,8 +91,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:layout_marginTop="16dp"
-                android:layout_marginBottom="16dp"
+                android:layout_marginTop="20dp"
                 android:orientation="horizontal">
 
                 <LinearLayout
@@ -104,7 +105,8 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:textAppearance="?android:attr/textAppearanceLarge"
-                        android:text="Invert channel"/>
+                        android:text="Invert channel"
+                        android:textStyle="bold" />
 
                     <Switch
                         android:id="@+id/switch_invert_channel"
