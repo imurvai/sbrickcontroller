@@ -89,6 +89,7 @@ abstract class SBrickBase implements SBrick {
 
         byte invert = (byte)((0 <= value) ? 0 : 1);
         byte byteValue = (byte)(Math.min(255, Math.abs(value)));
+
         Command command = Command.newRemoteControl((byte) channel, invert, byteValue);
         return commandQueue.offer(command);
     }
@@ -146,6 +147,7 @@ abstract class SBrickBase implements SBrick {
             public void run() {
 
                 try {
+                    commandQueue.clear();
 
                     while (true) {
                         // Wait for the GATT callback to release the semaphore.

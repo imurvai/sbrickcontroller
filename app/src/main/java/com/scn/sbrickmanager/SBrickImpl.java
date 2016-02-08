@@ -292,7 +292,7 @@ class SBrickImpl extends SBrickBase {
 
                 case BluetoothGatt.GATT_SUCCESS:
                     Log.i(TAG, "  GATT_SUCCESS");
-                    logServices(gatt);
+                    //logServices(gatt);
 
                     remoteControlCharacteristic = getGattCharacteristic(gatt, SERVICE_UUID_REMOTE_CONTROL, CHARACTERISTIC_UUID_REMOTE_CONTROL);
                     quickDriveCharacteristic = getGattCharacteristic(gatt, SERVICE_UUID_REMOTE_CONTROL, CHARACTERISTIC_UUID_QUICK_DRIVE);

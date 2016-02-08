@@ -4,9 +4,12 @@ import android.content.SharedPreferences;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.util.Log;
+
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -64,16 +67,17 @@ public class SBrickControllerProfile implements Parcelable {
         this.name = name;
     }
 
-    SBrickControllerProfile(SharedPreferences prefs) {
+    SBrickControllerProfile(SharedPreferences prefs, int profileIndex) {
         Log.i(TAG, "SBrickControllerProfile from shared preferences...");
 
-        name = prefs.getString(ProfileNameKey, "");
+        name = prefs.getString(profileIndex + ProfileNameKey, "");
         Log.i(TAG, "  name: " + name);
 
-        int size = prefs.getInt(ControllerActionCountKey, 0);
-        for (int i = 0; i < size; i++) {
-            String controllerActionId = prefs.getString(ControllerActionIdKey, "");
-            ControllerAction controllerAction = new ControllerAction(prefs);
+        int size = prefs.getInt(profileIndex + ControllerActionCountKey, 0);
+        for (int controllerActionIndex = 0; controllerActionIndex < size; controllerActionIndex++) {
+
+            String controllerActionId = prefs.getString(profileIndex + "-" + controllerActionIndex + ControllerActionIdKey, "");
+            ControllerAction controllerAction = new ControllerAction(prefs, profileIndex, controllerActionId);
             controllerActionMap.put(controllerActionId, controllerAction);
         }
     }
@@ -195,15 +199,20 @@ public class SBrickControllerProfile implements Parcelable {
     // Internal API
     //
 
-    void saveToPreferences(SharedPreferences.Editor editor) {
-        Log.i(TAG, "SaveProfileToPreferences - " + getName());
+    void saveToPreferences(SharedPreferences.Editor editor, int profileIndex) {
+        Log.i(TAG, "saveToPreferences - " + getName());
 
-        editor.putString(ProfileNameKey, getName());
-        editor.putInt(ControllerActionCountKey, controllerActionMap.size());
+        editor.putString(profileIndex + ProfileNameKey, getName());
+        editor.putInt(profileIndex + ControllerActionCountKey, controllerActionMap.size());
 
-        for (Map.Entry<String, ControllerAction> kvp : controllerActionMap.entrySet()) {
-            editor.putString(ControllerActionIdKey, kvp.getKey());
-            kvp.getValue().saveToPreferences(editor);
+        List<String> controllerActionIds = new ArrayList<>(controllerActionMap.keySet());
+        for (int controllerActionIndex = 0; controllerActionIndex < controllerActionMap.size(); controllerActionIndex++) {
+
+            String controllerActionId = controllerActionIds.get(controllerActionIndex);
+            ControllerAction controllerAction = controllerActionMap.get(controllerActionId);
+
+            editor.putString(profileIndex + "-" + controllerActionIndex + ControllerActionIdKey, controllerActionId);
+            controllerAction.saveToPreferences(editor, profileIndex, controllerActionId);
         }
     }
 
@@ -286,12 +295,12 @@ public class SBrickControllerProfile implements Parcelable {
             this.invert = invert;
         }
 
-        ControllerAction(SharedPreferences prefs) {
+        ControllerAction(SharedPreferences prefs, int profileIndex, String controllerActionId) {
             Log.i(TAG, "ControllerAction from shared preferences...");
 
-            sbrickAddress = prefs.getString(SBrickAddressKey, "");
-            channel = prefs.getInt(ChannelKey, 0);
-            invert = prefs.getInt(InvertKey, 0) != 0;
+            sbrickAddress = prefs.getString(profileIndex + controllerActionId + SBrickAddressKey, "");
+            channel = prefs.getInt(profileIndex + controllerActionId + ChannelKey, 0);
+            invert = prefs.getInt(profileIndex + controllerActionId + InvertKey, 0) != 0;
 
             validateSBrickAddress(sbrickAddress);
             validateChannel(channel);
@@ -361,12 +370,12 @@ public class SBrickControllerProfile implements Parcelable {
         // Internal API
         //
 
-        void saveToPreferences(SharedPreferences.Editor editor) {
+        void saveToPreferences(SharedPreferences.Editor editor, int profileIndex, String controllerActionId) {
             Log.i(TAG, "SaveToPreferences...");
 
-            editor.putString(SBrickAddressKey, sbrickAddress);
-            editor.putInt(ChannelKey, channel);
-            editor.putInt(InvertKey, invert ? 1 : 0);
+            editor.putString(profileIndex + controllerActionId + SBrickAddressKey, sbrickAddress);
+            editor.putInt(profileIndex + controllerActionId + ChannelKey, channel);
+            editor.putInt(profileIndex + controllerActionId + InvertKey, invert ? 1 : 0);
         }
 
         //

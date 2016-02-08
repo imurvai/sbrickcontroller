@@ -108,24 +108,10 @@ public class ControllerActivity extends ActionBarActivity {
             filter.addAction(SBrick.ACTION_SBRICK_CHARACTERISTIC_READ);
             LocalBroadcastManager.getInstance(this).registerReceiver(sbrickBroadcastReceiver, filter);
 
-            progressDialog = Helper.showProgressDialog(
-                    this,
-                    "Connecting to SBrick(s)...",
-                    new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            Log.i(TAG, "onClick...");
-                            ControllerActivity.this.finish();
-                        }
-                    });
-
-            if (!connectToSBricks()) {
-                progressDialog.dismiss();
-                progressDialog = null;
-
-                Helper.showMessageBox(
+            if (connectToSBricks()) {
+                progressDialog = Helper.showProgressDialog(
                         this,
-                        "Could not start connecting to SBricks.",
+                        "Connecting to SBrick(s)...",
                         new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
@@ -133,6 +119,18 @@ public class ControllerActivity extends ActionBarActivity {
                                 ControllerActivity.this.finish();
                             }
                         });
+            }
+            else {
+                Helper.showMessageBox(
+                    this,
+                    "Could not start connecting to SBricks.",
+                    new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            Log.i(TAG, "onClick...");
+                            ControllerActivity.this.finish();
+                        }
+                    });
             }
         }
     }
@@ -168,11 +166,22 @@ public class ControllerActivity extends ActionBarActivity {
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         Log.i(TAG, "onKeyDown...");
 
-//        if ((event.getSource() & InputDevice.SOURCE_GAMEPAD) != 0) {
-//            Log.i(TAG, "  gamepad event.");
-//
-//            return true;
-//        }
+        if ((event.getSource() & InputDevice.SOURCE_GAMEPAD) != 0 && event.getRepeatCount() == 0) {
+            Log.i(TAG, "  gamepad event.");
+
+            SBrickControllerProfile.ControllerAction controllerAction = getControllerActionForKeyCode(keyCode);
+            if (controllerAction != null) {
+
+                SBrick sbrick = sbricksMap.get(controllerAction.getSBrickAddress());
+                int channel = controllerAction.getChannel();
+                boolean invert = controllerAction.getInvert();
+
+                sbrick.sendCommand(channel, invert ? -255 : 255);
+            }
+
+            return true;
+        }
+
         return false;
     }
 
@@ -180,10 +189,21 @@ public class ControllerActivity extends ActionBarActivity {
     public boolean onKeyUp(int keyCode, KeyEvent event) {
         Log.i(TAG, "onKeyUp...");
 
-//        if ((event.getSource() & InputDevice.SOURCE_GAMEPAD) != 0) {
-//            Log.i(TAG, "  gamepad event.");
-//            return true;
-//        }
+        if ((event.getSource() & InputDevice.SOURCE_GAMEPAD) != 0 && event.getRepeatCount() == 0) {
+            Log.i(TAG, "  gamepad event.");
+
+            SBrickControllerProfile.ControllerAction controllerAction = getControllerActionForKeyCode(keyCode);
+            if (controllerAction != null) {
+
+                SBrick sbrick = sbricksMap.get(controllerAction.getSBrickAddress());
+                int channel = controllerAction.getChannel();
+
+                sbrick.sendCommand(channel, 0);
+            }
+
+            return true;
+        }
+
         return false;
     }
 
@@ -202,6 +222,8 @@ public class ControllerActivity extends ActionBarActivity {
             processMotionEvent(event, MotionEvent.AXIS_RZ, SBrickControllerProfile.CONTROLLER_ACTION_AXIS_RZ, channelNewValuesMap);
             processMotionEvent(event, MotionEvent.AXIS_THROTTLE, SBrickControllerProfile.CONTROLLER_ACTION_R_TRIGGER, channelNewValuesMap);
             processMotionEvent(event, MotionEvent.AXIS_BRAKE, SBrickControllerProfile.CONTROLLER_ACTION_L_TRIGGER, channelNewValuesMap);
+            processMotionEvent(event, MotionEvent.AXIS_HAT_X, SBrickControllerProfile.CONTROLLER_ACTION_DPAD_LEFT_RIGHT, channelNewValuesMap);
+            processMotionEvent(event, MotionEvent.AXIS_HAT_Y, SBrickControllerProfile.CONTROLLER_ACTION_DPAD_UP_DOWN, channelNewValuesMap);
 
             for (String sbrickAddress: channelNewValuesMap.keySet()) {
                 SBrick sbrick = sbricksMap.get(sbrickAddress);
@@ -289,6 +311,31 @@ public class ControllerActivity extends ActionBarActivity {
         Integer oldValue = (channelNewValuesMap.get(sbrickAddress))[channel];
         if (oldValue == null || Math.abs(oldValue.intValue()) < Math.abs(value))
             channelNewValuesMap.get(sbrickAddress)[channel] = new Integer(value);
+    }
+
+    private SBrickControllerProfile.ControllerAction getControllerActionForKeyCode(int keycode) {
+        Log.i(TAG, "getControllerActionForKeyCode - " + keycode);
+
+        switch (keycode) {
+            case KeyEvent.KEYCODE_BUTTON_A:
+                return profile.getControllerAction(SBrickControllerProfile.CONTROLLER_ACTION_A);
+            case KeyEvent.KEYCODE_BUTTON_B:
+                return profile.getControllerAction(SBrickControllerProfile.CONTROLLER_ACTION_B);
+            case KeyEvent.KEYCODE_BUTTON_X:
+                return profile.getControllerAction(SBrickControllerProfile.CONTROLLER_ACTION_X);
+            case KeyEvent.KEYCODE_BUTTON_Y:
+                return profile.getControllerAction(SBrickControllerProfile.CONTROLLER_ACTION_Y);
+            case KeyEvent.KEYCODE_BUTTON_R1:
+                return profile.getControllerAction(SBrickControllerProfile.CONTROLLER_ACTION_R1);
+            case KeyEvent.KEYCODE_BUTTON_L1:
+                return profile.getControllerAction(SBrickControllerProfile.CONTROLLER_ACTION_L1);
+            case KeyEvent.KEYCODE_BUTTON_SELECT:
+                return profile.getControllerAction(SBrickControllerProfile.CONTROLLER_ACTION_SELECT);
+            case KeyEvent.KEYCODE_BUTTON_START:
+                return profile.getControllerAction(SBrickControllerProfile.CONTROLLER_ACTION_START);
+        }
+
+        return null;
     }
 
     private final BroadcastReceiver sbrickBroadcastReceiver = new BroadcastReceiver() {

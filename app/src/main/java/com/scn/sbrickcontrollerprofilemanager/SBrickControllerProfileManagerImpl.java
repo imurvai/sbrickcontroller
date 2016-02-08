@@ -52,8 +52,8 @@ class SBrickControllerProfileManagerImpl implements SBrickControllerProfileManag
             controllerProfiles.clear();
 
             int size = prefs.getInt(SBrickControllerProfileCountKey, 0);
-            for (int i = 0; i < size; i++) {
-                SBrickControllerProfile profile = new SBrickControllerProfile(prefs);
+            for (int profileIndex = 0; profileIndex < size; profileIndex++) {
+                SBrickControllerProfile profile = new SBrickControllerProfile(prefs, profileIndex);
                 controllerProfiles.add(profile);
             }
         }
@@ -76,8 +76,10 @@ class SBrickControllerProfileManagerImpl implements SBrickControllerProfileManag
             editor.clear();
 
             editor.putInt(SBrickControllerProfileCountKey, controllerProfiles.size());
-            for (SBrickControllerProfile profile : controllerProfiles) {
-                profile.saveToPreferences(editor);
+            for (int profileIndex = 0; profileIndex < controllerProfiles.size(); profileIndex++) {
+
+                SBrickControllerProfile profile = controllerProfiles.get(profileIndex);
+                profile.saveToPreferences(editor, profileIndex);
             }
 
             editor.commit();
