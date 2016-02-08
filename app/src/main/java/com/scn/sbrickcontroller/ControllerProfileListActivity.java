@@ -92,6 +92,7 @@ public class ControllerProfileListActivity extends BaseActivity {
         });
         controllerProfileListAdapter = new ControllerProfileListAdapter(this);
         listViewControllerProfiles.setAdapter(controllerProfileListAdapter);
+        listViewControllerProfiles.setEmptyView(findViewById(R.id.textview_empty_profiles));
     }
 
     @Override

@@ -13,4 +13,12 @@
         android:id="@+id/listview_sbricks"
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
+
+    <TextView
+        android:id="@+id/textview_empty_sbricks"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:visibility="gone"
+        android:text="No SBricks have been discovered yet."/>
 </RelativeLayout>

@@ -72,6 +72,7 @@ public class SBrickListActivity extends BaseActivity {
         });
         sbrickListAdapter = new SBrickListAdapter(this);
         listViewSBricks.setAdapter(sbrickListAdapter);
+        listViewSBricks.setEmptyView(findViewById(R.id.textview_empty_sbricks));
     }
 
     @Override
