@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
@@ -29,6 +30,8 @@ import com.scn.sbrickmanager.SBrickManager;
 import com.scn.sbrickmanager.SBrickManagerHolder;
 
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class SBrickListActivity extends BaseActivity {
 
@@ -39,7 +42,7 @@ public class SBrickListActivity extends BaseActivity {
     private static final String TAG = SBrickListActivity.class.getSimpleName();
 
     private SBrickListAdapter sbrickListAdapter;
-    private ProgressDialog progressDialog;
+    private AsyncTask<Void, Integer, Void> scanAsyncTask;
 
     private ListView listViewSBricks;
 
@@ -99,10 +102,9 @@ public class SBrickListActivity extends BaseActivity {
         SBrickManagerHolder.getManager().stopSBrickScan();
         SBrickManagerHolder.getManager().saveSBricks();
 
-        Log.i(TAG, "  Dismiss the progress dialog if open...");
-        if (progressDialog != null) {
-            progressDialog.dismiss();
-            progressDialog = null;
+        if (scanAsyncTask != null) {
+            Log.i(TAG, "  Cancel the scanning...");
+            scanAsyncTask.cancel(true);
         }
     }
 
@@ -127,15 +129,71 @@ public class SBrickListActivity extends BaseActivity {
                 Log.i(TAG, "  menu_item_start_scan");
 
                 if (SBrickManagerHolder.getManager().startSBrickScan()) {
-                    progressDialog = Helper.showProgressDialog(SBrickListActivity.this, "Scanning for SBricks...", new DialogInterface.OnClickListener() {
+
+                    scanAsyncTask = new AsyncTask<Void, Integer, Void>() {
+
+                        private static final int MaxProgress = 20;
+                        private ProgressDialog progressDialog;
+
                         @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            Log.i(TAG, "onClick...");
-                            SBrickManagerHolder.getManager().stopSBrickScan();
-                            progressDialog.dismiss();
-                            progressDialog = null;
+                        protected void onPreExecute() {
+                            Log.i(TAG, "  scanAsyncTask.onPreExecute...");
+
+                            progressDialog = Helper.showProgressDialog(SBrickListActivity.this, "Scanning for SBricks...", MaxProgress, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    Log.i(TAG, "progressDialog.onClick...");
+
+                                    SBrickManagerHolder.getManager().stopSBrickScan();
+                                    scanAsyncTask.cancel(true);
+                                }
+                            });
                         }
-                    });
+
+                        @Override
+                        protected Void doInBackground(Void... params) {
+                            try {
+                                for (int progress = 0 ; progress <= MaxProgress; progress++) {
+                                    Thread.sleep(1000);
+                                    if (isCancelled())
+                                        break;
+
+                                    publishProgress(progress);
+                                }
+                            }
+                            catch (Exception ex) {}
+
+                            return null;
+                        }
+
+                        @Override
+                        protected void onProgressUpdate(Integer... progress) {
+                            Log.i(TAG, "  scanAsyncTask.onProgressUpdate - " + progress[0]);
+
+                            if (progressDialog != null)
+                                progressDialog.setProgress(progress[0]);
+                        }
+
+                        @Override
+                        protected void onPostExecute(Void aVoid) {
+                            Log.i(TAG, "  scanAsyncTask.onPostExecute - ");
+                            cleanup();
+                        }
+
+                        @Override
+                        protected void onCancelled() {
+                            Log.i(TAG, "  scanAsyncTask.onCancelled - ");
+                            cleanup();
+                        }
+
+                        private void cleanup() {
+                            if (progressDialog != null) {
+                                progressDialog.dismiss();
+                                progressDialog = null;
+                            }
+                            scanAsyncTask = null;
+                        }
+                    }.execute();
                 }
                 else {
                     Helper.showMessageBox(SBrickListActivity.this, "Could not start scanning for SBricks.", new DialogInterface.OnClickListener() {

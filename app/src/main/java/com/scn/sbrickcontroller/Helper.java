@@ -91,18 +91,22 @@ class Helper {
      * Shows a progress dialog with the given message and a Cancel button.
      * @param context The context the dialog is shown in.
      * @param message The message shown on the dialog.
+     * @param maxProgress The Max progrees value.
      * @param onClickListener Listener to handle the Cancel button event.
-     * @param onDismissListener Listener to handle the dismiss event.
      * @return The ProgressDialog instance.
      */
-    public static ProgressDialog showProgressDialog(Context context, String message, final DialogInterface.OnClickListener onClickListener, final DialogInterface.OnDismissListener onDismissListener) {
+    public static ProgressDialog showProgressDialog(Context context, String message, int maxProgress, final DialogInterface.OnClickListener onClickListener) {
         Log.i(TAG, "showProgressDialog - " + message);
 
         ProgressDialog dialog = new ProgressDialog(context);
         dialog.setMessage(message);
+        dialog.setIndeterminate(false);
+        dialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+        dialog.setProgressNumberFormat(null);
+        dialog.setMax(maxProgress);
+        dialog.setProgress(0);
         dialog.setCancelable(false);
         dialog.setButton(DialogInterface.BUTTON_NEGATIVE, "Cancel", onClickListener);
-        dialog.setOnDismissListener(onDismissListener);
         dialog.show();
         return dialog;
     }
