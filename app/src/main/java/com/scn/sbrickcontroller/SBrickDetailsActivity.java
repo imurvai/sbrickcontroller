@@ -7,6 +7,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
+import android.support.v4.app.NavUtils;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
@@ -144,8 +145,6 @@ public class SBrickDetailsActivity extends BaseActivity {
         Log.i(TAG, "onPause...");
         super.onPause();
 
-        sbrick.setName(etDisplayName.getText().toString());
-
         Log.i(TAG, "  Unregister the SBrick local broadcast receiver...");
         LocalBroadcastManager.getInstance(this).unregisterReceiver(sbrickBroadcastReceiver);
 
@@ -183,6 +182,12 @@ public class SBrickDetailsActivity extends BaseActivity {
         super.onOptionsItemSelected(item);
 
         switch (item.getItemId()) {
+
+            case android.R.id.home:
+                Log.i(TAG, "  home");
+
+                NavUtils.navigateUpFromSameTask(this);
+                return true;
 
             case R.id.menu_item_done:
                 Log.i(TAG, "  menu_item_done");

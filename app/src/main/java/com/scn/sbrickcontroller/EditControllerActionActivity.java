@@ -3,6 +3,7 @@ package com.scn.sbrickcontroller;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.PersistableBundle;
+import android.support.v4.app.NavUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -160,6 +161,12 @@ public class EditControllerActionActivity extends BaseActivity {
         super.onOptionsItemSelected(item);
 
         switch (item.getItemId()) {
+
+            case android.R.id.home:
+                Log.i(TAG, "  home");
+
+                NavUtils.navigateUpFromSameTask(this);
+                return true;
 
             case R.id.menu_item_done:
                 Log.i(TAG, "  menu_item_done");

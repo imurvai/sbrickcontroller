@@ -37,7 +37,7 @@ public class SBrickManagerHolder {
         if (manager != null)
             return;
 
-        boolean isRealImplementation = true;
+        boolean isRealImplementation = false;
         manager = isRealImplementation ?
                 new SBrickManagerImpl(context) :
                 new SBrickManagerMock(context);

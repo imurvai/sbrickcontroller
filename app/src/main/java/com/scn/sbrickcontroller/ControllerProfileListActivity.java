@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.app.NavUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -135,13 +136,18 @@ public class ControllerProfileListActivity extends BaseActivity {
 
         switch (item.getItemId()) {
 
+            case android.R.id.home:
+                Log.i(TAG, "  home");
+
+                NavUtils.navigateUpFromSameTask(this);
+                return true;
+
             case R.id.menu_item_add:
                 Log.i(TAG, "  menu_item_add");
 
                 Intent intent = new Intent(ControllerProfileListActivity.this, EditControllerProfileActivity.class);
                 intent.putExtra(Constants.EXTRA_REQUEST_CODE, Constants.REQUEST_NEW_CONTROLLER_PROFILE);
                 startActivityForResult(intent, Constants.REQUEST_NEW_CONTROLLER_PROFILE);
-
                 return true;
         }
 

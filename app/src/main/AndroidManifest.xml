@@ -26,6 +26,7 @@
         <activity
             android:name=".MainActivity"
             android:label="SBrickController"
+            android:launchMode="singleTask"
             android:configChanges="orientation|keyboardHidden"
             android:screenOrientation="landscape">
             <intent-filter>
@@ -37,6 +38,7 @@
         <activity
             android:name=".SBrickListActivity"
             android:label="SBrick list"
+            android:launchMode="singleTask"
             android:configChanges="orientation|keyboardHidden"
             android:screenOrientation="landscape"
             android:parentActivityName=".MainActivity">
@@ -48,6 +50,7 @@
         <activity
             android:name=".SBrickDetailsActivity"
             android:label="SBrick details"
+            android:launchMode="singleTask"
             android:configChanges="orientation|keyboardHidden"
             android:screenOrientation="landscape"
             android:parentActivityName=".SBrickListActivity">
@@ -59,6 +62,7 @@
         <activity
             android:name=".ControllerProfileListActivity"
             android:label="Controller profiles"
+            android:launchMode="singleTask"
             android:configChanges="orientation|keyboardHidden"
             android:screenOrientation="landscape"
             android:parentActivityName=".MainActivity">
@@ -70,6 +74,7 @@
         <activity
             android:name=".EditControllerProfileActivity"
             android:label="Edit controller profile"
+            android:launchMode="singleTask"
             android:configChanges="orientation|keyboardHidden"
             android:screenOrientation="landscape"
             android:parentActivityName=".ControllerProfileListActivity">
@@ -81,6 +86,7 @@
         <activity
             android:name=".EditControllerActionActivity"
             android:label="Edit controller action"
+            android:launchMode="singleTask"
             android:configChanges="orientation|keyboardHidden"
             android:screenOrientation="landscape"
             android:parentActivityName=".EditControllerProfileActivity">
@@ -92,6 +98,7 @@
         <activity
             android:name=".ControllerActivity"
             android:label="SBrick Controller"
+            android:launchMode="singleTask"
             android:configChanges="orientation|keyboardHidden"
             android:screenOrientation="landscape"
             android:parentActivityName=".ControllerProfileListActivity">
