@@ -3,6 +3,7 @@ package com.scn.sbrickcontroller;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.PersistableBundle;
+import android.provider.MediaStore;
 import android.support.v4.app.NavUtils;
 import android.util.Log;
 import android.view.Menu;
@@ -12,6 +13,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.CompoundButton;
+import android.widget.RadioButton;
 import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
@@ -31,11 +33,14 @@ public class EditControllerActionActivity extends BaseActivity {
     //
 
     private static final String TAG = EditControllerActionActivity.class.getSimpleName();
-    private static final String REQUEST_CODE_KEY = "REQUEST_CODE_KEY";
     private static final String CONTROLLER_ACTION_ID_KEY = "CONTROLLER_ACTION_ID_KEY";
     private static final String CONTROLLER_ACTION_KEY = "CONTROLLER_ACTION_KEY";
 
-    private int requestCode;
+    private RadioButton rbChannel0;
+    private RadioButton rbChannel1;
+    private RadioButton rbChannel2;
+    private RadioButton rbChannel3;
+
     private String controllerActionId;
     private SBrickControllerProfile.ControllerAction controllerAction;
 
@@ -55,7 +60,6 @@ public class EditControllerActionActivity extends BaseActivity {
         if (savedInstanceState != null) {
             Log.i(TAG, "  saved instance...");
 
-            requestCode = savedInstanceState.getInt(REQUEST_CODE_KEY);
             controllerActionId = savedInstanceState.getString(CONTROLLER_ACTION_ID_KEY);
             controllerAction = savedInstanceState.getParcelable(CONTROLLER_ACTION_KEY);
         }
@@ -63,15 +67,12 @@ public class EditControllerActionActivity extends BaseActivity {
             Log.i(TAG, "  new instance...");
 
             Intent intent = getIntent();
-            requestCode = intent.getIntExtra(Constants.EXTRA_REQUEST_CODE, 0);
             controllerActionId = intent.getStringExtra(Constants.EXTRA_CONTROLLER_ACTION_ID);
-            if (requestCode == Constants.REQUEST_NEW_CONTROLLER_ACTION) {
-                Log.i(TAG, "  REQUEST_NEW_CONTROLLER_ACTION");
+            controllerAction = intent.getParcelableExtra(Constants.EXTRA_CONTROLLER_ACTION);
+
+            if (controllerAction == null) {
+                Log.i(TAG, "  new controller action.");
                 controllerAction = new SBrickControllerProfile.ControllerAction(sbricks.get(0).getAddress(), 0, false);
-            }
-            else if (requestCode == Constants.REQUEST_EDIT_CONTROLLER_ACTION) {
-                Log.i(TAG, "  REQUEST_EDIT_CONTROLLER_ACTION");
-                controllerAction = intent.getParcelableExtra(Constants.EXTRA_CONTROLLER_ACTION);
             }
         }
 
@@ -95,23 +96,6 @@ public class EditControllerActionActivity extends BaseActivity {
             }
         });
 
-        Spinner spSelectChannel = (Spinner)findViewById(R.id.spinnel_select_channel);
-        spSelectChannel.setAdapter(new ArrayAdapter<Integer>(this, android.R.layout.simple_list_item_1, new Integer[] { 1, 2, 3, 4 }));
-        spSelectChannel.setSelection(controllerAction.getChannel());
-        spSelectChannel.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                Log.i(TAG, "spSelectChannel.onItemSelected...");
-                controllerAction.setChannel(position);
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-                Log.i(TAG, "spSelectChannel.onNothingSelected...");
-                // Do nothing here
-            }
-        });
-
         Switch swInvertChannel = (Switch)findViewById(R.id.switch_invert_channel);
         swInvertChannel.setChecked(controllerAction.getInvert());
         swInvertChannel.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -121,6 +105,45 @@ public class EditControllerActionActivity extends BaseActivity {
                 controllerAction.setInvert(isChecked);
             }
         });
+
+        rbChannel0 = (RadioButton)findViewById(R.id.radiobutton_channel_0);
+        rbChannel1 = (RadioButton)findViewById(R.id.radiobutton_channel_1);
+        rbChannel2 = (RadioButton)findViewById(R.id.radiobutton_channel_2);
+        rbChannel3 = (RadioButton)findViewById(R.id.radiobutton_channel_3);
+
+        rbChannel0.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.i(TAG, "rbChannel0.onClick...");
+                setSelectedChannel(0);
+            }
+        });
+
+        rbChannel1.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.i(TAG, "rbChannel1.onClick...");
+                setSelectedChannel(1);
+            }
+        });
+
+        rbChannel2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.i(TAG, "rbChannel2.onClick...");
+                setSelectedChannel(2);
+            }
+        });
+
+        rbChannel3.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.i(TAG, "rbChannel3.onClick...");
+                setSelectedChannel(3);
+            }
+        });
+
+        setSelectedChannel(controllerAction.getChannel());
     }
 
     @Override
@@ -140,7 +163,6 @@ public class EditControllerActionActivity extends BaseActivity {
         Log.i(TAG, "onSaveInstanceState...");
         super.onSaveInstanceState(outState);
 
-        outState.putInt(REQUEST_CODE_KEY, requestCode);
         outState.putString(CONTROLLER_ACTION_ID_KEY, controllerActionId);
         outState.putParcelable(CONTROLLER_ACTION_KEY, controllerAction);
     }
@@ -158,7 +180,6 @@ public class EditControllerActionActivity extends BaseActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         Log.i(TAG, "onOptionsItemSelected...");
-        super.onOptionsItemSelected(item);
 
         switch (item.getItemId()) {
 
@@ -180,6 +201,20 @@ public class EditControllerActionActivity extends BaseActivity {
                 return true;
         }
 
-        return false;
+        return super.onOptionsItemSelected(item);
+    }
+
+    //
+    // Private methods
+    //
+
+    private void setSelectedChannel(int selectedChannel) {
+        Log.i(TAG, "setSelectedChannel - " + selectedChannel);
+
+        rbChannel0.setChecked(selectedChannel == 0);
+        rbChannel1.setChecked(selectedChannel == 1);
+        rbChannel2.setChecked(selectedChannel == 2);
+        rbChannel3.setChecked(selectedChannel == 3);
+        controllerAction.setChannel(selectedChannel);
     }
 }

@@ -100,6 +100,8 @@ public class ControllerProfileListActivity extends BaseActivity {
     public void onResume() {
         Log.i(TAG, "onResume...");
         super.onResume();
+
+        controllerProfileListAdapter.notifyDataSetChanged();
     }
 
     @Override
@@ -132,7 +134,6 @@ public class ControllerProfileListActivity extends BaseActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         Log.i(TAG, "onOptionsItemSelected...");
-        super.onOptionsItemSelected(item);
 
         switch (item.getItemId()) {
 
@@ -146,43 +147,11 @@ public class ControllerProfileListActivity extends BaseActivity {
                 Log.i(TAG, "  menu_item_add");
 
                 Intent intent = new Intent(ControllerProfileListActivity.this, EditControllerProfileActivity.class);
-                intent.putExtra(Constants.EXTRA_REQUEST_CODE, Constants.REQUEST_NEW_CONTROLLER_PROFILE);
-                startActivityForResult(intent, Constants.REQUEST_NEW_CONTROLLER_PROFILE);
+                startActivity(intent);
                 return true;
         }
 
-        return false;
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        Log.i(TAG, "onOptionsItemSelected...");
-        super.onActivityResult(requestCode, resultCode, data);
-
-        if (resultCode == RESULT_OK) {
-            Log.i(TAG, "  RESULT_OK");
-
-            switch (requestCode) {
-                case Constants.REQUEST_NEW_CONTROLLER_PROFILE:
-                    Log.i(TAG, "  REQUEST_NEW_CONTROLLER_PROFILE");
-
-                    SBrickControllerProfile profile = data.getParcelableExtra(Constants.EXTRA_CONTROLLER_PROFILE);
-                    SBrickControllerProfileManagerHolder.getManager().addProfile(profile);
-
-                    break;
-
-                case Constants.REQUEST_EDIT_CONTROLLER_PROFILE:
-                    Log.i(TAG, "  REQUEST_EDIT_CONTROLLER_PROFILE");
-
-                    int profileIndex = data.getIntExtra(Constants.EXTRA_CONTROLLER_PROFILE_INDEX, 0);
-                    SBrickControllerProfile profile2 = data.getParcelableExtra(Constants.EXTRA_CONTROLLER_PROFILE);
-                    SBrickControllerProfileManagerHolder.getManager().updateProfileAt(profileIndex, profile2);
-
-                    break;
-            }
-
-            controllerProfileListAdapter.notifyDataSetChanged();
-        }
+        return super.onOptionsItemSelected(item);
     }
 
     //
@@ -251,10 +220,9 @@ public class ControllerProfileListActivity extends BaseActivity {
                     int profileIndex = SBrickControllerProfileManagerHolder.getManager().getProfiles().indexOf(profile);
 
                     Intent intent = new Intent(context, EditControllerProfileActivity.class);
-                    intent.putExtra(Constants.EXTRA_REQUEST_CODE, Constants.REQUEST_EDIT_CONTROLLER_PROFILE);
                     intent.putExtra(Constants.EXTRA_CONTROLLER_PROFILE_INDEX, profileIndex);
                     intent.putExtra(Constants.EXTRA_CONTROLLER_PROFILE, profile);
-                    context.startActivityForResult(intent, Constants.REQUEST_EDIT_CONTROLLER_PROFILE);
+                    context.startActivity(intent);
                 }
             });
 

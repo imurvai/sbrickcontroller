@@ -179,7 +179,6 @@ public class SBrickDetailsActivity extends BaseActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         Log.i(TAG, "onOptionsItemSelected...");
-        super.onOptionsItemSelected(item);
 
         switch (item.getItemId()) {
 
@@ -209,7 +208,7 @@ public class SBrickDetailsActivity extends BaseActivity {
                 return true;
         }
 
-        return false;
+        return super.onOptionsItemSelected(item);
     }
 
     @Override
