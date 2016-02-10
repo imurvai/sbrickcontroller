@@ -61,15 +61,15 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"/>
 
-                <RelativeLayout
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal">
+                    android:layout_marginTop="20dp"
+                    android:orientation="vertical">
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_alignParentLeft="true"
                         android:textAppearance="?android:attr/textAppearanceLarge"
                         android:text="Invert channel"
                         android:textStyle="bold" />
@@ -78,8 +78,8 @@
                         android:id="@+id/switch_invert_channel"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_alignParentRight="true"/>
-                </RelativeLayout>
+                        android:layout_marginLeft="16dp"/>
+                </LinearLayout>
             </LinearLayout>
 
             <RadioGroup
