@@ -234,8 +234,8 @@ public class ControllerActivity extends ActionBarActivity {
             processMotionEvent(event, MotionEvent.AXIS_Y, SBrickControllerProfile.CONTROLLER_ACTION_AXIS_Y, channelNewValuesMap);
             processMotionEvent(event, MotionEvent.AXIS_Z, SBrickControllerProfile.CONTROLLER_ACTION_AXIS_Z, channelNewValuesMap);
             processMotionEvent(event, MotionEvent.AXIS_RZ, SBrickControllerProfile.CONTROLLER_ACTION_AXIS_RZ, channelNewValuesMap);
-            processMotionEvent(event, MotionEvent.AXIS_THROTTLE, SBrickControllerProfile.CONTROLLER_ACTION_R_TRIGGER, channelNewValuesMap);
-            processMotionEvent(event, MotionEvent.AXIS_BRAKE, SBrickControllerProfile.CONTROLLER_ACTION_L_TRIGGER, channelNewValuesMap);
+            processMotionEvent(event, MotionEvent.AXIS_GAS, SBrickControllerProfile.CONTROLLER_ACTION_L_TRIGGER, channelNewValuesMap);
+            processMotionEvent(event, MotionEvent.AXIS_BRAKE, SBrickControllerProfile.CONTROLLER_ACTION_R_TRIGGER, channelNewValuesMap);
             processMotionEvent(event, MotionEvent.AXIS_HAT_X, SBrickControllerProfile.CONTROLLER_ACTION_DPAD_LEFT_RIGHT, channelNewValuesMap);
             processMotionEvent(event, MotionEvent.AXIS_HAT_Y, SBrickControllerProfile.CONTROLLER_ACTION_DPAD_UP_DOWN, channelNewValuesMap);
 
