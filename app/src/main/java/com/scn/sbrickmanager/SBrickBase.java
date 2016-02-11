@@ -5,8 +5,10 @@ import android.content.Intent;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
+import java.util.Iterator;
 import java.util.Objects;
 import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.Semaphore;
 
@@ -32,9 +34,12 @@ abstract class SBrickBase implements SBrick {
 
     protected LinkedBlockingDeque<Command> commandQueue = new LinkedBlockingDeque<>(100);
     protected Semaphore commandSendingSemaphore = new Semaphore(1);
+    protected Object commandQueueLock = new Object();
     protected Timer watchdogTimer = null;
+    protected Object watchdogTimerLock = new Object();
 
     protected int[] channelValues = new int[] { 0, 0, 0, 0 };
+    protected Command lastWriteCommand = null;
 
     //
     // Object overrides
@@ -74,7 +79,9 @@ abstract class SBrickBase implements SBrick {
         }
 
         Command command = Command.newReadCharacteristic(characteristicType);
-        return commandQueue.offer(command);
+        synchronized (commandQueueLock) {
+            return commandQueue.offer(command);
+        }
     }
 
     @Override
@@ -89,7 +96,9 @@ abstract class SBrickBase implements SBrick {
         }
 
         Command command = Command.newRemoteControl(channel, value);
-        return commandQueue.offer(command);
+        synchronized (commandQueueLock) {
+            return commandQueue.offer(command);
+        }
     }
 
     @Override
@@ -106,7 +115,9 @@ abstract class SBrickBase implements SBrick {
         }
 
         Command command = Command.newQuickDrive(v1, v2, v3, v4);
-        return commandQueue.offer(command);
+        synchronized (commandQueueLock) {
+            return commandQueue.offer(command);
+        }
     }
 
     //
@@ -141,6 +152,11 @@ abstract class SBrickBase implements SBrick {
 
                 try {
                     commandQueue.clear();
+                    lastWriteCommand = null;
+                    channelValues[0] = 0;
+                    channelValues[1] = 0;
+                    channelValues[2] = 0;
+                    channelValues[3] = 0;
 
                     while (true) {
                         // Wait for the GATT callback to release the semaphore.
@@ -156,25 +172,8 @@ abstract class SBrickBase implements SBrick {
                             break;
                         }
 
-                        if (processCommand(command)) {
-                            // Command was successful, store the current channel values.
-                            switch (command.getCommandType()) {
-
-                                case SEND_QUICK_DRIVE:
-                                    channelValues[0] = command.getChannelValues()[0];
-                                    channelValues[1] = command.getChannelValues()[1];
-                                    channelValues[2] = command.getChannelValues()[2];
-                                    channelValues[3] = command.getChannelValues()[3];
-                                    break;
-
-                                case SEND_REMOTE_CONTROL:
-                                    channelValues[command.getChannel()] = command.getChannelValues()[0];
-                                    break;
-                            }
-
-                            // TODO: check if channel values are all 0. if not start the watchdog.
-                        }
-                        else {
+                        if (!processCommand(command)) {
+                            Log.i(TAG, "Command send failed.");
                             // Command wasn't sent, no need to wait for the GATT callback.
                             commandSendingSemaphore.release();
                         }
@@ -201,9 +200,65 @@ abstract class SBrickBase implements SBrick {
 
         // Just to be sure the semaphore doesn't block the thread.
         commandSendingSemaphore.release();
+
+        // Stop the watchdog as well
+        stopWatchdogTimer();
     }
 
     protected abstract boolean processCommand(Command command);
+
+    protected void startWatchdogTimer() {
+        Log.i(TAG, "startWatchdogTimer...");
+
+        // Stop watchdog timer if already running
+        synchronized (watchdogTimerLock) {
+            if (watchdogTimer != null) {
+                watchdogTimer.cancel();
+                watchdogTimer.purge();
+            }
+
+            watchdogTimer = new Timer();
+            watchdogTimer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    //Log.i(TAG, "watchdogTimer.schedule...");
+
+                    // Check if there is at least one write command in the queue
+                    synchronized (commandQueueLock) {
+                        boolean hasWriteCommand = false;
+                        Iterator<Command> commandIterator = commandQueue.iterator();
+
+                        while (commandIterator.hasNext()) {
+                            Command command = commandIterator.next();
+                            if (command.getCommandType() == Command.CommandType.SEND_QUICK_DRIVE || command.getCommandType() == Command.CommandType.SEND_REMOTE_CONTROL)
+                                hasWriteCommand = true;
+                        }
+
+                        // If there is no write command in the queue put back the last command and restart timer
+                        if (!hasWriteCommand && lastWriteCommand != null) {
+                            commandQueue.offer(lastWriteCommand);
+                        }
+
+                        synchronized (watchdogTimerLock) {
+                            watchdogTimer = null;
+                        }
+                    }
+                }
+            }, 200);
+        }
+    }
+
+    protected void stopWatchdogTimer() {
+        Log.i(TAG, "stopWatchdogTimer...");
+
+        synchronized (watchdogTimerLock) {
+            if (watchdogTimer != null) {
+                watchdogTimer.cancel();
+                watchdogTimer.purge();
+                watchdogTimer = null;
+            }
+        }
+    }
 
     //
 
@@ -291,5 +346,25 @@ abstract class SBrickBase implements SBrick {
         public SBrickCharacteristicType getCharacteristicType() { return characteristicType; }
         public int getChannel() { return channel; }
         public int[] getChannelValues() { return channelValues; }
+
+        @Override
+        public String toString() {
+            switch (commandType) {
+
+                case SEND_QUICK_DRIVE:
+                    return "SEND_QUICK_DRIVE : " + channelValues[0] + " - " + channelValues[1] + " - " + channelValues[2] + " - " + channelValues[3];
+
+                case SEND_REMOTE_CONTROL:
+                    return "SEND_REMOTE_CONTROL : " + channel + " - " + channelValues[0];
+
+                case READ_CHARACTERISTIC:
+                    return "READ_CHARACTERISTIC";
+
+                case QUIT:
+                    return "QUIT";
+            }
+
+            return "Unknown command";
+        }
     }
 }

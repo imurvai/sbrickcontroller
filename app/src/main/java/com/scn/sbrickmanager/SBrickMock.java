@@ -119,7 +119,7 @@ public class SBrickMock extends SBrickBase {
             case READ_CHARACTERISTIC:
 
                 String value = "N/A";
-                SBrickCharacteristicType characteristicType = (SBrickCharacteristicType)command.getCommandParameter();
+                SBrickCharacteristicType characteristicType = (SBrickCharacteristicType)command.getCharacteristicType();
 
                 switch (characteristicType) {
                     case DeviceName:
@@ -158,7 +158,6 @@ public class SBrickMock extends SBrickBase {
 
             case SEND_QUICK_DRIVE:
             case SEND_REMOTE_CONTROL:
-            case RESET_WATCHDOG:
                 // Do nothing
                 break;
         }

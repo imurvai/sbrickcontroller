@@ -12,12 +12,11 @@ import android.content.Intent;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.UUID;
-import java.util.concurrent.LinkedBlockingDeque;
-import java.util.concurrent.Semaphore;
 
 /**
  * SBrick real implementation.
@@ -115,7 +114,8 @@ class SBrickImpl extends SBrickBase {
 
     @Override
     protected boolean processCommand(Command command) {
-        Log.i(TAG, "processCommand...");
+        //Log.i(TAG, "processCommand...");
+        //Log.i(TAG, "  command: " + command);
 
         try {
             switch (command.getCommandType()) {
@@ -123,7 +123,7 @@ class SBrickImpl extends SBrickBase {
                 case READ_CHARACTERISTIC:
                     Log.i(TAG, "  READ_CAHRACTERISTIC");
 
-                    SBrickCharacteristicType characteristicType = (SBrickCharacteristicType) command.getCommandParameter();
+                    SBrickCharacteristicType characteristicType = (SBrickCharacteristicType) command.getCharacteristicType();
                     String serviceUUID = "";
                     String characteristicUUID = "";
 
@@ -173,14 +173,16 @@ class SBrickImpl extends SBrickBase {
                 case SEND_REMOTE_CONTROL:
                     Log.i(TAG, "  SEND_REMOTE_CONTROL");
 
-                    byte[] commandBuffer = (byte[]) command.getCommandParameter();
+                    lastWriteCommand = command;
+                    byte[] commandBuffer = command.getCommandBuffer();
                     return remoteControlCharacteristic.setValue(commandBuffer) &&
                            bluetoothGatt.writeCharacteristic(remoteControlCharacteristic);
 
                 case SEND_QUICK_DRIVE:
                     Log.i(TAG, "  SEND_QUICK_DRIVE");
 
-                    byte[] commandBuffer2 = (byte[]) command.getCommandParameter();
+                    lastWriteCommand = command;
+                    byte[] commandBuffer2 = command.getCommandBuffer();
                     return quickDriveCharacteristic.setValue(commandBuffer2) &&
                            bluetoothGatt.writeCharacteristic(quickDriveCharacteristic);
 
@@ -199,35 +201,6 @@ class SBrickImpl extends SBrickBase {
     //
     // Private classes and methods
     //
-
-    private synchronized void startWatchdogTimer() {
-        Log.i(TAG, "startWatchdogTimer...");
-
-        if (watchdogTimer != null) {
-            Log.w(TAG, "  Watchdog timer already started.");
-            return;
-        }
-
-        watchdogTimer = new Timer();
-        watchdogTimer.scheduleAtFixedRate(new TimerTask() {
-            @Override
-            public void run() {
-                Log.i(TAG, "watchdogScheduler.run...");
-            }
-        }, 0, 200);
-    }
-
-    private synchronized void stopWatchdogTimer() {
-        Log.i(TAG, "stopWatchdogTimer...");
-
-        if (watchdogTimer == null) {
-            Log.i(TAG, " Warchdog timer already stopped.");
-            return;
-        }
-
-        watchdogTimer.cancel();
-        watchdogTimer = null;
-    }
 
     private final BluetoothGattCallback gattCallback = new BluetoothGattCallback() {
 
@@ -357,7 +330,37 @@ class SBrickImpl extends SBrickBase {
 
         @Override
         public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
-            Log.i(TAG, "onCharacteristicWrite...");
+            //Log.i(TAG, "onCharacteristicWrite...");
+
+            if (status == BluetoothGatt.GATT_SUCCESS) {
+                //Log.i(TAG, "onCharacteristicWrite - GATT_SUCCESS");
+
+                if (lastWriteCommand != null) {
+
+                    // Update channel values
+                    switch (lastWriteCommand.getCommandType()) {
+
+                        case SEND_REMOTE_CONTROL:
+                            channelValues[lastWriteCommand.getChannel()] = lastWriteCommand.getChannelValues()[0];
+                            break;
+
+                        case SEND_QUICK_DRIVE:
+                            channelValues[0] = lastWriteCommand.getChannelValues()[0];
+                            channelValues[1] = lastWriteCommand.getChannelValues()[1];
+                            channelValues[2] = lastWriteCommand.getChannelValues()[2];
+                            channelValues[3] = lastWriteCommand.getChannelValues()[3];
+                            break;
+                    }
+
+                    // Start the watchdog timer if any of the channels is not 0
+                    if (channelValues[0] != 0 || channelValues[1] != 0 || channelValues[2] != 0 || channelValues[3] != 0) {
+                        startWatchdogTimer();
+                    }
+                    else {
+                        stopWatchdogTimer();
+                    }
+                }
+            }
 
             // Release the semaphore to let the command process thread to proceed.
             commandSendingSemaphore.release();

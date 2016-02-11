@@ -178,10 +178,9 @@ public class ControllerActivity extends ActionBarActivity {
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-        Log.i(TAG, "onKeyDown...");
 
         if ((event.getSource() & InputDevice.SOURCE_GAMEPAD) != 0 && event.getRepeatCount() == 0) {
-            Log.i(TAG, "  gamepad event.");
+            Log.i(TAG, "onKeyDown...");
 
             SBrickControllerProfile.ControllerAction controllerAction = getControllerActionForKeyCode(keyCode);
             if (controllerAction != null) {
@@ -201,10 +200,9 @@ public class ControllerActivity extends ActionBarActivity {
 
     @Override
     public boolean onKeyUp(int keyCode, KeyEvent event) {
-        Log.i(TAG, "onKeyUp...");
 
         if ((event.getSource() & InputDevice.SOURCE_GAMEPAD) != 0 && event.getRepeatCount() == 0) {
-            Log.i(TAG, "  gamepad event.");
+            Log.i(TAG, "onKeyUp...");
 
             SBrickControllerProfile.ControllerAction controllerAction = getControllerActionForKeyCode(keyCode);
             if (controllerAction != null) {
@@ -245,12 +243,18 @@ public class ControllerActivity extends ActionBarActivity {
                 int[] values = channelValuesMap.get(sbrickAddress);
                 Integer[] newValues = channelNewValuesMap.get(sbrickAddress);
 
-                int v1 = (newValues[0] != null && Math.abs(values[0]) < Math.abs(newValues[0])) ? newValues[0] : values[0];
-                int v2 = (newValues[1] != null && Math.abs(values[1]) < Math.abs(newValues[1])) ? newValues[1] : values[1];
-                int v3 = (newValues[2] != null && Math.abs(values[2]) < Math.abs(newValues[2])) ? newValues[2] : values[2];
-                int v4 = (newValues[3] != null && Math.abs(values[3]) < Math.abs(newValues[3])) ? newValues[3] : values[3];
+                if (newValues[0] != null) sbrick.sendCommand(0, newValues[0]);
+                if (newValues[1] != null) sbrick.sendCommand(1, newValues[1]);
+                if (newValues[2] != null) sbrick.sendCommand(2, newValues[2]);
+                if (newValues[3] != null) sbrick.sendCommand(3, newValues[3]);
 
-                sbrick.sendCommand(v1, v2, v3, v4);
+
+                //int v0 = (newValues[0] != null && Math.abs(values[0]) < Math.abs(newValues[0])) ? newValues[0] : values[0];
+                //int v1 = (newValues[1] != null && Math.abs(values[1]) < Math.abs(newValues[1])) ? newValues[1] : values[1];
+                //int v2 = (newValues[2] != null && Math.abs(values[2]) < Math.abs(newValues[2])) ? newValues[2] : values[2];
+                //int v3 = (newValues[3] != null && Math.abs(values[3]) < Math.abs(newValues[3])) ? newValues[3] : values[3];
+
+                //sbrick.sendCommand(v0, v1, v2, v3);
             }
 
             return true;
@@ -322,6 +326,8 @@ public class ControllerActivity extends ActionBarActivity {
         if (!channelNewValuesMap.containsKey(sbrickAddress))
             channelNewValuesMap.put(sbrickAddress, new Integer[4]);
 
+        // Update the channel value if the new one is greater than the current one.
+        // It can happen if more than one controller action is assigned to the same channel.
         Integer oldValue = (channelNewValuesMap.get(sbrickAddress))[channel];
         if (oldValue == null || Math.abs(oldValue.intValue()) < Math.abs(value))
             channelNewValuesMap.get(sbrickAddress)[channel] = new Integer(value);
