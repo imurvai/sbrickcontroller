@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
+import java.util.Objects;
 import java.util.Timer;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.Semaphore;
@@ -87,10 +88,7 @@ abstract class SBrickBase implements SBrick {
             return false;
         }
 
-        byte invert = (byte)((0 <= value) ? 0 : 1);
-        byte byteValue = (byte)(Math.min(255, Math.abs(value)));
-
-        Command command = Command.newRemoteControl((byte) channel, invert, byteValue);
+        Command command = Command.newRemoteControl(channel, value);
         return commandQueue.offer(command);
     }
 
@@ -107,12 +105,7 @@ abstract class SBrickBase implements SBrick {
             return false;
         }
 
-        byte bv1 = (byte)((Math.min(255, Math.abs(v1)) & 0xfe) | (0 <= v1 ? 0 : 1));
-        byte bv2 = (byte)((Math.min(255, Math.abs(v2)) & 0xfe) | (0 <= v2 ? 0 : 1));
-        byte bv3 = (byte)((Math.min(255, Math.abs(v3)) & 0xfe) | (0 <= v3 ? 0 : 1));
-        byte bv4 = (byte)((Math.min(255, Math.abs(v4)) & 0xfe) | (0 <= v4 ? 0 : 1));
-
-        Command command = Command.newQuickDrive(bv1, bv2, bv3, bv4);
+        Command command = Command.newQuickDrive(v1, v2, v3, v4);
         return commandQueue.offer(command);
     }
 
@@ -163,7 +156,25 @@ abstract class SBrickBase implements SBrick {
                             break;
                         }
 
-                        if (!processCommand(command)) {
+                        if (processCommand(command)) {
+                            // Command was successful, store the current channel values.
+                            switch (command.getCommandType()) {
+
+                                case SEND_QUICK_DRIVE:
+                                    channelValues[0] = command.getChannelValues()[0];
+                                    channelValues[1] = command.getChannelValues()[1];
+                                    channelValues[2] = command.getChannelValues()[2];
+                                    channelValues[3] = command.getChannelValues()[3];
+                                    break;
+
+                                case SEND_REMOTE_CONTROL:
+                                    channelValues[command.getChannel()] = command.getChannelValues()[0];
+                                    break;
+                            }
+
+                            // TODO: check if channel values are all 0. if not start the watchdog.
+                        }
+                        else {
                             // Command wasn't sent, no need to wait for the GATT callback.
                             commandSendingSemaphore.release();
                         }
@@ -201,40 +212,84 @@ abstract class SBrickBase implements SBrick {
         public enum CommandType {
             SEND_QUICK_DRIVE,
             SEND_REMOTE_CONTROL,
-            RESET_WATCHDOG,
             READ_CHARACTERISTIC,
             QUIT
         };
 
         private CommandType commandType;
-        private Object commandParameter;
+        private byte[] commandBuffer;
+        private SBrickCharacteristicType characteristicType;
+        private int channel;
+        private int[] channelValues;
 
-        private Command(CommandType commandType, Object commandParameter) {
-            this.commandType = commandType;
-            this.commandParameter = commandParameter;
+        private Command () {
+
+            this.commandType = CommandType.QUIT;
+            this.commandBuffer = null;
+
+            this.characteristicType = SBrickCharacteristicType.Unknown;
+            this.channel = -1;
+            this.channelValues = null;
         }
 
-        public static Command newWatchdog() {
-            return new Command(CommandType.RESET_WATCHDOG, new byte[] { 0x0d, 0x00 });
+        private Command(int channel, int value) {
+
+            byte invert = (byte)((0 <= value) ? 0 : 1);
+            byte byteValue = (byte)(Math.min(255, Math.abs(value)));
+
+            this.commandType = CommandType.SEND_REMOTE_CONTROL;
+            this.commandBuffer = new byte[] { 0x01, (byte)channel, invert, byteValue};
+
+            this.characteristicType = SBrickCharacteristicType.Unknown;
+            this.channel = channel;
+            this.channelValues = new int[] { value };
         }
 
-        public static Command newRemoteControl(byte channel, byte invert, byte value) {
-            return new Command(CommandType.SEND_REMOTE_CONTROL, new byte[] { 0x01, channel, invert, value });
+        private Command(int v1, int v2, int v3, int v4) {
+
+            byte bv1 = (byte)((Math.min(255, Math.abs(v1)) & 0xfe) | (0 <= v1 ? 0 : 1));
+            byte bv2 = (byte)((Math.min(255, Math.abs(v2)) & 0xfe) | (0 <= v2 ? 0 : 1));
+            byte bv3 = (byte)((Math.min(255, Math.abs(v3)) & 0xfe) | (0 <= v3 ? 0 : 1));
+            byte bv4 = (byte)((Math.min(255, Math.abs(v4)) & 0xfe) | (0 <= v4 ? 0 : 1));
+
+            this.commandType = CommandType.SEND_QUICK_DRIVE;
+            this.commandBuffer = new byte[] { bv1, bv2, bv3, bv4 };
+
+            this.characteristicType = SBrickCharacteristicType.Unknown;
+            this.channel = -1;
+            this.channelValues = new int[] { v1, v2, v3, v4 };
         }
 
-        public static Command newQuickDrive(byte v1, byte v2, byte v3, byte v4) {
-            return new Command(CommandType.SEND_QUICK_DRIVE, new byte[] { v1, v2, v3, v4 });
+        private Command(SBrickCharacteristicType characteristicType) {
+
+            this.commandType = CommandType.READ_CHARACTERISTIC;
+            this.commandBuffer = null;
+
+            this.characteristicType = characteristicType;
+            this.channel = -1;
+            this.channelValues = null;
+        }
+
+        public static Command newRemoteControl(int channel, int value) {
+            return new Command(channel, value);
+        }
+
+        public static Command newQuickDrive(int v1, int v2, int v3, int v4) {
+            return new Command(v1, v2, v3, v4);
         }
 
         public static Command newReadCharacteristic(SBrickCharacteristicType characteristicType) {
-            return new Command(CommandType.READ_CHARACTERISTIC, characteristicType);
+            return new Command(characteristicType);
         }
 
         public static Command newQuit() {
-            return new Command(CommandType.QUIT, null);
+            return new Command();
         }
 
         public CommandType getCommandType() { return commandType; }
-        public Object getCommandParameter() { return commandParameter; }
+        public byte[] getCommandBuffer() { return commandBuffer; }
+        public SBrickCharacteristicType getCharacteristicType() { return characteristicType; }
+        public int getChannel() { return channel; }
+        public int[] getChannelValues() { return channelValues; }
     }
 }

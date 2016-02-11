@@ -184,13 +184,6 @@ class SBrickImpl extends SBrickBase {
                     return quickDriveCharacteristic.setValue(commandBuffer2) &&
                            bluetoothGatt.writeCharacteristic(quickDriveCharacteristic);
 
-                case RESET_WATCHDOG:
-                    Log.i(TAG, "  RESET_WATCHDOG");
-
-                    byte[] commandBuffer3 = (byte[]) command.getCommandParameter();
-                    return remoteControlCharacteristic.setValue(commandBuffer3) &&
-                           bluetoothGatt.writeCharacteristic(remoteControlCharacteristic);
-
                 case QUIT:
                     Log.i(TAG, "  QUIT");
                     return true;
@@ -220,8 +213,6 @@ class SBrickImpl extends SBrickBase {
             @Override
             public void run() {
                 Log.i(TAG, "watchdogScheduler.run...");
-                Command command = Command.newWatchdog();
-                commandQueue.offerFirst(command);
             }
         }, 0, 200);
     }
