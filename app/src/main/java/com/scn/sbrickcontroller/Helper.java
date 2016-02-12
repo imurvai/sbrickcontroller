@@ -49,6 +49,27 @@ class Helper {
     }
 
     /**
+     * Pops up a meessage box.
+     * @param context is the current context.
+     * @param title is the dialog title.
+     * @param message is the text to show.
+     * @param iconId is the id of the icon.
+     * @param onClickListener is the listener when the one and only button is clicked.
+     * @return the Dialog instance.
+     */
+    public static Dialog showMessageBox(Context context, String title, String message, int iconId, final DialogInterface.OnClickListener onClickListener) {
+        Dialog dialog = new AlertDialog.Builder(context)
+                .setTitle(title)
+                .setMessage(message)
+                .setIcon(iconId)
+                .setPositiveButton("Ok", onClickListener)
+                .create();
+
+        dialog.show();
+        return dialog;
+    }
+
+    /**
      * Pops up a question dialog.
      * @param context is the context.
      * @param question is the question text.

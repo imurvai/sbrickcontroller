@@ -180,7 +180,7 @@ public class ControllerActivity extends ActionBarActivity {
     public boolean onKeyDown(int keyCode, KeyEvent event) {
 
         if ((event.getSource() & InputDevice.SOURCE_GAMEPAD) != 0 && event.getRepeatCount() == 0) {
-            Log.i(TAG, "onKeyDown...");
+            //Log.i(TAG, "onKeyDown...");
 
             SBrickControllerProfile.ControllerAction controllerAction = getControllerActionForKeyCode(keyCode);
             if (controllerAction != null) {
@@ -205,7 +205,7 @@ public class ControllerActivity extends ActionBarActivity {
     public boolean onKeyUp(int keyCode, KeyEvent event) {
 
         if ((event.getSource() & InputDevice.SOURCE_GAMEPAD) != 0 && event.getRepeatCount() == 0) {
-            Log.i(TAG, "onKeyUp...");
+            //Log.i(TAG, "onKeyUp...");
 
             SBrickControllerProfile.ControllerAction controllerAction = getControllerActionForKeyCode(keyCode);
             if (controllerAction != null) {
@@ -227,10 +227,10 @@ public class ControllerActivity extends ActionBarActivity {
 
     @Override
     public boolean onGenericMotionEvent(MotionEvent event) {
-        Log.i(TAG, "onGenericMotionEvent...");
+        //Log.i(TAG, "onGenericMotionEvent...");
 
         if ((event.getSource() & InputDevice.SOURCE_JOYSTICK) != 0 && event.getAction() == MotionEvent.ACTION_MOVE) {
-            Log.i(TAG, "  Joystick event.");
+            //Log.i(TAG, "  Joystick event.");
 
             Map<String, Integer[]> channelNewValuesMap = new HashMap<>();
 
@@ -334,7 +334,7 @@ public class ControllerActivity extends ActionBarActivity {
     }
 
     private SBrickControllerProfile.ControllerAction getControllerActionForKeyCode(int keycode) {
-        Log.i(TAG, "getControllerActionForKeyCode - " + keycode);
+        //Log.i(TAG, "getControllerActionForKeyCode - " + keycode);
 
         switch (keycode) {
             case KeyEvent.KEYCODE_BUTTON_A:

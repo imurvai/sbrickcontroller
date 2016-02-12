@@ -171,7 +171,7 @@ class SBrickImpl extends SBrickBase {
                     return bluetoothGatt.readCharacteristic(gattCharacteristic);
 
                 case SEND_REMOTE_CONTROL:
-                    Log.i(TAG, "  SEND_REMOTE_CONTROL");
+                    //Log.i(TAG, "  SEND_REMOTE_CONTROL");
 
                     lastWriteCommand = command;
                     byte[] commandBuffer = command.getCommandBuffer();
@@ -179,7 +179,7 @@ class SBrickImpl extends SBrickBase {
                            bluetoothGatt.writeCharacteristic(remoteControlCharacteristic);
 
                 case SEND_QUICK_DRIVE:
-                    Log.i(TAG, "  SEND_QUICK_DRIVE");
+                    //Log.i(TAG, "  SEND_QUICK_DRIVE");
 
                     lastWriteCommand = command;
                     byte[] commandBuffer2 = command.getCommandBuffer();

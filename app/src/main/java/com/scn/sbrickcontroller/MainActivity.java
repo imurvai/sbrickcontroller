@@ -1,19 +1,26 @@
 package com.scn.sbrickcontroller;
 
+import android.app.ProgressDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
+import android.os.AsyncTask;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.app.NavUtils;
 import android.support.v7.app.ActionBarActivity;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
@@ -100,21 +107,40 @@ public class MainActivity extends BaseActivity {
     }
 
     @Override
-    public boolean onKeyDown(int keyCode, KeyEvent event) {
+    public boolean onCreateOptionsMenu(Menu menu) {
+        Log.i(TAG, "onCreateOptionsMenu...");
 
-        return super.onKeyDown(keyCode, event);
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu_main, menu);
+
+        return true;
     }
 
     @Override
-    public boolean onKeyUp(int keyCode, KeyEvent event) {
+    public boolean onOptionsItemSelected(MenuItem item) {
+        Log.i(TAG, "onOptionsItemSelected...");
 
-        return super.onKeyUp(keyCode, event);
-    }
+        switch (item.getItemId()) {
 
-    @Override
-    public boolean onGenericMotionEvent(MotionEvent event) {
+            case R.id.menu_item_about:
 
-        return super.onGenericMotionEvent(event);
+                String versionName = "";
+                try {
+                    versionName = getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
+                } catch (Exception ex) { }
+
+                String message = "Version " + versionName + "\n\n2016 SCN";
+
+                Helper.showMessageBox(this, "SBrickController", message, R.drawable.ic_launcher, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                    }
+                });
+
+                return true;
+        }
+
+        return super.onOptionsItemSelected(item);
     }
 
     //

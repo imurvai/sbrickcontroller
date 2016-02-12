@@ -86,9 +86,9 @@ abstract class SBrickBase implements SBrick {
 
     @Override
     public synchronized boolean sendCommand(int channel, int value) {
-        Log.i(TAG, "sendCommand - " + getAddress());
-        Log.i(TAG, "  channel: " + channel);
-        Log.i(TAG, "  value: " + value);
+        //Log.i(TAG, "sendCommand - " + getAddress());
+        //Log.i(TAG, "  channel: " + channel);
+        //Log.i(TAG, "  value: " + value);
 
         if (!isConnected) {
             Log.i(TAG, "  Not connected.");
@@ -103,34 +103,19 @@ abstract class SBrickBase implements SBrick {
 
     @Override
     public synchronized boolean sendCommand(int v1, int v2, int v3, int v4) {
-        Log.i(TAG, "sendCommand - " + getAddress());
-        Log.i(TAG, "  value1: " + v1);
-        Log.i(TAG, "  value2: " + v2);
-        Log.i(TAG, "  value3: " + v3);
-        Log.i(TAG, "  value4: " + v4);
+        //Log.i(TAG, "sendCommand - " + getAddress());
+        //Log.i(TAG, "  value1: " + v1);
+        //Log.i(TAG, "  value2: " + v2);
+        //Log.i(TAG, "  value3: " + v3);
+        //Log.i(TAG, "  value4: " + v4);
 
         if (!isConnected) {
             Log.i(TAG, "  Not connected.");
             return false;
         }
 
-        synchronized (commandQueueLock) {
-            if (v1 != 0 || v2 != 0 || v3 != 0 || v4 != 0) {
-                Command command = Command.newQuickDrive(v1, v2, v3, v4);
-                return commandQueue.offer(command);
-            }
-            else {
-                // Hack: SBrick only stops the watchdog if channels are zeroed with remove control characteristic
-                Command command0 = Command.newRemoteControl(0, 0);
-                Command command1 = Command.newRemoteControl(1, 0);
-                Command command2 = Command.newRemoteControl(2, 0);
-                Command command3 = Command.newRemoteControl(3, 0);
-                return commandQueue.offer(command0) &&
-                       commandQueue.offer(command1) &&
-                       commandQueue.offer(command2) &&
-                       commandQueue.offer(command3);
-            }
-        }
+        Command command = Command.newQuickDrive(v1, v2, v3, v4);
+        return commandQueue.offer(command);
     }
 
     //
@@ -221,7 +206,7 @@ abstract class SBrickBase implements SBrick {
     protected abstract boolean processCommand(Command command);
 
     protected void startWatchdogTimer() {
-        Log.i(TAG, "startWatchdogTimer...");
+        //Log.i(TAG, "startWatchdogTimer...");
 
         // Stop watchdog timer if already running
         synchronized (watchdogTimerLock) {
@@ -262,7 +247,7 @@ abstract class SBrickBase implements SBrick {
     }
 
     protected void stopWatchdogTimer() {
-        Log.i(TAG, "stopWatchdogTimer...");
+        //Log.i(TAG, "stopWatchdogTimer...");
 
         synchronized (watchdogTimerLock) {
             if (watchdogTimer != null) {
@@ -315,10 +300,11 @@ abstract class SBrickBase implements SBrick {
 
         private Command(int v1, int v2, int v3, int v4) {
 
-            byte bv1 = (byte)((Math.min(255, Math.abs(v1)) & 0xfe) | (0 <= v1 ? 0 : 1));
-            byte bv2 = (byte)((Math.min(255, Math.abs(v2)) & 0xfe) | (0 <= v2 ? 0 : 1));
-            byte bv3 = (byte)((Math.min(255, Math.abs(v3)) & 0xfe) | (0 <= v3 ? 0 : 1));
-            byte bv4 = (byte)((Math.min(255, Math.abs(v4)) & 0xfe) | (0 <= v4 ? 0 : 1));
+            // 0 doesn't stop the watchdog on quick drive, let's add 2 to the values.
+            byte bv1 = (byte)((Math.min(255, Math.abs(v1) + 2) & 0xfe) | (0 <= v1 ? 0 : 1));
+            byte bv2 = (byte)((Math.min(255, Math.abs(v2) + 2) & 0xfe) | (0 <= v2 ? 0 : 1));
+            byte bv3 = (byte)((Math.min(255, Math.abs(v3) + 2) & 0xfe) | (0 <= v3 ? 0 : 1));
+            byte bv4 = (byte)((Math.min(255, Math.abs(v4) + 2) & 0xfe) | (0 <= v4 ? 0 : 1));
 
             this.commandType = CommandType.SEND_QUICK_DRIVE;
             this.commandBuffer = new byte[] { bv1, bv2, bv3, bv4 };

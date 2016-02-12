@@ -121,7 +121,7 @@ public class SBrickControllerProfile implements Parcelable {
      * @return The controller action object.
      */
     public ControllerAction getControllerAction(String controllerActionId) {
-        Log.i(TAG, "getControllerAction - " + controllerActionId);
+        //Log.i(TAG, "getControllerAction - " + controllerActionId);
 
         if (controllerActionMap.containsKey(controllerActionId))
             return controllerActionMap.get(controllerActionId);
