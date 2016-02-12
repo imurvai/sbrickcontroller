@@ -185,11 +185,14 @@ public class ControllerActivity extends ActionBarActivity {
             SBrickControllerProfile.ControllerAction controllerAction = getControllerActionForKeyCode(keyCode);
             if (controllerAction != null) {
 
-                SBrick sbrick = sbricksMap.get(controllerAction.getSBrickAddress());
+                String sbrickAddress = controllerAction.getSBrickAddress();
+                SBrick sbrick = sbricksMap.get(sbrickAddress);
                 int channel = controllerAction.getChannel();
                 boolean invert = controllerAction.getInvert();
 
-                sbrick.sendCommand(channel, invert ? -255 : 255);
+                int value = invert ? -255 : 255;
+                if (sbrick.sendCommand(channel, value))
+                    channelValuesMap.get(sbrickAddress)[channel] = value;
             }
 
             return true;
@@ -207,10 +210,13 @@ public class ControllerActivity extends ActionBarActivity {
             SBrickControllerProfile.ControllerAction controllerAction = getControllerActionForKeyCode(keyCode);
             if (controllerAction != null) {
 
-                SBrick sbrick = sbricksMap.get(controllerAction.getSBrickAddress());
+                String sbrickAddress = controllerAction.getSBrickAddress();
+                SBrick sbrick = sbricksMap.get(sbrickAddress);
                 int channel = controllerAction.getChannel();
 
-                sbrick.sendCommand(channel, 0);
+                int value = 0;
+                if (sbrick.sendCommand(channel, value))
+                    channelValuesMap.get(sbrickAddress)[channel] = value;
             }
 
             return true;
@@ -243,18 +249,12 @@ public class ControllerActivity extends ActionBarActivity {
                 int[] values = channelValuesMap.get(sbrickAddress);
                 Integer[] newValues = channelNewValuesMap.get(sbrickAddress);
 
-                if (newValues[0] != null) sbrick.sendCommand(0, newValues[0]);
-                if (newValues[1] != null) sbrick.sendCommand(1, newValues[1]);
-                if (newValues[2] != null) sbrick.sendCommand(2, newValues[2]);
-                if (newValues[3] != null) sbrick.sendCommand(3, newValues[3]);
+                int v0 = (newValues[0] != null && Math.abs(values[0]) < Math.abs(newValues[0])) ? newValues[0] : values[0];
+                int v1 = (newValues[1] != null && Math.abs(values[1]) < Math.abs(newValues[1])) ? newValues[1] : values[1];
+                int v2 = (newValues[2] != null && Math.abs(values[2]) < Math.abs(newValues[2])) ? newValues[2] : values[2];
+                int v3 = (newValues[3] != null && Math.abs(values[3]) < Math.abs(newValues[3])) ? newValues[3] : values[3];
 
-
-                //int v0 = (newValues[0] != null && Math.abs(values[0]) < Math.abs(newValues[0])) ? newValues[0] : values[0];
-                //int v1 = (newValues[1] != null && Math.abs(values[1]) < Math.abs(newValues[1])) ? newValues[1] : values[1];
-                //int v2 = (newValues[2] != null && Math.abs(values[2]) < Math.abs(newValues[2])) ? newValues[2] : values[2];
-                //int v3 = (newValues[3] != null && Math.abs(values[3]) < Math.abs(newValues[3])) ? newValues[3] : values[3];
-
-                //sbrick.sendCommand(v0, v1, v2, v3);
+                sbrick.sendCommand(v0, v1, v2, v3);
             }
 
             return true;

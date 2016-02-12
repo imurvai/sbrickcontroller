@@ -95,8 +95,8 @@ abstract class SBrickBase implements SBrick {
             return false;
         }
 
-        Command command = Command.newRemoteControl(channel, value);
         synchronized (commandQueueLock) {
+            Command command = Command.newRemoteControl(channel, value);
             return commandQueue.offer(command);
         }
     }
@@ -114,9 +114,22 @@ abstract class SBrickBase implements SBrick {
             return false;
         }
 
-        Command command = Command.newQuickDrive(v1, v2, v3, v4);
         synchronized (commandQueueLock) {
-            return commandQueue.offer(command);
+            if (v1 != 0 || v2 != 0 || v3 != 0 || v4 != 0) {
+                Command command = Command.newQuickDrive(v1, v2, v3, v4);
+                return commandQueue.offer(command);
+            }
+            else {
+                // Hack: SBrick only stops the watchdog if channels are zeroed with remove control characteristic
+                Command command0 = Command.newRemoteControl(0, 0);
+                Command command1 = Command.newRemoteControl(1, 0);
+                Command command2 = Command.newRemoteControl(2, 0);
+                Command command3 = Command.newRemoteControl(3, 0);
+                return commandQueue.offer(command0) &&
+                       commandQueue.offer(command1) &&
+                       commandQueue.offer(command2) &&
+                       commandQueue.offer(command3);
+            }
         }
     }
 
