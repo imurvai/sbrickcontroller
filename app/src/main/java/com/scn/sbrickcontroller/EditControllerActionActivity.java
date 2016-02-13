@@ -42,7 +42,10 @@ public class EditControllerActionActivity extends BaseActivity {
     private RadioButton rbChannel3;
 
     private String controllerActionId;
-    private SBrickControllerProfile.ControllerAction controllerAction;
+
+    private String selectedSBrickAddress;
+    private int selectedChannel;
+    private boolean selecedInvert;
 
     //
     // Activity overrides
@@ -56,6 +59,7 @@ public class EditControllerActionActivity extends BaseActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         final List<SBrick> sbricks = SBrickManagerHolder.getManager().getSBricks();
+        SBrickControllerProfile.ControllerAction controllerAction;
 
         if (savedInstanceState != null) {
             Log.i(TAG, "  saved instance...");
@@ -76,17 +80,21 @@ public class EditControllerActionActivity extends BaseActivity {
             }
         }
 
+        selectedSBrickAddress = controllerAction.getSBrickAddress();
+        selectedChannel = controllerAction.getChannel();
+        selecedInvert = controllerAction.getInvert();
+
         TextView twControllerActionName = (TextView)findViewById(R.id.textview_controller_action_name);
         twControllerActionName.setText(SBrickControllerProfile.getControllerActionName(controllerActionId));
 
         Spinner spSelectSBrick = (Spinner)findViewById(R.id.spinner_select_sbrick);
         spSelectSBrick.setAdapter(new ArrayAdapter<SBrick>(this, android.R.layout.simple_list_item_1, sbricks));
-        spSelectSBrick.setSelection(sbricks.indexOf(SBrickManagerHolder.getManager().getSBrick(controllerAction.getSBrickAddress())));
+        spSelectSBrick.setSelection(sbricks.indexOf(SBrickManagerHolder.getManager().getSBrick(selectedSBrickAddress)));
         spSelectSBrick.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 Log.i(TAG, "sbSelectSBrick.onItemClick...");
-                controllerAction.setSBrickAddress(sbricks.get(position).getAddress());
+                selectedSBrickAddress = sbricks.get(position).getAddress();
             }
 
             @Override
@@ -97,12 +105,12 @@ public class EditControllerActionActivity extends BaseActivity {
         });
 
         Switch swInvertChannel = (Switch)findViewById(R.id.switch_invert_channel);
-        swInvertChannel.setChecked(controllerAction.getInvert());
+        swInvertChannel.setChecked(selecedInvert);
         swInvertChannel.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 Log.i(TAG, "onCheckedChanged...");
-                controllerAction.setInvert(isChecked);
+                selecedInvert = isChecked;
             }
         });
 
@@ -143,7 +151,7 @@ public class EditControllerActionActivity extends BaseActivity {
             }
         });
 
-        setSelectedChannel(controllerAction.getChannel());
+        setSelectedChannel(selectedChannel);
     }
 
     @Override
@@ -162,6 +170,8 @@ public class EditControllerActionActivity extends BaseActivity {
     public void onSaveInstanceState(Bundle outState) {
         Log.i(TAG, "onSaveInstanceState...");
         super.onSaveInstanceState(outState);
+
+        SBrickControllerProfile.ControllerAction controllerAction = new SBrickControllerProfile.ControllerAction(selectedSBrickAddress, selectedChannel, selecedInvert);
 
         outState.putString(CONTROLLER_ACTION_ID_KEY, controllerActionId);
         outState.putParcelable(CONTROLLER_ACTION_KEY, controllerAction);
@@ -192,6 +202,8 @@ public class EditControllerActionActivity extends BaseActivity {
             case R.id.menu_item_done:
                 Log.i(TAG, "  menu_item_done");
 
+                SBrickControllerProfile.ControllerAction controllerAction = new SBrickControllerProfile.ControllerAction(selectedSBrickAddress, selectedChannel, selecedInvert);
+
                 Intent intent = new Intent();
                 intent.putExtra(Constants.EXTRA_CONTROLLER_ACTION_ID, controllerActionId);
                 intent.putExtra(Constants.EXTRA_CONTROLLER_ACTION, controllerAction);
@@ -215,6 +227,6 @@ public class EditControllerActionActivity extends BaseActivity {
         rbChannel1.setChecked(selectedChannel == 1);
         rbChannel2.setChecked(selectedChannel == 2);
         rbChannel3.setChecked(selectedChannel == 3);
-        controllerAction.setChannel(selectedChannel);
+        this.selectedChannel = selectedChannel;
     }
 }

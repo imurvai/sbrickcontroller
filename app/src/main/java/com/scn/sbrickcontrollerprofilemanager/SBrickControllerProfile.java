@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -257,7 +258,7 @@ public class SBrickControllerProfile implements Parcelable {
     /**
      * Controller action class.
      */
-    public static class ControllerAction implements Parcelable {
+    public static final class ControllerAction implements Parcelable {
 
         //
         // Private members.
@@ -331,28 +332,10 @@ public class SBrickControllerProfile implements Parcelable {
         public String getSBrickAddress() { return sbrickAddress; }
 
         /**
-         * Sets the SBrick address.
-         * @param value is the address to set.
-         */
-        public void setSBrickAddress(String value) {
-            validateSBrickAddress(value);
-            sbrickAddress = value;
-        }
-
-        /**
          * Gets the channel.
          * @return The channel.
          */
         public int getChannel() { return channel; }
-
-        /**
-         * Sets the channel.
-         * @param value is the channel to set.
-         */
-        public void setChannel(int value) {
-            validateChannel(value);
-            channel = value;
-        }
 
         /**
          * Gets the value indicating if the value has to be inverted.
@@ -360,11 +343,30 @@ public class SBrickControllerProfile implements Parcelable {
          */
         public boolean getInvert() { return invert; }
 
-        /**
-         * Sets the invert.
-         * @param value is the new invet value.
-         */
-        public void setInvert(boolean value) { invert = value; }
+        //
+        // Object overrides
+        //
+
+        @Override
+        public boolean equals(Object o) {
+
+            if (o == null)
+                return false;
+
+            if (!(o instanceof ControllerAction))
+                return false;
+
+            ControllerAction other = (ControllerAction)o;
+
+            return sbrickAddress.equals(other.getSBrickAddress()) &&
+                   channel == other.getChannel() &&
+                   invert == other.getInvert();
+        }
+
+        @Override
+        public int hashCode() {
+            return sbrickAddress.hashCode() ^ channel ^ (invert ? 1 : -1);
+        }
 
         //
         // Internal API

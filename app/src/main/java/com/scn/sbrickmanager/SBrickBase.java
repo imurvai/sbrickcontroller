@@ -34,10 +34,7 @@ abstract class SBrickBase implements SBrick {
 
     protected LinkedBlockingDeque<Command> commandQueue = new LinkedBlockingDeque<>(100);
     protected Semaphore commandSendingSemaphore = new Semaphore(1);
-    protected Object commandQueueLock = new Object();
     protected Timer watchdogTimer = null;
-    protected Object watchdogTimerLock = new Object();
-
     protected int[] channelValues = new int[] { 0, 0, 0, 0 };
     protected Command lastWriteCommand = null;
 
@@ -70,7 +67,7 @@ abstract class SBrickBase implements SBrick {
     }
 
     @Override
-    public boolean readCharacteristic(SBrickCharacteristicType characteristicType) {
+    public synchronized boolean readCharacteristic(SBrickCharacteristicType characteristicType) {
         Log.i(TAG, "readCharacteristic - " + getAddress());
 
         if (!isConnected) {
@@ -79,9 +76,7 @@ abstract class SBrickBase implements SBrick {
         }
 
         Command command = Command.newReadCharacteristic(characteristicType);
-        synchronized (commandQueueLock) {
-            return commandQueue.offer(command);
-        }
+        return commandQueue.offer(command);
     }
 
     @Override
@@ -95,26 +90,41 @@ abstract class SBrickBase implements SBrick {
             return false;
         }
 
-        synchronized (commandQueueLock) {
-            Command command = Command.newRemoteControl(channel, value);
-            return commandQueue.offer(command);
-        }
+        // Filter out the lower bits (they don't take any effect)
+        value = value & 0xfffffff8;
+
+        // If value hasn't changed no need to resend it.
+        if (value == channelValues[channel])
+            return true;
+
+        Command command = Command.newRemoteControl(channel, value);
+        return commandQueue.offer(command);
     }
 
     @Override
-    public synchronized boolean sendCommand(int v1, int v2, int v3, int v4) {
+    public synchronized boolean sendCommand(int v0, int v1, int v2, int v3) {
         //Log.i(TAG, "sendCommand - " + getAddress());
-        //Log.i(TAG, "  value1: " + v1);
-        //Log.i(TAG, "  value2: " + v2);
-        //Log.i(TAG, "  value3: " + v3);
-        //Log.i(TAG, "  value4: " + v4);
+        //Log.i(TAG, "  value1: " + v0);
+        //Log.i(TAG, "  value2: " + v1);
+        //Log.i(TAG, "  value3: " + v2);
+        //Log.i(TAG, "  value4: " + v3);
 
         if (!isConnected) {
             Log.i(TAG, "  Not connected.");
             return false;
         }
 
-        Command command = Command.newQuickDrive(v1, v2, v3, v4);
+        // Filter out the lower bits (they don't take any effect)
+        v0 = v0 & 0xfffffff8;
+        v1 = v1 & 0xfffffff8;
+        v2 = v2 & 0xfffffff8;
+        v3 = v3 & 0xfffffff8;
+
+        // If values haven't changed no need to resend them.
+        if (v0 == channelValues[0] && v1 == channelValues[1] && v2 == channelValues[2] && v3 == channelValues[3])
+            return true;
+
+        Command command = Command.newQuickDrive(v0, v1, v2, v3);
         return commandQueue.offer(command);
     }
 
@@ -140,7 +150,7 @@ abstract class SBrickBase implements SBrick {
         LocalBroadcastManager.getInstance(context).sendBroadcast(buildBroadcastIntent(action));
     }
 
-    protected void startCommandProcessing() {
+    protected synchronized void startCommandProcessing() {
         Log.i(TAG, "startCommandProcessing...");
 
         Thread commandProcessThread = new Thread() {
@@ -157,29 +167,35 @@ abstract class SBrickBase implements SBrick {
                     channelValues[3] = 0;
 
                     while (true) {
-                        // Wait for the GATT callback to release the semaphore.
-                        commandSendingSemaphore.acquire();
+                        try {
+                            // Wait for the GATT callback to release the semaphore.
+                            commandSendingSemaphore.acquire();
 
-                        // Get the next command to process.
-                        Command command = commandQueue.take();
+                            synchronized (this) {
+                                // Get the next command to process.
+                                Command command = commandQueue.take();
+                                if (command.getCommandType() == Command.CommandType.QUIT) {
+                                    Log.i(TAG, "Command process thread quits.");
+                                    Log.i(TAG, "Empty the command queue...");
+                                    commandQueue.clear();
+                                    break;
+                                }
 
-                        if (command.getCommandType() == Command.CommandType.QUIT) {
-                            Log.i(TAG, "Command process thread quits.");
-                            Log.i(TAG, "Empty the command queue...");
-                            commandQueue.clear();
-                            break;
+                                if (!processCommand(command)) {
+                                    Log.i(TAG, "Command send failed.");
+                                    // Command wasn't sent, no need to wait for the GATT callback.
+                                    commandSendingSemaphore.release();
+                                }
+                            }
                         }
-
-                        if (!processCommand(command)) {
-                            Log.i(TAG, "Command send failed.");
-                            // Command wasn't sent, no need to wait for the GATT callback.
+                        catch (Exception ex) {
+                            Log.e(TAG, "Command process thread has thrown an exception.", ex);
                             commandSendingSemaphore.release();
                         }
                     }
-
                 }
                 catch (Exception ex) {
-                    Log.e(TAG, "Command process thread has thrown an exception.");
+                    Log.e(TAG, "Command process thread has thrown an exception.", ex);
                 }
             }
         };
@@ -187,14 +203,12 @@ abstract class SBrickBase implements SBrick {
         commandProcessThread.start();
     }
 
-    protected void stopCommandProcessing() {
+    protected synchronized void stopCommandProcessing() {
         Log.i(TAG, "stopCommandProcessing...");
 
         Command quitCommand = Command.newQuit();
-        if (!commandQueue.offerFirst(quitCommand)) {
-            Log.e(TAG, "  Could not send quit command to queue.");
-            return;
-        }
+        commandQueue.clear();
+        commandQueue.offerFirst(quitCommand);
 
         // Just to be sure the semaphore doesn't block the thread.
         commandSendingSemaphore.release();
@@ -205,56 +219,52 @@ abstract class SBrickBase implements SBrick {
 
     protected abstract boolean processCommand(Command command);
 
-    protected void startWatchdogTimer() {
+    protected synchronized void startWatchdogTimer() {
         //Log.i(TAG, "startWatchdogTimer...");
 
         // Stop watchdog timer if already running
-        synchronized (watchdogTimerLock) {
-            if (watchdogTimer != null) {
-                watchdogTimer.cancel();
-                watchdogTimer.purge();
-            }
+        if (watchdogTimer != null) {
+            watchdogTimer.cancel();
+            watchdogTimer.purge();
+        }
 
-            watchdogTimer = new Timer();
-            watchdogTimer.schedule(new TimerTask() {
-                @Override
-                public void run() {
-                    //Log.i(TAG, "watchdogTimer.schedule...");
+        watchdogTimer = new Timer();
+        watchdogTimer.schedule(new TimerTask() {
+            @Override
+            public synchronized void run() {
+                //Log.i(TAG, "watchdogTimer.schedule...");
 
-                    // Check if there is at least one write command in the queue
-                    synchronized (commandQueueLock) {
-                        boolean hasWriteCommand = false;
-                        Iterator<Command> commandIterator = commandQueue.iterator();
+                // Check if there is at least one write command in the queue
+                boolean hasWriteCommand = false;
+                Iterator<Command> commandIterator = commandQueue.iterator();
 
-                        while (commandIterator.hasNext()) {
-                            Command command = commandIterator.next();
-                            if (command.getCommandType() == Command.CommandType.SEND_QUICK_DRIVE || command.getCommandType() == Command.CommandType.SEND_REMOTE_CONTROL)
-                                hasWriteCommand = true;
-                        }
+                while (commandIterator.hasNext()) {
+                    Command command = commandIterator.next();
+                    if (command.getCommandType() == Command.CommandType.SEND_QUICK_DRIVE ||
+                        command.getCommandType() == Command.CommandType.SEND_REMOTE_CONTROL) {
 
-                        // If there is no write command in the queue put back the last command and restart timer
-                        if (!hasWriteCommand && lastWriteCommand != null) {
-                            commandQueue.offer(lastWriteCommand);
-                        }
-
-                        synchronized (watchdogTimerLock) {
-                            watchdogTimer = null;
-                        }
+                        hasWriteCommand = true;
+                        break;
                     }
                 }
-            }, 200);
-        }
-    }
 
-    protected void stopWatchdogTimer() {
-        //Log.i(TAG, "stopWatchdogTimer...");
+                // If there is no write command in the queue put back the last command
+                if (!hasWriteCommand && lastWriteCommand != null) {
+                    commandQueue.offer(lastWriteCommand);
+                }
 
-        synchronized (watchdogTimerLock) {
-            if (watchdogTimer != null) {
-                watchdogTimer.cancel();
-                watchdogTimer.purge();
                 watchdogTimer = null;
             }
+        }, 200);
+    }
+
+    protected synchronized void stopWatchdogTimer() {
+        //Log.i(TAG, "stopWatchdogTimer...");
+
+        if (watchdogTimer != null) {
+            watchdogTimer.cancel();
+            watchdogTimer.purge();
+            watchdogTimer = null;
         }
     }
 
@@ -300,11 +310,11 @@ abstract class SBrickBase implements SBrick {
 
         private Command(int v1, int v2, int v3, int v4) {
 
-            // 0 doesn't stop the watchdog on quick drive, let's add 2 to the values.
-            byte bv1 = (byte)((Math.min(255, Math.abs(v1) + 2) & 0xfe) | (0 <= v1 ? 0 : 1));
-            byte bv2 = (byte)((Math.min(255, Math.abs(v2) + 2) & 0xfe) | (0 <= v2 ? 0 : 1));
-            byte bv3 = (byte)((Math.min(255, Math.abs(v3) + 2) & 0xfe) | (0 <= v3 ? 0 : 1));
-            byte bv4 = (byte)((Math.min(255, Math.abs(v4) + 2) & 0xfe) | (0 <= v4 ? 0 : 1));
+            // 0 doesn't stop the watchdog on quick drive, let's set the second bit to 1
+            byte bv1 = (byte)((Math.min(255, Math.abs(v1)) & 0xfe) | 0x02 | (0 <= v1 ? 0 : 1));
+            byte bv2 = (byte)((Math.min(255, Math.abs(v2)) & 0xfe) | 0x02 | (0 <= v2 ? 0 : 1));
+            byte bv3 = (byte)((Math.min(255, Math.abs(v3)) & 0xfe) | 0x02 | (0 <= v3 ? 0 : 1));
+            byte bv4 = (byte)((Math.min(255, Math.abs(v4)) & 0xfe) | 0x02 | (0 <= v4 ? 0 : 1));
 
             this.commandType = CommandType.SEND_QUICK_DRIVE;
             this.commandBuffer = new byte[] { bv1, bv2, bv3, bv4 };

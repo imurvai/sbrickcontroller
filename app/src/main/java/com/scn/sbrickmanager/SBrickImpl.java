@@ -67,7 +67,7 @@ class SBrickImpl extends SBrickBase {
     }
 
     @Override
-    public String getAddress() {
+    public synchronized String getAddress() {
         return bluetoothDevice.getAddress();
     }
 
@@ -113,7 +113,7 @@ class SBrickImpl extends SBrickBase {
     //
 
     @Override
-    protected boolean processCommand(Command command) {
+    protected synchronized boolean processCommand(Command command) {
         //Log.i(TAG, "processCommand...");
         //Log.i(TAG, "  command: " + command);
 
@@ -123,7 +123,7 @@ class SBrickImpl extends SBrickBase {
                 case READ_CHARACTERISTIC:
                     Log.i(TAG, "  READ_CAHRACTERISTIC");
 
-                    SBrickCharacteristicType characteristicType = (SBrickCharacteristicType) command.getCharacteristicType();
+                    SBrickCharacteristicType characteristicType = command.getCharacteristicType();
                     String serviceUUID = "";
                     String characteristicUUID = "";
 
@@ -205,7 +205,7 @@ class SBrickImpl extends SBrickBase {
     private final BluetoothGattCallback gattCallback = new BluetoothGattCallback() {
 
         @Override
-        public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
+        public synchronized void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
             Log.i(TAG, "BluetoothGattCallback.onConnectionStateChange - " + getAddress());
 
             switch (newState) {
@@ -249,7 +249,7 @@ class SBrickImpl extends SBrickBase {
         }
 
         @Override
-        public void onServicesDiscovered(BluetoothGatt gatt, int status) {
+        public synchronized void onServicesDiscovered(BluetoothGatt gatt, int status) {
             Log.i(TAG, "BluetoothGattCallback.onServicesDiscovered - " + getAddress());
 
             switch (status) {
@@ -260,8 +260,8 @@ class SBrickImpl extends SBrickBase {
 
                     remoteControlCharacteristic = getGattCharacteristic(gatt, SERVICE_UUID_REMOTE_CONTROL, CHARACTERISTIC_UUID_REMOTE_CONTROL);
                     quickDriveCharacteristic = getGattCharacteristic(gatt, SERVICE_UUID_REMOTE_CONTROL, CHARACTERISTIC_UUID_QUICK_DRIVE);
-                    isConnected = true;
                     startCommandProcessing();
+                    isConnected = true;
 
                     sendLocalBroadcast(ACTION_SBRICK_CONNECTED);
                     break;
@@ -280,7 +280,7 @@ class SBrickImpl extends SBrickBase {
         }
 
         @Override
-        public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
+        public synchronized void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
             Log.i(TAG, "BluetoothGattCallback.onCharacteristicRead - " + getAddress());
 
             switch (status) {
@@ -329,7 +329,7 @@ class SBrickImpl extends SBrickBase {
         }
 
         @Override
-        public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
+        public synchronized void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
             //Log.i(TAG, "onCharacteristicWrite...");
 
             if (status == BluetoothGatt.GATT_SUCCESS) {
@@ -337,11 +337,14 @@ class SBrickImpl extends SBrickBase {
 
                 if (lastWriteCommand != null) {
 
+                    boolean needWatchdog = false;
+
                     // Update channel values
                     switch (lastWriteCommand.getCommandType()) {
 
                         case SEND_REMOTE_CONTROL:
                             channelValues[lastWriteCommand.getChannel()] = lastWriteCommand.getChannelValues()[0];
+                            needWatchdog = channelValues[0] != 0 || channelValues[1] != 0 || channelValues[2] != 0 || channelValues[3] != 0;
                             break;
 
                         case SEND_QUICK_DRIVE:
@@ -349,11 +352,12 @@ class SBrickImpl extends SBrickBase {
                             channelValues[1] = lastWriteCommand.getChannelValues()[1];
                             channelValues[2] = lastWriteCommand.getChannelValues()[2];
                             channelValues[3] = lastWriteCommand.getChannelValues()[3];
+                            needWatchdog = channelValues[0] != 0 || channelValues[1] != 0 || channelValues[2] != 0 || channelValues[3] != 0;
                             break;
                     }
 
                     // Start the watchdog timer if any of the channels is not 0
-                    if (channelValues[0] != 0 || channelValues[1] != 0 || channelValues[2] != 0 || channelValues[3] != 0) {
+                    if (needWatchdog) {
                         startWatchdogTimer();
                     }
                     else {
