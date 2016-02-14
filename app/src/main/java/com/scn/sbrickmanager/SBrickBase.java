@@ -121,8 +121,10 @@ abstract class SBrickBase implements SBrick {
         v3 = v3 & 0xfffffff8;
 
         // If values haven't changed no need to resend them.
-        if (v0 == channelValues[0] && v1 == channelValues[1] && v2 == channelValues[2] && v3 == channelValues[3])
+        if (v0 == channelValues[0] && v1 == channelValues[1] && v2 == channelValues[2] && v3 == channelValues[3]) {
+            //Log.i(TAG, "  same values, skip.");
             return true;
+        }
 
         Command command = Command.newQuickDrive(v0, v1, v2, v3);
         return commandQueue.offer(command);

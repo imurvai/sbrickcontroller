@@ -27,6 +27,10 @@ import android.widget.TextView;
 import com.scn.sbrickmanager.SBrick;
 import com.scn.sbrickmanager.SBrickManagerHolder;
 
+import java.util.Date;
+
+import javax.xml.datatype.Duration;
+
 public class SBrickDetailsActivity extends BaseActivity {
 
     //
@@ -246,15 +250,25 @@ public class SBrickDetailsActivity extends BaseActivity {
 
     private final SeekBar.OnSeekBarChangeListener seekBarChangeListener = new SeekBar.OnSeekBarChangeListener() {
 
+        private long lastSendCommand;
+
         @Override
         public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+
+            // Prevent too fast command sending
+            long duration = System.currentTimeMillis() - lastSendCommand;
+            if (duration < 100) return;
+
             int value1 = getPortValue(sbPort1);
             int value2 = getPortValue(sbPort2);
             int value3 = getPortValue(sbPort3);
             int value4 = getPortValue(sbPort4);
+
             if (!sbrick.sendCommand(value1, value2, value3, value4)) {
                 Log.i(TAG, "Failed to send command.");
             }
+
+            lastSendCommand = System.currentTimeMillis();
         }
 
         @Override
@@ -264,6 +278,7 @@ public class SBrickDetailsActivity extends BaseActivity {
         @Override
         public void onStopTrackingTouch(SeekBar seekBar) {
             seekBar.setProgress(getSeekBarCenter(seekBar));
+            sbrick.sendCommand(0, 0, 0, 0);
         }
 
         private int getPortValue(SeekBar seekBar) {
