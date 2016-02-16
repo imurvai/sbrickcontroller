@@ -7,4 +7,9 @@
         android:id="@+id/menu_item_add"
         android:title="Add"
         app:showAsAction="always"/>
+
+    <item
+        android:id="@+id/menu_item_play"
+        android:title="Play"
+        app:showAsAction="always"/>
 </menu>

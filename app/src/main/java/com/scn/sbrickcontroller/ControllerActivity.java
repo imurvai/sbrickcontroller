@@ -16,6 +16,7 @@ import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.MotionEvent;
+import android.widget.ListView;
 
 import com.scn.sbrickcontrollerprofilemanager.SBrickControllerProfile;
 import com.scn.sbrickmanager.SBrick;
@@ -53,6 +54,7 @@ public class ControllerActivity extends ActionBarActivity {
         setContentView(R.layout.activity_controller);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
+        // TODO: take array of profiles
         if (savedInstanceState != null) {
             Log.i(TAG, "  saved instance...");
             profile = savedInstanceState.getParcelable(PROFILE_KEY);
@@ -75,6 +77,9 @@ public class ControllerActivity extends ActionBarActivity {
             channelValues[0] = channelValues[1] = channelValues[2] = channelValues[3] = 0;
             channelValuesMap.put(address, channelValues);
         }
+
+        ListView lwProfiles = (ListView)findViewById(R.id.listview_controller_profiles_controller);
+        // TODO: continue
     }
 
     @Override
