@@ -22,7 +22,8 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
             android:textAppearance="?android:attr/textAppearanceLarge"
-            android:text="Profile:"/>
+            android:textStyle="bold"
+            android:text="Profile(s):"/>
 
         <ListView
             android:id="@+id/listview_controller_profiles_controller"

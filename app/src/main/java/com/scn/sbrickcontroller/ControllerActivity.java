@@ -16,14 +16,19 @@ import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.MotionEvent;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
 import com.scn.sbrickcontrollerprofilemanager.SBrickControllerProfile;
 import com.scn.sbrickmanager.SBrick;
 import com.scn.sbrickmanager.SBrickManagerHolder;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class ControllerActivity extends ActionBarActivity {
@@ -33,11 +38,13 @@ public class ControllerActivity extends ActionBarActivity {
     //
 
     private static final String TAG = ControllerActivity.class.getSimpleName();
-    private static final String PROFILE_KEY = "PROFILE_KEY";
+    private static final String PROFILES_KEY = "PROFILES_KEY";
 
-    private SBrickControllerProfile profile;
+    private ArrayList<SBrickControllerProfile> profiles;
     private Map<String, SBrick> sbricksMap;
     private Map<String, int[]> channelValuesMap;
+
+    private SBrickControllerProfile selectedProfile;
 
     private ProgressDialog progressDialog = null;
 
@@ -54,32 +61,42 @@ public class ControllerActivity extends ActionBarActivity {
         setContentView(R.layout.activity_controller);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        // TODO: take array of profiles
         if (savedInstanceState != null) {
             Log.i(TAG, "  saved instance...");
-            profile = savedInstanceState.getParcelable(PROFILE_KEY);
+            profiles = savedInstanceState.getParcelableArrayList(PROFILES_KEY);
         }
         else {
             Log.i(TAG, "  new instance...");
-            profile = getIntent().getParcelableExtra(Constants.EXTRA_CONTROLLER_PROFILE);
+            profiles = getIntent().getParcelableArrayListExtra(Constants.EXTRA_CONTROLLER_PROFILES);
         }
 
         sbricksMap = new HashMap<>();
         channelValuesMap = new HashMap<>();
 
-        // Find and store the SBricks addressed in the profile
-        Collection<String> sbrickAddresses = profile.getSBrickAddresses();
-        for (String address : sbrickAddresses) {
-            SBrick sbrick = SBrickManagerHolder.getManager().getSBrick(address);
-            sbricksMap.put(address, sbrick);
+        // Find and store the SBricks addressed in the profiles
+        for (SBrickControllerProfile profile : profiles) {
+            Collection<String> sbrickAddresses = profile.getSBrickAddresses();
+            for (String address : sbrickAddresses) {
+                SBrick sbrick = SBrickManagerHolder.getManager().getSBrick(address);
+                sbricksMap.put(address, sbrick);
 
-            int[] channelValues = new int[4];
-            channelValues[0] = channelValues[1] = channelValues[2] = channelValues[3] = 0;
-            channelValuesMap.put(address, channelValues);
+                int[] channelValues = new int[4];
+                channelValues[0] = channelValues[1] = channelValues[2] = channelValues[3] = 0;
+                channelValuesMap.put(address, channelValues);
+            }
         }
 
         ListView lwProfiles = (ListView)findViewById(R.id.listview_controller_profiles_controller);
-        // TODO: continue
+        lwProfiles.setAdapter(new ArrayAdapter<SBrickControllerProfile>(this, R.layout.listview_item_controller_profile_name, R.id.textview_controller_profile_name2, profiles));
+        lwProfiles.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Log.i(TAG, "onItemClick...");
+                selectedProfile = profiles.get(position);
+            }
+        });
+        lwProfiles.setItemChecked(0, true);
+        selectedProfile = profiles.get(0);
     }
 
     @Override
@@ -178,7 +195,7 @@ public class ControllerActivity extends ActionBarActivity {
         Log.i(TAG, "onSaveInstanceState...");
         super.onSaveInstanceState(outState);
 
-        outState.putParcelable(PROFILE_KEY, profile);
+        outState.putParcelableArrayList(PROFILES_KEY, profiles);
     }
 
     @Override
@@ -315,7 +332,7 @@ public class ControllerActivity extends ActionBarActivity {
 
     private void processMotionEvent(MotionEvent event, int motionEventId, String controllerActionId, Map<String, Integer[]> channelNewValuesMap) {
 
-        SBrickControllerProfile.ControllerAction controllerAction = profile.getControllerAction(controllerActionId);
+        SBrickControllerProfile.ControllerAction controllerAction = selectedProfile.getControllerAction(controllerActionId);
         if (controllerAction == null) {
             return;
         }
@@ -343,21 +360,21 @@ public class ControllerActivity extends ActionBarActivity {
 
         switch (keycode) {
             case KeyEvent.KEYCODE_BUTTON_A:
-                return profile.getControllerAction(SBrickControllerProfile.CONTROLLER_ACTION_A);
+                return selectedProfile.getControllerAction(SBrickControllerProfile.CONTROLLER_ACTION_A);
             case KeyEvent.KEYCODE_BUTTON_B:
-                return profile.getControllerAction(SBrickControllerProfile.CONTROLLER_ACTION_B);
+                return selectedProfile.getControllerAction(SBrickControllerProfile.CONTROLLER_ACTION_B);
             case KeyEvent.KEYCODE_BUTTON_X:
-                return profile.getControllerAction(SBrickControllerProfile.CONTROLLER_ACTION_X);
+                return selectedProfile.getControllerAction(SBrickControllerProfile.CONTROLLER_ACTION_X);
             case KeyEvent.KEYCODE_BUTTON_Y:
-                return profile.getControllerAction(SBrickControllerProfile.CONTROLLER_ACTION_Y);
+                return selectedProfile.getControllerAction(SBrickControllerProfile.CONTROLLER_ACTION_Y);
             case KeyEvent.KEYCODE_BUTTON_R1:
-                return profile.getControllerAction(SBrickControllerProfile.CONTROLLER_ACTION_R1);
+                return selectedProfile.getControllerAction(SBrickControllerProfile.CONTROLLER_ACTION_R1);
             case KeyEvent.KEYCODE_BUTTON_L1:
-                return profile.getControllerAction(SBrickControllerProfile.CONTROLLER_ACTION_L1);
+                return selectedProfile.getControllerAction(SBrickControllerProfile.CONTROLLER_ACTION_L1);
             case KeyEvent.KEYCODE_BUTTON_SELECT:
-                return profile.getControllerAction(SBrickControllerProfile.CONTROLLER_ACTION_SELECT);
+                return selectedProfile.getControllerAction(SBrickControllerProfile.CONTROLLER_ACTION_SELECT);
             case KeyEvent.KEYCODE_BUTTON_START:
-                return profile.getControllerAction(SBrickControllerProfile.CONTROLLER_ACTION_START);
+                return selectedProfile.getControllerAction(SBrickControllerProfile.CONTROLLER_ACTION_START);
         }
 
         return null;

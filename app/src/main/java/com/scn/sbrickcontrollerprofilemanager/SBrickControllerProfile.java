@@ -252,6 +252,16 @@ public class SBrickControllerProfile implements Parcelable {
     };
 
     //
+    // Object overrides
+    //
+
+    @Override
+    public String toString() {
+        return getName();
+    }
+
+
+    //
     //
     //
 

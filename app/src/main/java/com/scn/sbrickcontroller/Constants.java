@@ -15,9 +15,9 @@ public final class Constants {
     // Intent extra keys
     //
 
-    public static final String EXTRA_REQUEST_CODE = "EXTRA_REQUEST_CODE";
     public static final String EXTRA_SBRICK_ADDRESS = "EXTRA_SBRICK_ADDRESS";
     public static final String EXTRA_CONTROLLER_PROFILE = "EXTRA_CONTROLLER_PROFILE";
+    public static final String EXTRA_CONTROLLER_PROFILES = "EXTRA_CONTROLLER_PROFILES";
     public static final String EXTRA_CONTROLLER_PROFILE_INDEX = "EXTRA_CONTROLLER_PROFILE_INDEX";
     public static final String EXTRA_CONTROLLER_ACTION_ID = "EXTRA_CONTROLLER_ACTION_ID";
     public static final String EXTRA_CONTROLLER_ACTION = "EXTRA_CONTROLLER_ACTION";
