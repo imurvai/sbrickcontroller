@@ -1,0 +1,184 @@
+package com.scn.sbrickcontrollerprofilemanager;
+
+import android.content.SharedPreferences;
+import android.os.Parcel;
+import android.os.Parcelable;
+import android.util.Log;
+
+/**
+ * ControllerAction class.
+ */
+public final class ControllerAction implements Parcelable {
+
+    //
+    // Private members.
+    //
+
+    private static final String TAG = ControllerAction.class.getSimpleName();
+
+    private static final String SBrickAddressKey = "sbrick_address_key";
+    private static final String ChannelKey = "channel_key";
+    private static final String InvertKey = "invert_key";
+
+    private String sbrickAddress;
+    private int channel;
+    private boolean invert;
+
+    //
+    // Constructor.
+    //
+
+    /**
+     * Creates a new instance of the ControllerAction class.
+     * @param sbrickAddress is the address of the SBrick.
+     * @param channel is the channel.
+     * @param invert is true if value has to be inverted.
+     */
+    public ControllerAction(String sbrickAddress, int channel, boolean invert) {
+        Log.i(TAG, "ControllerAction...");
+
+        validateSBrickAddress(sbrickAddress);
+        validateChannel(channel);
+
+        this.sbrickAddress = sbrickAddress;
+        this.channel = channel;
+        this.invert = invert;
+    }
+
+    ControllerAction(SharedPreferences prefs, int profileIndex, String controllerActionId, int controllerActionIndex) {
+        Log.i(TAG, "ControllerAction from shared preferences...");
+
+        String keyBase = profileIndex + "-" + controllerActionId + "-" + controllerActionIndex + "-";
+        sbrickAddress = prefs.getString(keyBase + SBrickAddressKey, "");
+        channel = prefs.getInt(keyBase + ChannelKey, 0);
+        invert = prefs.getInt(keyBase + InvertKey, 0) != 0;
+
+        validateSBrickAddress(sbrickAddress);
+        validateChannel(channel);
+    }
+
+    ControllerAction(Parcel parcel) {
+        Log.i(TAG, "ControllerAction from parcel...");
+
+        if (parcel == null)
+            throw new RuntimeException("parcel is null.");
+
+        sbrickAddress = parcel.readString();
+        channel = parcel.readInt();
+        invert = parcel.readInt() != 0;
+
+        validateSBrickAddress(sbrickAddress);
+        validateChannel(channel);
+    }
+
+    //
+    // API
+    //
+
+    /**
+     * Gets the SBrick address.
+     * @return The SBrick address.
+     */
+    public String getSBrickAddress() { return sbrickAddress; }
+
+    /**
+     * Gets the channel.
+     * @return The channel.
+     */
+    public int getChannel() { return channel; }
+
+    /**
+     * Gets the value indicating if the value has to be inverted.
+     * @return True if the value has to be inverted, false otherwise.
+     */
+    public boolean getInvert() { return invert; }
+
+    //
+    // Object overrides
+    //
+
+
+    @Override
+    public String toString() {
+        return sbrickAddress + " - " + channel + " - " + (invert ? "invert" : "not-invert");
+    }
+
+    @Override
+    public boolean equals(Object o) {
+
+        if (o == null)
+            return false;
+
+        if (!(o instanceof ControllerAction))
+            return false;
+
+        ControllerAction other = (ControllerAction)o;
+
+        return sbrickAddress.equals(other.getSBrickAddress()) &&
+                channel == other.getChannel() &&
+                invert == other.getInvert();
+    }
+
+    @Override
+    public int hashCode() {
+        return sbrickAddress.hashCode() ^ channel ^ (invert ? 1 : -1);
+    }
+
+    //
+    // Internal API
+    //
+
+    void saveToPreferences(SharedPreferences.Editor editor, int profileIndex, String controllerActionId, int controllerActionIndex) {
+        Log.i(TAG, "SaveToPreferences...");
+
+        String keyBase = profileIndex + "-" + controllerActionId + "-" + controllerActionIndex + "-";
+        editor.putString(keyBase + SBrickAddressKey, sbrickAddress);
+        editor.putInt(keyBase + ChannelKey, channel);
+        editor.putInt(keyBase + InvertKey, invert ? 1 : 0);
+    }
+
+    //
+    // Parcelable methods
+    //
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        Log.i(TAG, "writeToParcel...");
+
+        dest.writeString(sbrickAddress);
+        dest.writeInt(channel);
+        dest.writeInt(invert ? 1 : 0);
+    }
+
+    public static final Parcelable.Creator CREATOR = new Parcelable.Creator() {
+
+        @Override
+        public Object createFromParcel(Parcel source) {
+            return new ControllerAction(source);
+        }
+
+        @Override
+        public Object[] newArray(int size) {
+            return new ControllerAction[size];
+        }
+    };
+
+    //
+    // Private methods
+    //
+
+    private void validateSBrickAddress(String address) {
+        if (address == null || address.length() == 0)
+            throw new RuntimeException("SBrick address can't be null or empty.");
+    }
+
+    private void validateChannel(int channel) {
+        if (channel < 0 || 3 < channel)
+            throw new RuntimeException("Channel must be in range [0, 3].");
+    }
+}

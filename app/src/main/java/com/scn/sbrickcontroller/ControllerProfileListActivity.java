@@ -20,14 +20,13 @@ import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.scn.sbrickcontrollerprofilemanager.SBrickControllerProfile;
-import com.scn.sbrickcontrollerprofilemanager.SBrickControllerProfileManagerHolder;
+import com.scn.sbrickcontrollerprofilemanager.ControllerProfile;
+import com.scn.sbrickcontrollerprofilemanager.ControllerProfileManagerHolder;
 import com.scn.sbrickmanager.SBrickManagerHolder;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class ControllerProfileListActivity extends BaseActivity {
@@ -60,7 +59,7 @@ public class ControllerProfileListActivity extends BaseActivity {
                 Log.i(TAG, "onItemClick...");
 
                 // Open the controller activity
-                SBrickControllerProfile profile = (SBrickControllerProfile)controllerProfileListAdapter.getItem(position);
+                ControllerProfile profile = (ControllerProfile)controllerProfileListAdapter.getItem(position);
 
                 if (profile.getSBrickAddresses().size() == 0) {
                     Helper.showMessageBox(
@@ -112,7 +111,7 @@ public class ControllerProfileListActivity extends BaseActivity {
         Log.i(TAG, "onPause...");
         super.onPause();
 
-        if (!SBrickControllerProfileManagerHolder.getManager().saveProfiles()) {
+        if (!ControllerProfileManagerHolder.getManager().saveProfiles()) {
             Helper.showMessageBox(
                     this,
                     "Could not save controller profiles.",
@@ -156,7 +155,7 @@ public class ControllerProfileListActivity extends BaseActivity {
             case R.id.menu_item_play:
                 Log.i(TAG, "  menu_item_play");
 
-                ArrayList<SBrickControllerProfile> selectedProfiles = controllerProfileListAdapter.getSelectedProfiles();
+                ArrayList<ControllerProfile> selectedProfiles = controllerProfileListAdapter.getSelectedProfiles();
                 if (selectedProfiles.size() > 0) {
 
                     Intent intent2 = new Intent(ControllerProfileListActivity.this, ControllerActivity.class);
@@ -181,7 +180,7 @@ public class ControllerProfileListActivity extends BaseActivity {
     // Private methods and classes
     //
 
-    private boolean validateProfile(SBrickControllerProfile profile) {
+    private boolean validateProfile(ControllerProfile profile) {
         Log.i(TAG, "validateProfile - " + profile.getName());
 
         boolean allSBrickOk = true;
@@ -195,19 +194,13 @@ public class ControllerProfileListActivity extends BaseActivity {
         return allSBrickOk;
     }
 
-    private void updatePlayButtonState() {
-        Log.i(TAG, "updatePlayButtonState...");
-
-        //miPlay.setVisible(controllerProfileListAdapter.getSelectedProfiles().size() > 0);
-    }
-
     //
 
     private static class ControllerProfileListAdapter extends BaseAdapter {
 
         private ControllerProfileListActivity activity;
 
-        private Map<SBrickControllerProfile, Boolean> profileSelectionMap = new HashMap<>();
+        private Map<ControllerProfile, Boolean> profileSelectionMap = new HashMap<>();
 
         ControllerProfileListAdapter(ControllerProfileListActivity context) {
             this.activity = context;
@@ -215,12 +208,12 @@ public class ControllerProfileListActivity extends BaseActivity {
 
         @Override
         public int getCount() {
-            return SBrickControllerProfileManagerHolder.getManager().getProfiles().size();
+            return ControllerProfileManagerHolder.getManager().getProfiles().size();
         }
 
         @Override
         public Object getItem(int position) {
-            return SBrickControllerProfileManagerHolder.getManager().getProfileAt(position);
+            return ControllerProfileManagerHolder.getManager().getProfileAt(position);
         }
 
         @Override
@@ -237,7 +230,7 @@ public class ControllerProfileListActivity extends BaseActivity {
                 rowView = inflater.inflate(R.layout.listview_item_controller_profile, parent, false);
             }
 
-            final SBrickControllerProfile profile = (SBrickControllerProfile)getItem(position);
+            final ControllerProfile profile = (ControllerProfile)getItem(position);
 
             CheckBox cbProfileSelection = (CheckBox)rowView.findViewById(R.id.checkbox_select_controller_profile);
             cbProfileSelection.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -245,7 +238,6 @@ public class ControllerProfileListActivity extends BaseActivity {
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                     Log.i(TAG, "onCheckedChanged...");
                     profileSelectionMap.put(profile, isChecked);
-                    activity.updatePlayButtonState();
                 }
             });
 
@@ -258,7 +250,7 @@ public class ControllerProfileListActivity extends BaseActivity {
                 public void onClick(View v) {
                     Log.i(TAG, "onClick...");
 
-                    int profileIndex = SBrickControllerProfileManagerHolder.getManager().getProfiles().indexOf(profile);
+                    int profileIndex = ControllerProfileManagerHolder.getManager().getProfiles().indexOf(profile);
 
                     Intent intent = new Intent(activity, EditControllerProfileActivity.class);
                     intent.putExtra(Constants.EXTRA_CONTROLLER_PROFILE_INDEX, profileIndex);
@@ -280,7 +272,7 @@ public class ControllerProfileListActivity extends BaseActivity {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
                                     Log.i(TAG, "btnDeleteProfile.onClick...");
-                                    SBrickControllerProfileManagerHolder.getManager().removeProfile(profile);
+                                    ControllerProfileManagerHolder.getManager().removeProfile(profile);
                                     ControllerProfileListAdapter.this.notifyDataSetChanged();
                                 }
                             },
@@ -296,12 +288,12 @@ public class ControllerProfileListActivity extends BaseActivity {
             return rowView;
         }
 
-        public ArrayList<SBrickControllerProfile> getSelectedProfiles() {
+        public ArrayList<ControllerProfile> getSelectedProfiles() {
             Log.i(TAG, "getSelectedProfiles...");
 
-            ArrayList<SBrickControllerProfile> selectedProfiles = new ArrayList<>();
+            ArrayList<ControllerProfile> selectedProfiles = new ArrayList<>();
 
-            for (SBrickControllerProfile profile : SBrickControllerProfileManagerHolder.getManager().getProfiles()) {
+            for (ControllerProfile profile : ControllerProfileManagerHolder.getManager().getProfiles()) {
                 if (profileSelectionMap.containsKey(profile) && profileSelectionMap.get(profile)) {
                     selectedProfiles.add(profile);
                 }

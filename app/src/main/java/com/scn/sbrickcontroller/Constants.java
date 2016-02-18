@@ -21,6 +21,7 @@ public final class Constants {
     public static final String EXTRA_CONTROLLER_PROFILE_INDEX = "EXTRA_CONTROLLER_PROFILE_INDEX";
     public static final String EXTRA_CONTROLLER_ACTION_ID = "EXTRA_CONTROLLER_ACTION_ID";
     public static final String EXTRA_CONTROLLER_ACTION = "EXTRA_CONTROLLER_ACTION";
+    public static final String EXTRA_ORIGINAL_CONTROLLER_ACTION = "EXTRA_ORIGINAL_CONTROLLER_ACTION";
 
     //
     // Activity request codes

@@ -7,7 +7,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
-import android.os.PersistableBundle;
 import android.support.v4.app.NavUtils;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.ActionBarActivity;
@@ -21,15 +20,16 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
-import com.scn.sbrickcontrollerprofilemanager.SBrickControllerProfile;
+import com.scn.sbrickcontrollerprofilemanager.ControllerAction;
+import com.scn.sbrickcontrollerprofilemanager.ControllerProfile;
 import com.scn.sbrickmanager.SBrick;
 import com.scn.sbrickmanager.SBrickManagerHolder;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class ControllerActivity extends ActionBarActivity {
 
@@ -40,11 +40,11 @@ public class ControllerActivity extends ActionBarActivity {
     private static final String TAG = ControllerActivity.class.getSimpleName();
     private static final String PROFILES_KEY = "PROFILES_KEY";
 
-    private ArrayList<SBrickControllerProfile> profiles;
+    private ArrayList<ControllerProfile> profiles;
     private Map<String, SBrick> sbricksMap;
     private Map<String, int[]> channelValuesMap;
 
-    private SBrickControllerProfile selectedProfile;
+    private ControllerProfile selectedProfile;
 
     private ProgressDialog progressDialog = null;
 
@@ -74,7 +74,7 @@ public class ControllerActivity extends ActionBarActivity {
         channelValuesMap = new HashMap<>();
 
         // Find and store the SBricks addressed in the profiles
-        for (SBrickControllerProfile profile : profiles) {
+        for (ControllerProfile profile : profiles) {
             Collection<String> sbrickAddresses = profile.getSBrickAddresses();
             for (String address : sbrickAddresses) {
                 SBrick sbrick = SBrickManagerHolder.getManager().getSBrick(address);
@@ -87,7 +87,7 @@ public class ControllerActivity extends ActionBarActivity {
         }
 
         ListView lwProfiles = (ListView)findViewById(R.id.listview_controller_profiles_controller);
-        lwProfiles.setAdapter(new ArrayAdapter<SBrickControllerProfile>(this, R.layout.listview_item_controller_profile_name, R.id.textview_controller_profile_name2, profiles));
+        lwProfiles.setAdapter(new ArrayAdapter<ControllerProfile>(this, R.layout.listview_item_controller_profile_name, R.id.textview_controller_profile_name2, profiles));
         lwProfiles.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -204,8 +204,7 @@ public class ControllerActivity extends ActionBarActivity {
         if ((event.getSource() & InputDevice.SOURCE_GAMEPAD) != 0 && event.getRepeatCount() == 0) {
             //Log.i(TAG, "onKeyDown...");
 
-            SBrickControllerProfile.ControllerAction controllerAction = getControllerActionForKeyCode(keyCode);
-            if (controllerAction != null) {
+            for (ControllerAction controllerAction : getControllerActionsForKeyCode(keyCode)) {
 
                 String sbrickAddress = controllerAction.getSBrickAddress();
                 SBrick sbrick = sbricksMap.get(sbrickAddress);
@@ -229,8 +228,7 @@ public class ControllerActivity extends ActionBarActivity {
         if ((event.getSource() & InputDevice.SOURCE_GAMEPAD) != 0 && event.getRepeatCount() == 0) {
             //Log.i(TAG, "onKeyUp...");
 
-            SBrickControllerProfile.ControllerAction controllerAction = getControllerActionForKeyCode(keyCode);
-            if (controllerAction != null) {
+            for (ControllerAction controllerAction : getControllerActionsForKeyCode(keyCode)) {
 
                 String sbrickAddress = controllerAction.getSBrickAddress();
                 SBrick sbrick = sbricksMap.get(sbrickAddress);
@@ -256,14 +254,14 @@ public class ControllerActivity extends ActionBarActivity {
 
             Map<String, Integer[]> channelNewValuesMap = new HashMap<>();
 
-            processMotionEvent(event, MotionEvent.AXIS_X, SBrickControllerProfile.CONTROLLER_ACTION_AXIS_X, channelNewValuesMap);
-            processMotionEvent(event, MotionEvent.AXIS_Y, SBrickControllerProfile.CONTROLLER_ACTION_AXIS_Y, channelNewValuesMap);
-            processMotionEvent(event, MotionEvent.AXIS_Z, SBrickControllerProfile.CONTROLLER_ACTION_AXIS_Z, channelNewValuesMap);
-            processMotionEvent(event, MotionEvent.AXIS_RZ, SBrickControllerProfile.CONTROLLER_ACTION_AXIS_RZ, channelNewValuesMap);
-            processMotionEvent(event, MotionEvent.AXIS_GAS, SBrickControllerProfile.CONTROLLER_ACTION_L_TRIGGER, channelNewValuesMap);
-            processMotionEvent(event, MotionEvent.AXIS_BRAKE, SBrickControllerProfile.CONTROLLER_ACTION_R_TRIGGER, channelNewValuesMap);
-            processMotionEvent(event, MotionEvent.AXIS_HAT_X, SBrickControllerProfile.CONTROLLER_ACTION_DPAD_LEFT_RIGHT, channelNewValuesMap);
-            processMotionEvent(event, MotionEvent.AXIS_HAT_Y, SBrickControllerProfile.CONTROLLER_ACTION_DPAD_UP_DOWN, channelNewValuesMap);
+            processMotionEvent(event, MotionEvent.AXIS_X, ControllerProfile.CONTROLLER_ACTION_AXIS_X, channelNewValuesMap);
+            processMotionEvent(event, MotionEvent.AXIS_Y, ControllerProfile.CONTROLLER_ACTION_AXIS_Y, channelNewValuesMap);
+            processMotionEvent(event, MotionEvent.AXIS_Z, ControllerProfile.CONTROLLER_ACTION_AXIS_Z, channelNewValuesMap);
+            processMotionEvent(event, MotionEvent.AXIS_RZ, ControllerProfile.CONTROLLER_ACTION_AXIS_RZ, channelNewValuesMap);
+            processMotionEvent(event, MotionEvent.AXIS_GAS, ControllerProfile.CONTROLLER_ACTION_L_TRIGGER, channelNewValuesMap);
+            processMotionEvent(event, MotionEvent.AXIS_BRAKE, ControllerProfile.CONTROLLER_ACTION_R_TRIGGER, channelNewValuesMap);
+            processMotionEvent(event, MotionEvent.AXIS_HAT_X, ControllerProfile.CONTROLLER_ACTION_DPAD_LEFT_RIGHT, channelNewValuesMap);
+            processMotionEvent(event, MotionEvent.AXIS_HAT_Y, ControllerProfile.CONTROLLER_ACTION_DPAD_UP_DOWN, channelNewValuesMap);
 
             for (String sbrickAddress: channelNewValuesMap.keySet()) {
                 SBrick sbrick = sbricksMap.get(sbrickAddress);
@@ -332,49 +330,50 @@ public class ControllerActivity extends ActionBarActivity {
 
     private void processMotionEvent(MotionEvent event, int motionEventId, String controllerActionId, Map<String, Integer[]> channelNewValuesMap) {
 
-        SBrickControllerProfile.ControllerAction controllerAction = selectedProfile.getControllerAction(controllerActionId);
-        if (controllerAction == null) {
-            return;
+        for (ControllerAction controllerAction : selectedProfile.getControllerActions(controllerActionId)) {
+            if (controllerAction == null) {
+                return;
+            }
+
+            String sbrickAddress = controllerAction.getSBrickAddress();
+            int channel = controllerAction.getChannel();
+            int value = (int) (event.getAxisValue(motionEventId) * (controllerAction.getInvert() ? -255 : 255));
+
+            // Joystick not always goes back to 0 exactly
+            if (Math.abs(value) < 10)
+                value = 0;
+
+            if (!channelNewValuesMap.containsKey(sbrickAddress))
+                channelNewValuesMap.put(sbrickAddress, new Integer[4]);
+
+            // Update the channel value if the new one is greater than the current one.
+            // It can happen if more than one controller action is assigned to the same channel.
+            Integer oldValue = (channelNewValuesMap.get(sbrickAddress))[channel];
+            if (oldValue == null || Math.abs(oldValue.intValue()) < Math.abs(value))
+                channelNewValuesMap.get(sbrickAddress)[channel] = new Integer(value);
         }
-
-        String sbrickAddress = controllerAction.getSBrickAddress();
-        int channel = controllerAction.getChannel();
-        int value = (int)(event.getAxisValue(motionEventId) * (controllerAction.getInvert() ? -255 : 255));
-
-        // Joystick not always goes back to 0 exactly
-        if (Math.abs(value) < 10)
-            value = 0;
-
-        if (!channelNewValuesMap.containsKey(sbrickAddress))
-            channelNewValuesMap.put(sbrickAddress, new Integer[4]);
-
-        // Update the channel value if the new one is greater than the current one.
-        // It can happen if more than one controller action is assigned to the same channel.
-        Integer oldValue = (channelNewValuesMap.get(sbrickAddress))[channel];
-        if (oldValue == null || Math.abs(oldValue.intValue()) < Math.abs(value))
-            channelNewValuesMap.get(sbrickAddress)[channel] = new Integer(value);
     }
 
-    private SBrickControllerProfile.ControllerAction getControllerActionForKeyCode(int keycode) {
+    private Set<ControllerAction> getControllerActionsForKeyCode(int keycode) {
         //Log.i(TAG, "getControllerActionForKeyCode - " + keycode);
 
         switch (keycode) {
             case KeyEvent.KEYCODE_BUTTON_A:
-                return selectedProfile.getControllerAction(SBrickControllerProfile.CONTROLLER_ACTION_A);
+                return selectedProfile.getControllerActions(ControllerProfile.CONTROLLER_ACTION_A);
             case KeyEvent.KEYCODE_BUTTON_B:
-                return selectedProfile.getControllerAction(SBrickControllerProfile.CONTROLLER_ACTION_B);
+                return selectedProfile.getControllerActions(ControllerProfile.CONTROLLER_ACTION_B);
             case KeyEvent.KEYCODE_BUTTON_X:
-                return selectedProfile.getControllerAction(SBrickControllerProfile.CONTROLLER_ACTION_X);
+                return selectedProfile.getControllerActions(ControllerProfile.CONTROLLER_ACTION_X);
             case KeyEvent.KEYCODE_BUTTON_Y:
-                return selectedProfile.getControllerAction(SBrickControllerProfile.CONTROLLER_ACTION_Y);
+                return selectedProfile.getControllerActions(ControllerProfile.CONTROLLER_ACTION_Y);
             case KeyEvent.KEYCODE_BUTTON_R1:
-                return selectedProfile.getControllerAction(SBrickControllerProfile.CONTROLLER_ACTION_R1);
+                return selectedProfile.getControllerActions(ControllerProfile.CONTROLLER_ACTION_R1);
             case KeyEvent.KEYCODE_BUTTON_L1:
-                return selectedProfile.getControllerAction(SBrickControllerProfile.CONTROLLER_ACTION_L1);
+                return selectedProfile.getControllerActions(ControllerProfile.CONTROLLER_ACTION_L1);
             case KeyEvent.KEYCODE_BUTTON_SELECT:
-                return selectedProfile.getControllerAction(SBrickControllerProfile.CONTROLLER_ACTION_SELECT);
+                return selectedProfile.getControllerActions(ControllerProfile.CONTROLLER_ACTION_SELECT);
             case KeyEvent.KEYCODE_BUTTON_START:
-                return selectedProfile.getControllerAction(SBrickControllerProfile.CONTROLLER_ACTION_START);
+                return selectedProfile.getControllerActions(ControllerProfile.CONTROLLER_ACTION_START);
         }
 
         return null;

@@ -4,7 +4,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.PersistableBundle;
 import android.support.v4.app.NavUtils;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -20,16 +19,17 @@ import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.scn.sbrickcontrollerprofilemanager.SBrickControllerProfile;
-import com.scn.sbrickcontrollerprofilemanager.SBrickControllerProfileManagerHolder;
+import com.scn.sbrickcontrollerprofilemanager.ControllerAction;
+import com.scn.sbrickcontrollerprofilemanager.ControllerProfile;
+import com.scn.sbrickcontrollerprofilemanager.ControllerProfileManagerHolder;
 import com.scn.sbrickmanager.SBrick;
 import com.scn.sbrickmanager.SBrickManagerHolder;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Set;
 
 public class EditControllerProfileActivity extends BaseActivity {
 
@@ -45,7 +45,7 @@ public class EditControllerProfileActivity extends BaseActivity {
     private ControllerActionListAdapter controllerActionListAdapter;
 
     int profileIndex;
-    SBrickControllerProfile profile;
+    ControllerProfile profile;
 
     //
     // Activity overrides
@@ -73,41 +73,11 @@ public class EditControllerProfileActivity extends BaseActivity {
 
             if (profile == null) {
                 Log.i(TAG, "  new profile.");
-                profile = new SBrickControllerProfile("My profile");
+                profile = new ControllerProfile("My profile");
             }
         }
 
         lwControllerActions = (ListView)findViewById(R.id.listview_conroller_actions);
-        lwControllerActions.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Log.i(TAG, "onItemClick...");
-
-                if (position == 0) {
-                    Log.i(TAG, "  Click on head item.");
-                    return;
-                }
-
-                if (SBrickManagerHolder.getManager().getSBricks().size() == 0) {
-                    Log.i(TAG, "  No SBricks.");
-
-                    Helper.showMessageBox(EditControllerProfileActivity.this, "Please scan for SBricks first.", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                        }
-                    });
-                    return;
-                }
-
-                String controllerActionId = controllerActionListAdapter.getControllerActionId(position);
-                SBrickControllerProfile.ControllerAction controllerAction = (SBrickControllerProfile.ControllerAction) controllerActionListAdapter.getItem(position);
-
-                Intent intent = new Intent(EditControllerProfileActivity.this, EditControllerActionActivity.class);
-                intent.putExtra(Constants.EXTRA_CONTROLLER_ACTION_ID, controllerActionId);
-                intent.putExtra(Constants.EXTRA_CONTROLLER_ACTION, controllerAction);
-                startActivityForResult(intent, Constants.REQUEST_EDIT_CONTROLLER_ACTION);
-            }
-        });
         controllerActionListAdapter = new ControllerActionListAdapter(this, profile);
         lwControllerActions.setAdapter(controllerActionListAdapter);
     }
@@ -170,11 +140,11 @@ public class EditControllerProfileActivity extends BaseActivity {
                 else {
                     if (profileIndex < 0) {
                         Log.i(TAG, "  add the new profile");
-                        SBrickControllerProfileManagerHolder.getManager().addProfile(profile);
+                        ControllerProfileManagerHolder.getManager().addProfile(profile);
                     }
                     else {
                         Log.i(TAG, "  update the profile");
-                        SBrickControllerProfileManagerHolder.getManager().updateProfileAt(profileIndex, profile);
+                        ControllerProfileManagerHolder.getManager().updateProfileAt(profileIndex, profile);
                     }
 
                     EditControllerProfileActivity.this.finish();
@@ -195,11 +165,30 @@ public class EditControllerProfileActivity extends BaseActivity {
             Log.i(TAG, "  RESULT_OK");
 
             String controllerActionId = data.getStringExtra(Constants.EXTRA_CONTROLLER_ACTION_ID);
-            SBrickControllerProfile.ControllerAction controllerAction = data.getParcelableExtra(Constants.EXTRA_CONTROLLER_ACTION);
-            profile.setControllerAction(controllerActionId, controllerAction);
+            ControllerAction newControllerAction = data.getParcelableExtra(Constants.EXTRA_CONTROLLER_ACTION);
+            ControllerAction originalControllerAction = data.getParcelableExtra(Constants.EXTRA_ORIGINAL_CONTROLLER_ACTION);
+
+            if (originalControllerAction != null)
+                profile.updateControllerAction(controllerActionId, originalControllerAction, newControllerAction);
+            else
+                profile.addControllerAction(controllerActionId, newControllerAction);
 
             controllerActionListAdapter.notifyDataSetChanged();
         }
+    }
+
+    //
+    // API
+    //
+
+    public void startEditControllerActionActivity(String controllerActionId, ControllerAction controllerAction) {
+        Log.i(TAG, "startEditControllerActionActivity...");
+
+        Intent intent = new Intent(this, EditControllerActionActivity.class);
+        intent.putExtra(Constants.EXTRA_CONTROLLER_ACTION_ID, controllerActionId);
+        if (controllerAction != null)
+            intent.putExtra(Constants.EXTRA_ORIGINAL_CONTROLLER_ACTION, controllerAction);
+        startActivityForResult(intent, Constants.REQUEST_EDIT_CONTROLLER_ACTION);
     }
 
     //
@@ -215,10 +204,10 @@ public class EditControllerProfileActivity extends BaseActivity {
         private static final int ViewTypeProfileName = 0;
         private static final int ViewTypeControllerAction = 1;
 
-        private Context context;
-        private SBrickControllerProfile profile;
+        private EditControllerProfileActivity context;
+        private ControllerProfile profile;
 
-        public ControllerActionListAdapter(Context context, SBrickControllerProfile profile) {
+        public ControllerActionListAdapter(EditControllerProfileActivity context, ControllerProfile profile) {
             this.context = context;
             this.profile = profile;
         }
@@ -256,8 +245,8 @@ public class EditControllerProfileActivity extends BaseActivity {
             else {
                 // Controller action
                 String controllerActionId = getControllerActionId(position);
-                SBrickControllerProfile.ControllerAction controllerAction = profile.getControllerAction(controllerActionId);
-                return controllerAction;
+                Set<ControllerAction> controllerActions = profile.getControllerActions(controllerActionId);
+                return controllerActions;
             }
         }
 
@@ -268,17 +257,18 @@ public class EditControllerProfileActivity extends BaseActivity {
 
         @Override
         public View getView(final int position, View convertView, ViewGroup parent) {
+
             View rowView = convertView;
+            LayoutInflater inflater = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
             switch (getItemViewType(position)) {
 
                 case ViewTypeProfileName:
 
-                    if (rowView == null) {
-                        LayoutInflater inflater = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+                    if (rowView == null)
                         rowView = inflater.inflate(R.layout.listview_item_controller_action_head, parent, false);
-                    }
 
+                    // Edit profile name
                     EditText etProfileName = (EditText)rowView.findViewById(R.id.edittext_controller_profile_name);
                     etProfileName.setText(profile.getName());
                     etProfileName.addTextChangedListener(new TextWatcher() {
@@ -298,61 +288,75 @@ public class EditControllerProfileActivity extends BaseActivity {
 
                 case ViewTypeControllerAction:
 
-                    if (rowView == null) {
-                        LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-                        rowView = inflater.inflate(R.layout.listview_item_controller_action, parent, false);
-                    }
+                    if (rowView == null)
+                        rowView = inflater.inflate(R.layout.listview_item_controller_actions, parent, false);
 
-                    final String controllerActionName = SBrickControllerProfile.getControllerActionName(getControllerActionId(position));
-                    final SBrickControllerProfile.ControllerAction controllerAction = (SBrickControllerProfile.ControllerAction)getItem(position);
+                    final String controllerActionName = ControllerProfile.getControllerActionName(getControllerActionId(position));
+                    final Set<ControllerAction> controllerActions = (Set<ControllerAction>)getItem(position);
 
-                    TextView twControllerActionName = (TextView) rowView.findViewById(R.id.textview_controller_action_name);
-                    TextView twSBrickName = (TextView) rowView.findViewById(R.id.textview_sbrick_name);
-                    TextView twChannel = (TextView) rowView.findViewById(R.id.textview_channel);
-                    TextView twInvert = (TextView) rowView.findViewById(R.id.textview_invert);
+                    // Set controller action name
+                    TextView twControllerActionName = (TextView)rowView.findViewById(R.id.textview_controller_action_name);
+                    twControllerActionName.setText(controllerActionName);
 
-                    if (controllerAction != null) {
-                        String sbrickAddress = controllerAction.getSBrickAddress();
-                        SBrick sbrick = SBrickManagerHolder.getManager().getSBrick(sbrickAddress);
-
-                        twControllerActionName.setText(controllerActionName);
-                        twSBrickName.setText(sbrick != null ? sbrick.getName() : "?????");
-                        twChannel.setText(Integer.toString(controllerAction.getChannel() + 1));
-                        twInvert.setText(controllerAction.getInvert() ? "Invert" : "Non-invert");
-                    }
-                    else {
-                        twControllerActionName.setText(controllerActionName);
-                        twSBrickName.setText("-");
-                        twChannel.setText("-");
-                        twInvert.setText("-");
-                    }
-
-                    ImageButton btnDeleteControllerAction = (ImageButton) rowView.findViewById(R.id.button_delete_controller_action);
-                    btnDeleteControllerAction.setVisibility(controllerAction != null ? View.VISIBLE : View.INVISIBLE);
-                    btnDeleteControllerAction.setOnClickListener(new View.OnClickListener() {
+                    // Add controller action button
+                    ImageButton btnAddControllerAction = (ImageButton)rowView.findViewById(R.id.button_add_controller_action);
+                    btnAddControllerAction.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                            Helper.showQuestionDialog(
-                                    context,
-                                    "Do you really want to delete this action?",
-                                    "Yes",
-                                    "No",
-                                    new DialogInterface.OnClickListener() {
-                                        @Override
-                                        public void onClick(DialogInterface dialog, int which) {
-                                            Log.i(TAG, "onClick...");
-                                            profile.removeControllerAction(getControllerActionId(position));
-                                            ControllerActionListAdapter.this.notifyDataSetChanged();
-                                        }
-                                    },
-                                    new DialogInterface.OnClickListener() {
-                                        @Override
-                                        public void onClick(DialogInterface dialog, int which) {
-                                            // Do nothing here
-                                        }
-                                    });
+                            Log.i(TAG, "btnAddControllerAction.onClick...");
+                            context.startEditControllerActionActivity(getControllerActionId(position), null);
                         }
                     });
+
+                    // Setup the controller actions
+                    LinearLayout llControllerActions = (LinearLayout)rowView.findViewById(R.id.linearlayout_controller_actions);
+                    for (final ControllerAction controllerAction : controllerActions) {
+
+                        View controllerActionView = inflater.inflate(R.layout.item_controller_action, llControllerActions, false);
+
+                        // Controller action text
+                        TextView twControllerAction = (TextView)controllerActionView.findViewById(R.id.textview_controller_action);
+                        twControllerAction.setText(controllerAction.toString());
+
+                        // Edit controller action
+                        ImageButton btnEditControllerAction = (ImageButton)controllerActionView.findViewById(R.id.button_edit_controller_action);
+                        btnEditControllerAction.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                Log.i(TAG, "btnEditControllerAction.onClick...");
+                                context.startEditControllerActionActivity(getControllerActionId(position), controllerAction);
+                            }
+                        });
+
+                        // Remove controller action
+                        ImageButton btnRemoveControllerAction = (ImageButton)controllerActionView.findViewById(R.id.button_remove_controller_action);
+                        btnRemoveControllerAction.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                Log.i(TAG, "btnRemoveControllerAction.onClick...");
+
+                                Helper.showQuestionDialog(
+                                        context,
+                                        "Do you really want to delete this action?",
+                                        "Yes",
+                                        "No",
+                                        new DialogInterface.OnClickListener() {
+                                            @Override
+                                            public void onClick(DialogInterface dialog, int which) {
+                                                Log.i(TAG, "onClick...");
+                                                profile.removeControllerAction(getControllerActionId(position), controllerAction);
+                                                ControllerActionListAdapter.this.notifyDataSetChanged();
+                                            }
+                                        },
+                                        new DialogInterface.OnClickListener() {
+                                            @Override
+                                            public void onClick(DialogInterface dialog, int which) {
+                                                // Do nothing here
+                                            }
+                                        });
+                            }
+                        });
+                    }
 
                     break;
             }
@@ -369,24 +373,24 @@ public class EditControllerProfileActivity extends BaseActivity {
                 return "";
 
             switch (position - 1) {
-                case 0: return SBrickControllerProfile.CONTROLLER_ACTION_DPAD_LEFT_RIGHT;
-                case 1: return SBrickControllerProfile.CONTROLLER_ACTION_DPAD_UP_DOWN;
-                case 2: return SBrickControllerProfile.CONTROLLER_ACTION_AXIS_X;
-                case 3: return SBrickControllerProfile.CONTROLLER_ACTION_AXIS_Y;
-                case 4: return SBrickControllerProfile.CONTROLLER_ACTION_THUMB_L;
-                case 5: return SBrickControllerProfile.CONTROLLER_ACTION_AXIS_Z;
-                case 6: return SBrickControllerProfile.CONTROLLER_ACTION_AXIS_RZ;
-                case 7: return SBrickControllerProfile.CONTROLLER_ACTION_THUMB_R;
-                case 8: return SBrickControllerProfile.CONTROLLER_ACTION_A;
-                case 9: return SBrickControllerProfile.CONTROLLER_ACTION_B;
-                case 10: return SBrickControllerProfile.CONTROLLER_ACTION_X;
-                case 11: return SBrickControllerProfile.CONTROLLER_ACTION_Y;
-                case 12: return SBrickControllerProfile.CONTROLLER_ACTION_R1;
-                case 13: return SBrickControllerProfile.CONTROLLER_ACTION_R_TRIGGER;
-                case 14: return SBrickControllerProfile.CONTROLLER_ACTION_L1;
-                case 15: return SBrickControllerProfile.CONTROLLER_ACTION_L_TRIGGER;
-                case 16: return SBrickControllerProfile.CONTROLLER_ACTION_START;
-                case 17: return SBrickControllerProfile.CONTROLLER_ACTION_SELECT;
+                case 0: return ControllerProfile.CONTROLLER_ACTION_DPAD_LEFT_RIGHT;
+                case 1: return ControllerProfile.CONTROLLER_ACTION_DPAD_UP_DOWN;
+                case 2: return ControllerProfile.CONTROLLER_ACTION_AXIS_X;
+                case 3: return ControllerProfile.CONTROLLER_ACTION_AXIS_Y;
+                case 4: return ControllerProfile.CONTROLLER_ACTION_THUMB_L;
+                case 5: return ControllerProfile.CONTROLLER_ACTION_AXIS_Z;
+                case 6: return ControllerProfile.CONTROLLER_ACTION_AXIS_RZ;
+                case 7: return ControllerProfile.CONTROLLER_ACTION_THUMB_R;
+                case 8: return ControllerProfile.CONTROLLER_ACTION_A;
+                case 9: return ControllerProfile.CONTROLLER_ACTION_B;
+                case 10: return ControllerProfile.CONTROLLER_ACTION_X;
+                case 11: return ControllerProfile.CONTROLLER_ACTION_Y;
+                case 12: return ControllerProfile.CONTROLLER_ACTION_R1;
+                case 13: return ControllerProfile.CONTROLLER_ACTION_R_TRIGGER;
+                case 14: return ControllerProfile.CONTROLLER_ACTION_L1;
+                case 15: return ControllerProfile.CONTROLLER_ACTION_L_TRIGGER;
+                case 16: return ControllerProfile.CONTROLLER_ACTION_START;
+                case 17: return ControllerProfile.CONTROLLER_ACTION_SELECT;
             }
             return "";
         }

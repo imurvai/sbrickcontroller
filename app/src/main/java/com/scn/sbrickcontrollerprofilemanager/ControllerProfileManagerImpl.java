@@ -4,42 +4,38 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Log;
 
-import com.scn.sbrickmanager.SBrick;
-
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 
 /**
- * SBrick controller profile manager implementation.
+ * Controller profile manager implementation.
  */
-class SBrickControllerProfileManagerImpl implements SBrickControllerProfileManager {
+class ControllerProfileManagerImpl implements ControllerProfileManager {
 
     //
     // Private members
     //
 
-    private static final String TAG = SBrickControllerProfileManagerImpl.class.getSimpleName();
+    private static final String TAG = ControllerProfileManagerImpl.class.getSimpleName();
 
     private static final String SBrickControllerProfilesPreferencesName = "SBrickControllerProfiles";
     private static final String SBrickControllerProfileCountKey = "SBrickControllerProfileCountKey";
 
     private Context context;
-    private List<SBrickControllerProfile> controllerProfiles = new ArrayList<SBrickControllerProfile>();
+    private List<ControllerProfile> controllerProfiles = new ArrayList<ControllerProfile>();
 
     //
     // Singleton
     //
 
-    SBrickControllerProfileManagerImpl(Context context) {
-        Log.i(TAG, "SBrickControllerProfileManagerImpl...");
+    ControllerProfileManagerImpl(Context context) {
+        Log.i(TAG, "ControllerProfileManagerImpl...");
 
         this.context = context;
     }
 
     //
-    // SBrickControllerProfileManager overrides
+    // ControllerProfileManager overrides
     //
 
     @Override
@@ -53,7 +49,7 @@ class SBrickControllerProfileManagerImpl implements SBrickControllerProfileManag
 
             int size = prefs.getInt(SBrickControllerProfileCountKey, 0);
             for (int profileIndex = 0; profileIndex < size; profileIndex++) {
-                SBrickControllerProfile profile = new SBrickControllerProfile(prefs, profileIndex);
+                ControllerProfile profile = new ControllerProfile(prefs, profileIndex);
                 controllerProfiles.add(profile);
             }
         }
@@ -78,7 +74,7 @@ class SBrickControllerProfileManagerImpl implements SBrickControllerProfileManag
             editor.putInt(SBrickControllerProfileCountKey, controllerProfiles.size());
             for (int profileIndex = 0; profileIndex < controllerProfiles.size(); profileIndex++) {
 
-                SBrickControllerProfile profile = controllerProfiles.get(profileIndex);
+                ControllerProfile profile = controllerProfiles.get(profileIndex);
                 profile.saveToPreferences(editor, profileIndex);
             }
 
@@ -93,13 +89,13 @@ class SBrickControllerProfileManagerImpl implements SBrickControllerProfileManag
     }
 
     @Override
-    public synchronized List<SBrickControllerProfile> getProfiles() {
+    public synchronized List<ControllerProfile> getProfiles() {
         Log.i(TAG, "getProfiles");
         return controllerProfiles;
     }
 
     @Override
-    public synchronized SBrickControllerProfile getProfileAt(int position) {
+    public synchronized ControllerProfile getProfileAt(int position) {
         Log.i(TAG, "getProfileAt - " + position);
 
         if (position < 0 || controllerProfiles.size() <= position)
@@ -109,21 +105,21 @@ class SBrickControllerProfileManagerImpl implements SBrickControllerProfileManag
     }
 
     @Override
-    public void addProfile(SBrickControllerProfile profile) {
+    public void addProfile(ControllerProfile profile) {
         Log.i(TAG, "addProfile - " + profile.getName());
 
         controllerProfiles.add(profile);
     }
 
     @Override
-    public void updateProfileAt(int position, SBrickControllerProfile profile) {
+    public void updateProfileAt(int position, ControllerProfile profile) {
         Log.i(TAG, "updateProfileAt - " + position);
 
         controllerProfiles.set(position, profile);
     }
 
     @Override
-    public synchronized void removeProfile(SBrickControllerProfile profile) {
+    public synchronized void removeProfile(ControllerProfile profile) {
         Log.i(TAG, "removeProfile - " + profile.getName());
 
         if (controllerProfiles.contains(profile))

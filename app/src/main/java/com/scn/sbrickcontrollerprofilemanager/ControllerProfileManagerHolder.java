@@ -6,21 +6,21 @@ import android.util.Log;
 /**
  * SBrick controller profile manager holder
  */
-public final class SBrickControllerProfileManagerHolder {
+public final class ControllerProfileManagerHolder {
 
     //
     // Private members
     //
 
-    private static final String TAG = SBrickControllerProfileManagerHolder.class.getSimpleName();
+    private static final String TAG = ControllerProfileManagerHolder.class.getSimpleName();
 
-    private static SBrickControllerProfileManager manager = null;
+    private static ControllerProfileManager manager = null;
 
     //
     // Private constructor
     //
 
-    private SBrickControllerProfileManagerHolder() {
+    private ControllerProfileManagerHolder() {
     }
 
     //
@@ -33,14 +33,14 @@ public final class SBrickControllerProfileManagerHolder {
         if (manager != null)
             return;
 
-        manager = new SBrickControllerProfileManagerImpl(context);
+        manager = new ControllerProfileManagerImpl(context);
     }
 
     /**
      * Gets the SBRick controller profile manager instance.
      * @return The SBrick controller profile manager.
      */
-    public static SBrickControllerProfileManager getManager() {
+    public static ControllerProfileManager getManager() {
 
         if (manager == null)
             throw new RuntimeException("Sbrick controller profile manager hasn't been created.");
