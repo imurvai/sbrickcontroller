@@ -61,6 +61,7 @@ public class ControllerProfile implements Parcelable {
      */
     public ControllerProfile() {
         Log.i(TAG, "ControllerProfile...");
+
         name = ControllerProfileManagerHolder.getManager().getUniqueProfileName();
         Log.i(TAG, "  name: " + name);
     }
@@ -246,6 +247,40 @@ public class ControllerProfile implements Parcelable {
             case CONTROLLER_ACTION_SELECT: return "Select button";
         }
         return "";
+    }
+
+    /**
+     * Gets a value indicating if the toggle option is available for the controller action.
+     * @param controllerActionId is the controller action id.
+     * @return true if toggle is available, false otherwise.
+     */
+    public static boolean isToggleApplicable(String controllerActionId) {
+
+        switch (controllerActionId) {
+            case CONTROLLER_ACTION_DPAD_LEFT_RIGHT:
+            case CONTROLLER_ACTION_DPAD_UP_DOWN:
+            case CONTROLLER_ACTION_AXIS_X:
+            case CONTROLLER_ACTION_AXIS_Y:
+            case CONTROLLER_ACTION_AXIS_Z:
+            case CONTROLLER_ACTION_AXIS_RZ:
+            case CONTROLLER_ACTION_R_TRIGGER:
+            case CONTROLLER_ACTION_L_TRIGGER:
+                return false;
+
+            case CONTROLLER_ACTION_THUMB_L:
+            case CONTROLLER_ACTION_THUMB_R:
+            case CONTROLLER_ACTION_A:
+            case CONTROLLER_ACTION_B:
+            case CONTROLLER_ACTION_X:
+            case CONTROLLER_ACTION_Y:
+            case CONTROLLER_ACTION_R1:
+            case CONTROLLER_ACTION_L1:
+            case CONTROLLER_ACTION_START:
+            case CONTROLLER_ACTION_SELECT:
+                return true;
+        }
+
+        return false;
     }
 
     //

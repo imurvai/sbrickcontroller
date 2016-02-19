@@ -24,6 +24,8 @@ import android.widget.TextView;
 import com.scn.sbrickcontrollerprofilemanager.ControllerAction;
 import com.scn.sbrickcontrollerprofilemanager.ControllerProfile;
 import com.scn.sbrickcontrollerprofilemanager.ControllerProfileManagerHolder;
+import com.scn.sbrickmanager.SBrick;
+import com.scn.sbrickmanager.SBrickManagerHolder;
 
 import java.util.Set;
 
@@ -121,22 +123,13 @@ public class EditControllerProfileActivity extends BaseActivity {
             case R.id.menu_item_done:
                 Log.i(TAG, "  menu_item_done");
 
-                boolean newProfile = !ControllerProfileManagerHolder.getManager().isProfileNameUsed(profile.getName());
                 String newProfileName = controllerActionListAdapter.getNewProfileName();
 
                 if (newProfileName.length() == 0) {
-                    Helper.showMessageBox(this, "Profile name can't be empty.", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                        }
-                    });
+                    Helper.showMessageBox(this, "Profile name can't be empty.", null);
                 }
-                else if (newProfile && ControllerProfileManagerHolder.getManager().isProfileNameUsed(newProfileName)) {
-                    Helper.showMessageBox(this, "Profile name already exists.", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                        }
-                    });
+                else if (ControllerProfileManagerHolder.getManager().isProfileNameUsed(newProfileName) && !newProfileName.equals(profile.getName())) {
+                    Helper.showMessageBox(this, "Profile name already exists.", null);
                 }
                 else {
                     Log.i(TAG, "  add or update the profile");
@@ -179,6 +172,11 @@ public class EditControllerProfileActivity extends BaseActivity {
 
     public void startEditControllerActionActivity(String controllerActionId, ControllerAction controllerAction) {
         Log.i(TAG, "startEditControllerActionActivity...");
+
+        if (SBrickManagerHolder.getManager().getSBricks().size() == 0) {
+            Helper.showMessageBox(this, "Please scan for SBricks first.", null);
+            return;
+        }
 
         Intent intent = new Intent(this, EditControllerActionActivity.class);
         intent.putExtra(Constants.EXTRA_CONTROLLER_ACTION_ID, controllerActionId);
@@ -278,7 +276,7 @@ public class EditControllerProfileActivity extends BaseActivity {
                         }
                         @Override
                         public void onTextChanged(CharSequence s, int start, int before, int count) {
-                            newProfileName = s.toString();
+                            newProfileName = s.toString().trim();
                         }
                         @Override
                         public void afterTextChanged(Editable s) {
@@ -320,7 +318,7 @@ public class EditControllerProfileActivity extends BaseActivity {
 
                         // Controller action text
                         TextView twControllerAction = (TextView)controllerActionView.findViewById(R.id.textview_controller_action);
-                        twControllerAction.setText(controllerAction.toString());
+                        twControllerAction.setText(getControllerActionText(controllerAction));
 
                         // Edit controller action
                         ImageButton btnEditControllerAction = (ImageButton)controllerActionView.findViewById(R.id.button_edit_controller_action);
@@ -399,6 +397,23 @@ public class EditControllerProfileActivity extends BaseActivity {
                 case 17: return ControllerProfile.CONTROLLER_ACTION_SELECT;
             }
             return "";
+        }
+
+        //
+        // Private methods
+        //
+
+        private String getControllerActionText(ControllerAction controllerAction) {
+
+            String[] portLetters = { "A", "B", "C", "D" };
+            SBrick sbrick = SBrickManagerHolder.getManager().getSBrick(controllerAction.getSBrickAddress());
+            String portLetter = portLetters[controllerAction.getChannel()];
+
+            String result = sbrick.getName() + " - " + portLetter;
+            if (controllerAction.getInvert()) result += " - invert";
+            if (controllerAction.getToggle()) result += " - toggle";
+
+            return result;
         }
     }
 }

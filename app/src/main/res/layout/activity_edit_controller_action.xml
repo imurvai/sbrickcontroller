@@ -19,7 +19,6 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="20dp"
             android:orientation="horizontal">
 
             <TextView
@@ -37,6 +36,12 @@
                 android:text="N/A"/>
         </LinearLayout>
 
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_margin="8dp"
+            android:background="#888888"/>
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -47,7 +52,8 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:layout_marginRight="8dp"
-                android:orientation="vertical">
+                android:orientation="vertical"
+                android:showDividers="middle">
 
                 <TextView
                     android:layout_width="match_parent"
@@ -61,15 +67,22 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"/>
 
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_margin="8dp"
+                    android:background="#888888"/>
+
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="20dp"
-                    android:orientation="vertical">
+                    android:orientation="horizontal">
 
                     <TextView
-                        android:layout_width="wrap_content"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_gravity="center_vertical"
                         android:textAppearance="?android:attr/textAppearanceLarge"
                         android:text="Invert channel"
                         android:textStyle="bold" />
@@ -80,7 +93,41 @@
                         android:layout_height="wrap_content"
                         android:layout_marginLeft="16dp"/>
                 </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_margin="8dp"
+                    android:background="#888888"/>
+
+                <LinearLayout
+                    android:id="@+id/linearlayout_toggle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_gravity="center_vertical"
+                        android:textAppearance="?android:attr/textAppearanceLarge"
+                        android:text="Toggle switch"
+                        android:textStyle="bold" />
+
+                    <Switch
+                        android:id="@+id/switch_toggle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="16dp"/>
+                </LinearLayout>
             </LinearLayout>
+
+            <View
+                android:layout_width="1dp"
+                android:layout_height="match_parent"
+                android:layout_margin="8dp"
+                android:background="#888888"/>
 
             <RadioGroup
                 android:layout_width="0dp"
@@ -92,6 +139,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_marginLeft="8dp"
                     android:textAppearance="?android:attr/textAppearanceLarge"
                     android:text="Channel"
                     android:textStyle="bold" />

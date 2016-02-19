@@ -11,6 +11,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.CompoundButton;
+import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.Spinner;
 import android.widget.Switch;
@@ -18,6 +19,7 @@ import android.widget.TextView;
 
 import com.scn.sbrickcontrollerprofilemanager.ControllerAction;
 import com.scn.sbrickcontrollerprofilemanager.ControllerProfile;
+import com.scn.sbrickcontrollerprofilemanager.ControllerProfileManagerHolder;
 import com.scn.sbrickmanager.SBrick;
 import com.scn.sbrickmanager.SBrickManagerHolder;
 
@@ -45,6 +47,7 @@ public class EditControllerActionActivity extends BaseActivity {
     private String selectedSBrickAddress;
     private int selectedChannel;
     private boolean selecedInvert;
+    private boolean selectedToggle;
 
     //
     // Activity overrides
@@ -69,6 +72,7 @@ public class EditControllerActionActivity extends BaseActivity {
             selectedSBrickAddress = controllerAction.getSBrickAddress();
             selectedChannel = controllerAction.getChannel();
             selecedInvert = controllerAction.getInvert();
+            selectedToggle = controllerAction.getToggle();
         }
         else {
             Log.i(TAG, "  new instance...");
@@ -82,11 +86,13 @@ public class EditControllerActionActivity extends BaseActivity {
                 selectedSBrickAddress = sbricks.get(0).getAddress();
                 selectedChannel = 0;
                 selecedInvert = false;
+                selectedToggle = false;
             }
             else {
                 selectedSBrickAddress = originalControllerAction.getSBrickAddress();
                 selectedChannel = originalControllerAction.getChannel();
                 selecedInvert = originalControllerAction.getInvert();
+                selectedToggle = originalControllerAction.getToggle();
             }
         }
 
@@ -115,8 +121,21 @@ public class EditControllerActionActivity extends BaseActivity {
         swInvertChannel.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                Log.i(TAG, "onCheckedChanged...");
+                Log.i(TAG, "swInvertChannel.onCheckedChanged...");
                 selecedInvert = isChecked;
+            }
+        });
+
+        LinearLayout llToggle = (LinearLayout)findViewById(R.id.linearlayout_toggle);
+        llToggle.setVisibility(ControllerProfile.isToggleApplicable(controllerActionId) ? View.VISIBLE : View.INVISIBLE);
+
+        Switch swToggle = (Switch)findViewById(R.id.switch_toggle);
+        swToggle.setChecked(selectedToggle);
+        swToggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                Log.i(TAG, "swToggle.onCheckedChanged...");
+                selectedToggle = isChecked;
             }
         });
 
@@ -177,7 +196,7 @@ public class EditControllerActionActivity extends BaseActivity {
         Log.i(TAG, "onSaveInstanceState...");
         super.onSaveInstanceState(outState);
 
-        ControllerAction controllerAction = new ControllerAction(selectedSBrickAddress, selectedChannel, selecedInvert);
+        ControllerAction controllerAction = new ControllerAction(selectedSBrickAddress, selectedChannel, selecedInvert, selectedToggle);
 
         outState.putString(CONTROLLER_ACTION_ID_KEY, controllerActionId);
         outState.putParcelable(CONTROLLER_ACTION_KEY, controllerAction);
@@ -209,7 +228,7 @@ public class EditControllerActionActivity extends BaseActivity {
             case R.id.menu_item_done:
                 Log.i(TAG, "  menu_item_done");
 
-                ControllerAction controllerAction = new ControllerAction(selectedSBrickAddress, selectedChannel, selecedInvert);
+                ControllerAction controllerAction = new ControllerAction(selectedSBrickAddress, selectedChannel, selecedInvert, selectedToggle);
 
                 Intent intent = new Intent();
                 intent.putExtra(Constants.EXTRA_CONTROLLER_ACTION_ID, controllerActionId);

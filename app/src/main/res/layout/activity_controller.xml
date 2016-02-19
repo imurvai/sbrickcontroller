@@ -28,9 +28,7 @@
         <ListView
             android:id="@+id/listview_controller_profiles_controller"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:choiceMode="singleChoice"
-            android:listSelector="#dddddd"/>
+            android:layout_height="match_parent"/>
     </LinearLayout>
 
     <ImageView

@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.v4.app.NavUtils;
 import android.support.v4.content.LocalBroadcastManager;
@@ -13,12 +14,16 @@ import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.InputDevice;
 import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.BaseAdapter;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import com.scn.sbrickcontrollerprofilemanager.ControllerAction;
 import com.scn.sbrickcontrollerprofilemanager.ControllerProfile;
@@ -28,6 +33,7 @@ import com.scn.sbrickmanager.SBrickManagerHolder;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -70,6 +76,7 @@ public class ControllerActivity extends ActionBarActivity {
             profiles = getIntent().getParcelableArrayListExtra(Constants.EXTRA_CONTROLLER_PROFILES);
         }
 
+        selectedProfile = profiles.get(0);
         sbricksMap = new HashMap<>();
         channelValuesMap = new HashMap<>();
 
@@ -87,16 +94,16 @@ public class ControllerActivity extends ActionBarActivity {
         }
 
         ListView lwProfiles = (ListView)findViewById(R.id.listview_controller_profiles_controller);
-        lwProfiles.setAdapter(new ArrayAdapter<ControllerProfile>(this, R.layout.listview_item_controller_profile_name, R.id.textview_controller_profile_name2, profiles));
+        final ControllerProfileListAdapter adapter = new ControllerProfileListAdapter(this, profiles);
+        lwProfiles.setAdapter(adapter);
         lwProfiles.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Log.i(TAG, "onItemClick...");
+                Log.i(TAG, "lwProfiles.onItemClick - " + position);
                 selectedProfile = profiles.get(position);
+                adapter.setSelectedPosition(position);
             }
         });
-        lwProfiles.setItemChecked(0, true);
-        selectedProfile = profiles.get(0);
     }
 
     @Override
@@ -210,10 +217,20 @@ public class ControllerActivity extends ActionBarActivity {
                 SBrick sbrick = sbricksMap.get(sbrickAddress);
                 int channel = controllerAction.getChannel();
                 boolean invert = controllerAction.getInvert();
+                boolean toggle = controllerAction.getToggle();
 
-                int value = invert ? -255 : 255;
-                if (sbrick.sendCommand(channel, value))
-                    channelValuesMap.get(sbrickAddress)[channel] = value;
+                if (!toggle) {
+
+                    int value = invert ? -255 : 255;
+                    if (sbrick.sendCommand(channel, value))
+                        channelValuesMap.get(sbrickAddress)[channel] = value;
+                }
+                else {
+
+                    int value = (channelValuesMap.get(sbrickAddress)[channel]) == 0 ? (invert ? -255 : 255) : 0;
+                    if (sbrick.sendCommand(channel, value))
+                        channelValuesMap.get(sbrickAddress)[channel] = value;
+                }
             }
 
             return true;
@@ -230,13 +247,15 @@ public class ControllerActivity extends ActionBarActivity {
 
             for (ControllerAction controllerAction : getControllerActionsForKeyCode(keyCode)) {
 
-                String sbrickAddress = controllerAction.getSBrickAddress();
-                SBrick sbrick = sbricksMap.get(sbrickAddress);
-                int channel = controllerAction.getChannel();
+                if (!controllerAction.getToggle()) {
+                    String sbrickAddress = controllerAction.getSBrickAddress();
+                    SBrick sbrick = sbricksMap.get(sbrickAddress);
+                    int channel = controllerAction.getChannel();
 
-                int value = 0;
-                if (sbrick.sendCommand(channel, value))
-                    channelValuesMap.get(sbrickAddress)[channel] = value;
+                    int value = 0;
+                    if (sbrick.sendCommand(channel, value))
+                        channelValuesMap.get(sbrickAddress)[channel] = value;
+                }
             }
 
             return true;
@@ -420,4 +439,71 @@ public class ControllerActivity extends ActionBarActivity {
             }
         }
     };
+
+    private static class ControllerProfileListAdapter extends BaseAdapter {
+
+        //
+        // Private members
+        //
+
+        private ControllerActivity activity;
+        private List<ControllerProfile> profiles;
+        private int selectedPosition;
+
+        //
+        // Constructor
+        //
+
+        public ControllerProfileListAdapter(ControllerActivity activity, List<ControllerProfile> profiles) {
+            this.activity = activity;
+            this.profiles = profiles;
+            this.selectedPosition = 0;
+        }
+
+        //
+        // BaseAdapter overrides
+        //
+
+        @Override
+        public int getCount() {
+            return profiles.size();
+        }
+
+        @Override
+        public Object getItem(int position) {
+            return profiles.get(position);
+        }
+
+        @Override
+        public long getItemId(int position) {
+            return position;
+        }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+
+            View rowView = convertView;
+            LayoutInflater inflater = (LayoutInflater)activity.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+
+            if (rowView == null)
+                rowView = inflater.inflate(R.layout.listview_item_controller_profile_name, parent, false);
+
+            ControllerProfile profile = (ControllerProfile)getItem(position);
+
+            TextView twProfileName = (TextView)rowView.findViewById(R.id.textview_controller_profile_name2);
+            twProfileName.setText(profile.getName());
+            twProfileName.setTypeface(null, position == selectedPosition ? Typeface.BOLD : Typeface.NORMAL);
+
+            return rowView;
+        }
+
+        //
+        // API
+        //
+
+        public void setSelectedPosition(int position) {
+            selectedPosition = position;
+            notifyDataSetChanged();
+        }
+    }
 }

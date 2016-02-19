@@ -19,10 +19,12 @@ public final class ControllerAction implements Parcelable {
     private static final String SBrickAddressKey = "sbrick_address_key";
     private static final String ChannelKey = "channel_key";
     private static final String InvertKey = "invert_key";
+    private static final String ToggleKey = "toggle_key";
 
     private String sbrickAddress;
     private int channel;
     private boolean invert;
+    private boolean toggle;
 
     //
     // Constructor.
@@ -33,8 +35,9 @@ public final class ControllerAction implements Parcelable {
      * @param sbrickAddress is the address of the SBrick.
      * @param channel is the channel.
      * @param invert is true if value has to be inverted.
+     * @param toggle is true if the action is a toggle switch.
      */
-    public ControllerAction(String sbrickAddress, int channel, boolean invert) {
+    public ControllerAction(String sbrickAddress, int channel, boolean invert, boolean toggle) {
         Log.i(TAG, "ControllerAction...");
 
         validateSBrickAddress(sbrickAddress);
@@ -43,6 +46,7 @@ public final class ControllerAction implements Parcelable {
         this.sbrickAddress = sbrickAddress;
         this.channel = channel;
         this.invert = invert;
+        this.toggle = toggle;
     }
 
     ControllerAction(SharedPreferences prefs, String profileName, String controllerActionId, int controllerActionIndex) {
@@ -52,6 +56,7 @@ public final class ControllerAction implements Parcelable {
         sbrickAddress = prefs.getString(keyBase + SBrickAddressKey, "");
         channel = prefs.getInt(keyBase + ChannelKey, 0);
         invert = prefs.getInt(keyBase + InvertKey, 0) != 0;
+        toggle = prefs.getInt(keyBase + ToggleKey, 0) != 0;
 
         validateSBrickAddress(sbrickAddress);
         validateChannel(channel);
@@ -63,6 +68,7 @@ public final class ControllerAction implements Parcelable {
         sbrickAddress = parcel.readString();
         channel = parcel.readInt();
         invert = parcel.readInt() != 0;
+        toggle = parcel.readInt() != 0;
 
         validateSBrickAddress(sbrickAddress);
         validateChannel(channel);
@@ -90,13 +96,19 @@ public final class ControllerAction implements Parcelable {
      */
     public boolean getInvert() { return invert; }
 
+    /**
+     * Gets the value indicating if the action is a toggle switch.
+     * @return
+     */
+    public boolean getToggle() { return toggle; }
+
     //
     // Object overrides
     //
 
     @Override
     public String toString() {
-        return sbrickAddress + " - " + channel + " - " + (invert ? "invert" : "not-invert");
+        return sbrickAddress + " - " + channel + " - " + (invert ? "invert" : "not-invert") + " - " + (toggle ? "toggle" : "not-toggle");
     }
 
     @Override
@@ -112,12 +124,13 @@ public final class ControllerAction implements Parcelable {
 
         return sbrickAddress.equals(other.getSBrickAddress()) &&
                 channel == other.getChannel() &&
-                invert == other.getInvert();
+                invert == other.getInvert() &&
+                toggle == other.getToggle();
     }
 
     @Override
     public int hashCode() {
-        return sbrickAddress.hashCode() ^ (channel * 377) ^ (invert ? 1 : -1);
+        return sbrickAddress.hashCode() ^ (channel * 377) ^ (invert ? 1 : -1) ^ (invert ? 2 : -2);
     }
 
     //
@@ -131,6 +144,7 @@ public final class ControllerAction implements Parcelable {
         editor.putString(keyBase + SBrickAddressKey, sbrickAddress);
         editor.putInt(keyBase + ChannelKey, channel);
         editor.putInt(keyBase + InvertKey, invert ? 1 : 0);
+        editor.putInt(keyBase + ToggleKey, toggle ? 1 : 0);
     }
 
     //
@@ -149,6 +163,7 @@ public final class ControllerAction implements Parcelable {
         dest.writeString(sbrickAddress);
         dest.writeInt(channel);
         dest.writeInt(invert ? 1 : 0);
+        dest.writeInt(toggle ? 1 : 0);
     }
 
     public static final Parcelable.Creator CREATOR = new Parcelable.Creator() {
