@@ -14,9 +14,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.BaseAdapter;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
@@ -26,8 +24,6 @@ import android.widget.TextView;
 import com.scn.sbrickcontrollerprofilemanager.ControllerAction;
 import com.scn.sbrickcontrollerprofilemanager.ControllerProfile;
 import com.scn.sbrickcontrollerprofilemanager.ControllerProfileManagerHolder;
-import com.scn.sbrickmanager.SBrick;
-import com.scn.sbrickmanager.SBrickManagerHolder;
 
 import java.util.Set;
 
@@ -38,14 +34,12 @@ public class EditControllerProfileActivity extends BaseActivity {
     //
 
     private static final String TAG = EditControllerProfileActivity.class.getSimpleName();
-    private static final String CONTROLLER_PROFILE_INDEX_KEY = "CONTROLLER_PROFILE_INDEX_KEY";
     private static final String CONTROLLER_PROFILE_KEY = "CONTROLLER_PROFILE_KEY";
 
     private ListView lwControllerActions;
     private ControllerActionListAdapter controllerActionListAdapter;
 
-    int profileIndex;
-    ControllerProfile profile;
+    private ControllerProfile profile;
 
     //
     // Activity overrides
@@ -61,19 +55,17 @@ public class EditControllerProfileActivity extends BaseActivity {
         if (savedInstanceState != null) {
             Log.i(TAG, "  saved instance...");
 
-            profileIndex = savedInstanceState.getInt(CONTROLLER_PROFILE_INDEX_KEY);
             profile = savedInstanceState.getParcelable(CONTROLLER_PROFILE_KEY);
         }
         else {
             Log.i(TAG, "  new instance...");
 
             Intent intent = getIntent();
-            profileIndex = intent.getIntExtra(Constants.EXTRA_CONTROLLER_PROFILE_INDEX, -1);
             profile = intent.getParcelableExtra(Constants.EXTRA_CONTROLLER_PROFILE);
 
             if (profile == null) {
                 Log.i(TAG, "  new profile.");
-                profile = new ControllerProfile("My profile");
+                profile = new ControllerProfile();
             }
         }
 
@@ -101,7 +93,6 @@ public class EditControllerProfileActivity extends BaseActivity {
         Log.i(TAG, "onSaveInstanceState...");
         super.onSaveInstanceState(outState);
 
-        outState.putInt(CONTROLLER_PROFILE_INDEX_KEY, profileIndex);
         outState.putParcelable(CONTROLLER_PROFILE_KEY, profile);
     }
 
@@ -130,22 +121,27 @@ public class EditControllerProfileActivity extends BaseActivity {
             case R.id.menu_item_done:
                 Log.i(TAG, "  menu_item_done");
 
-                if (profile.getName().length() == 0) {
+                boolean newProfile = !ControllerProfileManagerHolder.getManager().isProfileNameUsed(profile.getName());
+                String newProfileName = controllerActionListAdapter.getNewProfileName();
+
+                if (newProfileName.length() == 0) {
                     Helper.showMessageBox(this, "Profile name can't be empty.", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                         }
                     });
                 }
+                else if (newProfile && ControllerProfileManagerHolder.getManager().isProfileNameUsed(newProfileName)) {
+                    Helper.showMessageBox(this, "Profile name already exists.", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                        }
+                    });
+                }
                 else {
-                    if (profileIndex < 0) {
-                        Log.i(TAG, "  add the new profile");
-                        ControllerProfileManagerHolder.getManager().addProfile(profile);
-                    }
-                    else {
-                        Log.i(TAG, "  update the profile");
-                        ControllerProfileManagerHolder.getManager().updateProfileAt(profileIndex, profile);
-                    }
+                    Log.i(TAG, "  add or update the profile");
+
+                    ControllerProfileManagerHolder.getManager().addOrUpdateProfile(profile, newProfileName);
 
                     EditControllerProfileActivity.this.finish();
                 }
@@ -206,16 +202,21 @@ public class EditControllerProfileActivity extends BaseActivity {
 
         private EditControllerProfileActivity context;
         private ControllerProfile profile;
+        private String newProfileName;
+
+        //
+        // Constructor
+        //
 
         public ControllerActionListAdapter(EditControllerProfileActivity context, ControllerProfile profile) {
             this.context = context;
             this.profile = profile;
+            this.newProfileName = profile.getName();
         }
 
         //
         // BaseAdapter overrides
         //
-
 
         @Override
         public int getViewTypeCount() {
@@ -277,7 +278,7 @@ public class EditControllerProfileActivity extends BaseActivity {
                         }
                         @Override
                         public void onTextChanged(CharSequence s, int start, int before, int count) {
-                            profile.setName(s.toString());
+                            newProfileName = s.toString();
                         }
                         @Override
                         public void afterTextChanged(Editable s) {
@@ -310,9 +311,12 @@ public class EditControllerProfileActivity extends BaseActivity {
 
                     // Setup the controller actions
                     LinearLayout llControllerActions = (LinearLayout)rowView.findViewById(R.id.linearlayout_controller_actions);
+                    llControllerActions.removeAllViews();
+
                     for (final ControllerAction controllerAction : controllerActions) {
 
                         View controllerActionView = inflater.inflate(R.layout.item_controller_action, llControllerActions, false);
+                        llControllerActions.addView(controllerActionView);
 
                         // Controller action text
                         TextView twControllerAction = (TextView)controllerActionView.findViewById(R.id.textview_controller_action);
@@ -367,6 +371,8 @@ public class EditControllerProfileActivity extends BaseActivity {
         //
         // API
         //
+
+        public String getNewProfileName() { return newProfileName; }
 
         public static String getControllerActionId(int position) {
             if (position == 0)

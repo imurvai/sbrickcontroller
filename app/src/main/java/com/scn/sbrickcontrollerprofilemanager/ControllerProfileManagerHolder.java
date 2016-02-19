@@ -4,7 +4,7 @@ import android.content.Context;
 import android.util.Log;
 
 /**
- * SBrick controller profile manager holder
+ * Controller profile manager holder
  */
 public final class ControllerProfileManagerHolder {
 
@@ -28,22 +28,22 @@ public final class ControllerProfileManagerHolder {
     //
 
     public static synchronized void createSBrickControllerProfileManager(Context context) {
-        Log.i(TAG, "createSBrickControllerProfileManager...");
+        Log.i(TAG, "createControllerProfileManager...");
 
         if (manager != null)
             return;
 
-        manager = new ControllerProfileManagerImpl(context);
+        manager = new ControllerProfileManager(context);
     }
 
     /**
-     * Gets the SBRick controller profile manager instance.
-     * @return The SBrick controller profile manager.
+     * Gets the Controller profile manager instance.
+     * @return The controller profile manager.
      */
     public static ControllerProfileManager getManager() {
 
         if (manager == null)
-            throw new RuntimeException("Sbrick controller profile manager hasn't been created.");
+            throw new RuntimeException("Controller profile manager hasn't been created.");
 
         return manager;
     }

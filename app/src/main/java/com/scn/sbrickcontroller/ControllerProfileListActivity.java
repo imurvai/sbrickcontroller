@@ -49,6 +49,7 @@ public class ControllerProfileListActivity extends BaseActivity {
     public void onCreate(Bundle savedInstanceState) {
         Log.i(TAG, "onCreate...");
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_controller_profile_list);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
@@ -58,9 +59,9 @@ public class ControllerProfileListActivity extends BaseActivity {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Log.i(TAG, "onItemClick...");
 
-                // Open the controller activity
                 ControllerProfile profile = (ControllerProfile)controllerProfileListAdapter.getItem(position);
 
+                // Check if the profile contains controller actions
                 if (profile.getSBrickAddresses().size() == 0) {
                     Helper.showMessageBox(
                             ControllerProfileListActivity.this,
@@ -74,6 +75,7 @@ public class ControllerProfileListActivity extends BaseActivity {
                     return;
                 }
 
+                // Check if the SBricks are known in the profile
                 if (!validateProfile(profile)) {
                     Helper.showMessageBox(
                             ControllerProfileListActivity.this,
@@ -81,13 +83,12 @@ public class ControllerProfileListActivity extends BaseActivity {
                             new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
-                                    Log.i(TAG, "onClick...");
-                                    // Do nothing here.
                                 }
                             });
                     return;
                 }
 
+                // Open the controller activity
                 Intent intent = new Intent(ControllerProfileListActivity.this, ControllerActivity.class);
                 intent.putParcelableArrayListExtra(Constants.EXTRA_CONTROLLER_PROFILES, new ArrayList(Arrays.asList(profile)));
                 startActivity(intent);
@@ -148,7 +149,7 @@ public class ControllerProfileListActivity extends BaseActivity {
             case R.id.menu_item_add:
                 Log.i(TAG, "  menu_item_add");
 
-                Intent intent = new Intent(ControllerProfileListActivity.this, EditControllerProfileActivity.class);
+                Intent intent = new Intent(this, EditControllerProfileActivity.class);
                 startActivity(intent);
                 return true;
 
@@ -158,9 +159,29 @@ public class ControllerProfileListActivity extends BaseActivity {
                 ArrayList<ControllerProfile> selectedProfiles = controllerProfileListAdapter.getSelectedProfiles();
                 if (selectedProfiles.size() > 0) {
 
-                    Intent intent2 = new Intent(ControllerProfileListActivity.this, ControllerActivity.class);
-                    intent2.putParcelableArrayListExtra(Constants.EXTRA_CONTROLLER_PROFILES, controllerProfileListAdapter.getSelectedProfiles());
-                    startActivity(intent2);
+                    // Check if the selected profiles have controller actions and all are valid
+                    boolean profilesHaveSBricks = false;
+                    boolean profilesValid = true;
+                    for (ControllerProfile profile : selectedProfiles) {
+
+                        if (profile.getSBrickAddresses().size() > 0)
+                            profilesHaveSBricks = true;
+
+                        if (!validateProfile(profile))
+                            profilesValid = false;
+                    }
+
+                    if (!profilesHaveSBricks) {
+                        Helper.showMessageBox(this, "Please add controller actions to the profile(s) first.", null);
+                    }
+                    else if (!profilesValid) {
+                        Helper.showMessageBox(this, "Some of the profiles contain unknown SBrick(s), please do a scan.", null);
+                    }
+                    else {
+                        Intent intent2 = new Intent(this, ControllerActivity.class);
+                        intent2.putParcelableArrayListExtra(Constants.EXTRA_CONTROLLER_PROFILES, controllerProfileListAdapter.getSelectedProfiles());
+                        startActivity(intent2);
+                    }
                 }
                 else {
                     Helper.showMessageBox(this, "Please select profiles first to play with.", new DialogInterface.OnClickListener() {
@@ -199,12 +220,19 @@ public class ControllerProfileListActivity extends BaseActivity {
     private static class ControllerProfileListAdapter extends BaseAdapter {
 
         private ControllerProfileListActivity activity;
+        private Map<String, Boolean> profileSelectionMap = new HashMap<>();
 
-        private Map<ControllerProfile, Boolean> profileSelectionMap = new HashMap<>();
+        //
+        // Constructor
+        //
 
         ControllerProfileListAdapter(ControllerProfileListActivity context) {
             this.activity = context;
         }
+
+        //
+        // BaseAdapter overrides
+        //
 
         @Override
         public int getCount() {
@@ -213,7 +241,7 @@ public class ControllerProfileListActivity extends BaseActivity {
 
         @Override
         public Object getItem(int position) {
-            return ControllerProfileManagerHolder.getManager().getProfileAt(position);
+            return ControllerProfileManagerHolder.getManager().getProfiles().get(position);
         }
 
         @Override
@@ -236,8 +264,8 @@ public class ControllerProfileListActivity extends BaseActivity {
             cbProfileSelection.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                    Log.i(TAG, "onCheckedChanged...");
-                    profileSelectionMap.put(profile, isChecked);
+                    Log.i(TAG, "cbProfileSelection.onCheckedChanged...");
+                    profileSelectionMap.put(profile.getName(), isChecked);
                 }
             });
 
@@ -248,12 +276,9 @@ public class ControllerProfileListActivity extends BaseActivity {
             btnEditProfile.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Log.i(TAG, "onClick...");
-
-                    int profileIndex = ControllerProfileManagerHolder.getManager().getProfiles().indexOf(profile);
+                    Log.i(TAG, "btnEditProfile.onClick...");
 
                     Intent intent = new Intent(activity, EditControllerProfileActivity.class);
-                    intent.putExtra(Constants.EXTRA_CONTROLLER_PROFILE_INDEX, profileIndex);
                     intent.putExtra(Constants.EXTRA_CONTROLLER_PROFILE, profile);
                     activity.startActivity(intent);
                 }
@@ -263,6 +288,8 @@ public class ControllerProfileListActivity extends BaseActivity {
             btnDeleteProfile.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                    Log.i(TAG, "btnDeleteProfile.onClick...");
+
                     Helper.showQuestionDialog(
                             activity,
                             "Do you really want to remove this profile?",
@@ -271,8 +298,8 @@ public class ControllerProfileListActivity extends BaseActivity {
                             new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
-                                    Log.i(TAG, "btnDeleteProfile.onClick...");
-                                    ControllerProfileManagerHolder.getManager().removeProfile(profile);
+                                    Log.i(TAG, "onClick...");
+                                    ControllerProfileManagerHolder.getManager().removeProfile(profile.getName());
                                     ControllerProfileListAdapter.this.notifyDataSetChanged();
                                 }
                             },
@@ -288,13 +315,18 @@ public class ControllerProfileListActivity extends BaseActivity {
             return rowView;
         }
 
+        //
+        // API
+        //
+
         public ArrayList<ControllerProfile> getSelectedProfiles() {
             Log.i(TAG, "getSelectedProfiles...");
 
             ArrayList<ControllerProfile> selectedProfiles = new ArrayList<>();
 
             for (ControllerProfile profile : ControllerProfileManagerHolder.getManager().getProfiles()) {
-                if (profileSelectionMap.containsKey(profile) && profileSelectionMap.get(profile)) {
+                String profileName = profile.getName();
+                if (profileSelectionMap.containsKey(profileName) && profileSelectionMap.get(profileName)) {
                     selectedProfiles.add(profile);
                 }
             }

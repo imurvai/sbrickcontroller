@@ -45,10 +45,10 @@ public final class ControllerAction implements Parcelable {
         this.invert = invert;
     }
 
-    ControllerAction(SharedPreferences prefs, int profileIndex, String controllerActionId, int controllerActionIndex) {
+    ControllerAction(SharedPreferences prefs, String profileName, String controllerActionId, int controllerActionIndex) {
         Log.i(TAG, "ControllerAction from shared preferences...");
 
-        String keyBase = profileIndex + "-" + controllerActionId + "-" + controllerActionIndex + "-";
+        String keyBase = profileName + "_" + controllerActionId + "_" + controllerActionIndex + "_";
         sbrickAddress = prefs.getString(keyBase + SBrickAddressKey, "");
         channel = prefs.getInt(keyBase + ChannelKey, 0);
         invert = prefs.getInt(keyBase + InvertKey, 0) != 0;
@@ -59,9 +59,6 @@ public final class ControllerAction implements Parcelable {
 
     ControllerAction(Parcel parcel) {
         Log.i(TAG, "ControllerAction from parcel...");
-
-        if (parcel == null)
-            throw new RuntimeException("parcel is null.");
 
         sbrickAddress = parcel.readString();
         channel = parcel.readInt();
@@ -97,7 +94,6 @@ public final class ControllerAction implements Parcelable {
     // Object overrides
     //
 
-
     @Override
     public String toString() {
         return sbrickAddress + " - " + channel + " - " + (invert ? "invert" : "not-invert");
@@ -121,17 +117,17 @@ public final class ControllerAction implements Parcelable {
 
     @Override
     public int hashCode() {
-        return sbrickAddress.hashCode() ^ channel ^ (invert ? 1 : -1);
+        return sbrickAddress.hashCode() ^ (channel * 377) ^ (invert ? 1 : -1);
     }
 
     //
     // Internal API
     //
 
-    void saveToPreferences(SharedPreferences.Editor editor, int profileIndex, String controllerActionId, int controllerActionIndex) {
+    void saveToPreferences(SharedPreferences.Editor editor, String profileName, String controllerActionId, int controllerActionIndex) {
         Log.i(TAG, "SaveToPreferences...");
 
-        String keyBase = profileIndex + "-" + controllerActionId + "-" + controllerActionIndex + "-";
+        String keyBase = profileName + "_" + controllerActionId + "_" + controllerActionIndex + "_";
         editor.putString(keyBase + SBrickAddressKey, sbrickAddress);
         editor.putInt(keyBase + ChannelKey, channel);
         editor.putInt(keyBase + InvertKey, invert ? 1 : 0);

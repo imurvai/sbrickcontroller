@@ -45,10 +45,9 @@ public class ControllerProfile implements Parcelable {
 
     private static final String TAG = ControllerProfile.class.getSimpleName();
 
-    private static final String ProfileNameKey = "profile_name_key";
     private static final String ControllerActionIdCountKey = "controller_action_id_count_key";
     private static final String ControllerActionIdKey = "controller_action_id_key";
-    private static final String ControllerActionCountKey = "controller_action_cound_key";
+    private static final String ControllerActionCountKey = "controller_action_count_key";
 
     private String name;
     private Map<String, Set<ControllerAction>> controllerActionMap = new HashMap();
@@ -56,6 +55,15 @@ public class ControllerProfile implements Parcelable {
     //
     // Constructor
     //
+
+    /**
+     * Creates a new instance of the ControllerProfile class with a new unique name.
+     */
+    public ControllerProfile() {
+        Log.i(TAG, "ControllerProfile...");
+        name = ControllerProfileManagerHolder.getManager().getUniqueProfileName();
+        Log.i(TAG, "  name: " + name);
+    }
 
     /**
      * Creates a new instance of the ControllerProfile class.
@@ -66,23 +74,22 @@ public class ControllerProfile implements Parcelable {
         this.name = name;
     }
 
-    ControllerProfile(SharedPreferences prefs, int profileIndex) {
-        Log.i(TAG, "ControllerProfile from shared preferences...");
+    ControllerProfile(SharedPreferences prefs, String profileName) {
+        Log.i(TAG, "ControllerProfile from shared preferences - " + profileName);
 
-        name = prefs.getString(profileIndex + ProfileNameKey, "");
-        Log.i(TAG, "  name: " + name);
+        name = profileName;
 
-        int size = prefs.getInt(profileIndex + "-" + ControllerActionIdCountKey, 0);
-        for (int controllerActionIdIndex = 0; controllerActionIdIndex < size; controllerActionIdIndex++) {
+        int controllerActionIdCount = prefs.getInt(profileName + "_" + ControllerActionIdCountKey, 0);
+        for (int controllerActionIdIndex = 0; controllerActionIdIndex < controllerActionIdCount; controllerActionIdIndex++) {
 
-            String controllerActionId = prefs.getString(profileIndex + "-" + controllerActionIdIndex + "-" + ControllerActionIdKey, "");
+            String controllerActionId = prefs.getString(profileName + "_" + ControllerActionIdKey + "_" + controllerActionIdIndex, "");
             Set<ControllerAction> controllerActions = new HashSet<>();
             controllerActionMap.put(controllerActionId, controllerActions);
 
-            int size2 = prefs.getInt(profileIndex + "-" + controllerActionId + "-" + ControllerActionIdCountKey, 0);
-            for (int controllerActionIndex = 0; controllerActionIndex < size2; controllerActionIndex++) {
+            int controllerActionCount = prefs.getInt(profileName + "_" + controllerActionId + "_" + ControllerActionCountKey, 0);
+            for (int controllerActionIndex = 0; controllerActionIndex < controllerActionCount; controllerActionIndex++) {
 
-                ControllerAction controllerAction = new ControllerAction(prefs, profileIndex, controllerActionId, controllerActionIndex);
+                ControllerAction controllerAction = new ControllerAction(prefs, profileName, controllerActionId, controllerActionIndex);
                 controllerActions.add(controllerAction);
             }
         }
@@ -91,20 +98,19 @@ public class ControllerProfile implements Parcelable {
     ControllerProfile(Parcel parcel) {
         Log.i(TAG, "ControllerProfile from parcel...");
 
-        if (parcel == null)
-            throw new RuntimeException("parcel is null.");
-
         name = parcel.readString();
         Log.i(TAG, "  name: " + name);
 
-        int size = parcel.readInt();
-        for (int i = 0; i < size; i++) {
+        int controllerActionIdCount = parcel.readInt();
+        for (int controllerActionIdIndex = 0; controllerActionIdIndex < controllerActionIdCount; controllerActionIdIndex++) {
+
             String controllerActionId = parcel.readString();
             Set<ControllerAction> controllerActions = new HashSet<>();
             controllerActionMap.put(controllerActionId, controllerActions);
 
-            int size2 = parcel.readInt();
-            for (int j = 0; j < size2; j++) {
+            int controllerActionCount = parcel.readInt();
+            for (int controllerActionIndex = 0; controllerActionIndex < controllerActionCount; controllerActionIndex++) {
+
                 ControllerAction controllerAction = parcel.readParcelable(ControllerAction.class.getClassLoader());
                 controllerActions.add(controllerAction);
             }
@@ -120,12 +126,6 @@ public class ControllerProfile implements Parcelable {
      * @return the name.
      */
     public String getName() { return name; }
-
-    /**
-     * Sets the name of the profile.
-     * @param name
-     */
-    public void setName(String name) { this.name = name; }
 
     /**
      * Gets the controller actions specified by its Id.
@@ -200,7 +200,7 @@ public class ControllerProfile implements Parcelable {
         controllerActions.remove(controllerAction);
 
         if (controllerActions.size() == 0)
-            controllerActionMap.remove(controllerActions);
+            controllerActionMap.remove(controllerActionId);
     }
 
     /**
@@ -252,11 +252,12 @@ public class ControllerProfile implements Parcelable {
     // Internal API
     //
 
-    void saveToPreferences(SharedPreferences.Editor editor, int profileIndex) {
+    void setName(String name) { this.name = name; }
+
+    void saveToPreferences(SharedPreferences.Editor editor) {
         Log.i(TAG, "saveToPreferences - " + getName());
 
-        editor.putString(profileIndex + "-" + ProfileNameKey, getName());
-        editor.putInt(profileIndex + "-" + ControllerActionIdCountKey, controllerActionMap.size());
+        editor.putInt(name + "_" + ControllerActionIdCountKey, controllerActionMap.size());
 
         int controllerActionIdIndex = 0;
         for (Map.Entry<String, Set<ControllerAction>> kvp : controllerActionMap.entrySet()) {
@@ -264,13 +265,13 @@ public class ControllerProfile implements Parcelable {
             String controllerActionId = kvp.getKey();
             Set<ControllerAction> controllerActions = kvp.getValue();
 
-            editor.putString(profileIndex + "-" + controllerActionIdIndex + "-" + ControllerActionIdKey, controllerActionId);
-            editor.putInt(profileIndex + "-" + controllerActionId + "-" + ControllerActionCountKey, controllerActions.size());
+            editor.putString(name + "_" + ControllerActionIdKey + "_" + controllerActionIdIndex, controllerActionId);
+            editor.putInt(name + "_" + controllerActionId + "_" + ControllerActionCountKey, controllerActions.size());
 
             int controllerActionIndex = 0;
             for (ControllerAction controllerAction : controllerActions) {
 
-                controllerAction.saveToPreferences(editor, profileIndex, controllerActionId, controllerActionIndex);
+                controllerAction.saveToPreferences(editor, name, controllerActionId, controllerActionIndex);
                 controllerActionIndex++;
             }
 
