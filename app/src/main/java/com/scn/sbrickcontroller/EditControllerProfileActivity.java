@@ -403,13 +403,17 @@ public class EditControllerProfileActivity extends BaseActivity {
         // Private methods
         //
 
+        private static final String[] portLetters = { "A", "B", "C", "D" };
+
         private String getControllerActionText(ControllerAction controllerAction) {
 
-            String[] portLetters = { "A", "B", "C", "D" };
             SBrick sbrick = SBrickManagerHolder.getManager().getSBrick(controllerAction.getSBrickAddress());
-            String portLetter = portLetters[controllerAction.getChannel()];
+            if (sbrick == null)
+                return "unknown SBrick";
 
+            String portLetter = portLetters[controllerAction.getChannel()];
             String result = sbrick.getName() + " - " + portLetter;
+
             if (controllerAction.getInvert()) result += " - invert";
             if (controllerAction.getToggle()) result += " - toggle";
 
