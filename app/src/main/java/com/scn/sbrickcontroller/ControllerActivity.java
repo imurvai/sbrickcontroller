@@ -20,7 +20,6 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -274,14 +273,14 @@ public class ControllerActivity extends ActionBarActivity {
 
             Map<String, Integer[]> channelNewValuesMap = new HashMap<>();
 
-            processMotionEvent(event, MotionEvent.AXIS_X, ControllerProfile.CONTROLLER_ACTION_AXIS_X, channelNewValuesMap);
-            processMotionEvent(event, MotionEvent.AXIS_Y, ControllerProfile.CONTROLLER_ACTION_AXIS_Y, channelNewValuesMap);
-            processMotionEvent(event, MotionEvent.AXIS_Z, ControllerProfile.CONTROLLER_ACTION_AXIS_Z, channelNewValuesMap);
-            processMotionEvent(event, MotionEvent.AXIS_RZ, ControllerProfile.CONTROLLER_ACTION_AXIS_RZ, channelNewValuesMap);
-            processMotionEvent(event, MotionEvent.AXIS_GAS, ControllerProfile.CONTROLLER_ACTION_L_TRIGGER, channelNewValuesMap);
-            processMotionEvent(event, MotionEvent.AXIS_BRAKE, ControllerProfile.CONTROLLER_ACTION_R_TRIGGER, channelNewValuesMap);
-            processMotionEvent(event, MotionEvent.AXIS_HAT_X, ControllerProfile.CONTROLLER_ACTION_DPAD_LEFT_RIGHT, channelNewValuesMap);
-            processMotionEvent(event, MotionEvent.AXIS_HAT_Y, ControllerProfile.CONTROLLER_ACTION_DPAD_UP_DOWN, channelNewValuesMap);
+            processMotionEvent(event, MotionEvent.AXIS_X, ControllerProfile.CONTROLLER_ACTION_LEFT_JOY_HORIZONTAL, channelNewValuesMap);
+            processMotionEvent(event, MotionEvent.AXIS_Y, ControllerProfile.CONTROLLER_ACTION_LEFT_JOY_VERTICAL, channelNewValuesMap);
+            processMotionEvent(event, MotionEvent.AXIS_Z, ControllerProfile.CONTROLLER_ACTION_RIGHT_JOY_HORIZONTAL, channelNewValuesMap);
+            processMotionEvent(event, MotionEvent.AXIS_RZ, ControllerProfile.CONTROLLER_ACTION_RIGHT_JOY_VERTICAL, channelNewValuesMap);
+            processMotionEvent(event, MotionEvent.AXIS_GAS, ControllerProfile.CONTROLLER_ACTION_LEFT_TRIGGER, channelNewValuesMap);
+            processMotionEvent(event, MotionEvent.AXIS_BRAKE, ControllerProfile.CONTROLLER_ACTION_RIGHT_TRIGGER, channelNewValuesMap);
+            processMotionEvent(event, MotionEvent.AXIS_HAT_X, ControllerProfile.CONTROLLER_ACTION_DPAD_HORIZONTAL, channelNewValuesMap);
+            processMotionEvent(event, MotionEvent.AXIS_HAT_Y, ControllerProfile.CONTROLLER_ACTION_DPAD_VERTICAL, channelNewValuesMap);
 
             for (String sbrickAddress: channelNewValuesMap.keySet()) {
                 SBrick sbrick = sbricksMap.get(sbrickAddress);
@@ -387,9 +386,9 @@ public class ControllerActivity extends ActionBarActivity {
             case KeyEvent.KEYCODE_BUTTON_Y:
                 return selectedProfile.getControllerActions(ControllerProfile.CONTROLLER_ACTION_Y);
             case KeyEvent.KEYCODE_BUTTON_R1:
-                return selectedProfile.getControllerActions(ControllerProfile.CONTROLLER_ACTION_R1);
+                return selectedProfile.getControllerActions(ControllerProfile.CONTROLLER_ACTION_RIGHT_TRIGGER_BUTTON);
             case KeyEvent.KEYCODE_BUTTON_L1:
-                return selectedProfile.getControllerActions(ControllerProfile.CONTROLLER_ACTION_L1);
+                return selectedProfile.getControllerActions(ControllerProfile.CONTROLLER_ACTION_LEFT_TRIGGER_BUTTON);
             case KeyEvent.KEYCODE_BUTTON_SELECT:
                 return selectedProfile.getControllerActions(ControllerProfile.CONTROLLER_ACTION_SELECT);
             case KeyEvent.KEYCODE_BUTTON_START:

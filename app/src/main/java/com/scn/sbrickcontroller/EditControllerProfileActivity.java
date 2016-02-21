@@ -377,22 +377,22 @@ public class EditControllerProfileActivity extends BaseActivity {
                 return "";
 
             switch (position - 1) {
-                case 0: return ControllerProfile.CONTROLLER_ACTION_DPAD_LEFT_RIGHT;
-                case 1: return ControllerProfile.CONTROLLER_ACTION_DPAD_UP_DOWN;
-                case 2: return ControllerProfile.CONTROLLER_ACTION_AXIS_X;
-                case 3: return ControllerProfile.CONTROLLER_ACTION_AXIS_Y;
-                case 4: return ControllerProfile.CONTROLLER_ACTION_THUMB_L;
-                case 5: return ControllerProfile.CONTROLLER_ACTION_AXIS_Z;
-                case 6: return ControllerProfile.CONTROLLER_ACTION_AXIS_RZ;
-                case 7: return ControllerProfile.CONTROLLER_ACTION_THUMB_R;
+                case 0: return ControllerProfile.CONTROLLER_ACTION_DPAD_HORIZONTAL;
+                case 1: return ControllerProfile.CONTROLLER_ACTION_DPAD_VERTICAL;
+                case 2: return ControllerProfile.CONTROLLER_ACTION_LEFT_JOY_HORIZONTAL;
+                case 3: return ControllerProfile.CONTROLLER_ACTION_LEFT_JOY_VERTICAL;
+                case 4: return ControllerProfile.CONTROLLER_ACTION_LEFT_THUMB;
+                case 5: return ControllerProfile.CONTROLLER_ACTION_RIGHT_JOY_HORIZONTAL;
+                case 6: return ControllerProfile.CONTROLLER_ACTION_RIGHT_JOY_VERTICAL;
+                case 7: return ControllerProfile.CONTROLLER_ACTION_RIGHT_THUMB;
                 case 8: return ControllerProfile.CONTROLLER_ACTION_A;
                 case 9: return ControllerProfile.CONTROLLER_ACTION_B;
                 case 10: return ControllerProfile.CONTROLLER_ACTION_X;
                 case 11: return ControllerProfile.CONTROLLER_ACTION_Y;
-                case 12: return ControllerProfile.CONTROLLER_ACTION_R1;
-                case 13: return ControllerProfile.CONTROLLER_ACTION_R_TRIGGER;
-                case 14: return ControllerProfile.CONTROLLER_ACTION_L1;
-                case 15: return ControllerProfile.CONTROLLER_ACTION_L_TRIGGER;
+                case 12: return ControllerProfile.CONTROLLER_ACTION_RIGHT_TRIGGER_BUTTON;
+                case 13: return ControllerProfile.CONTROLLER_ACTION_RIGHT_TRIGGER;
+                case 14: return ControllerProfile.CONTROLLER_ACTION_LEFT_TRIGGER_BUTTON;
+                case 15: return ControllerProfile.CONTROLLER_ACTION_LEFT_TRIGGER;
                 case 16: return ControllerProfile.CONTROLLER_ACTION_START;
                 case 17: return ControllerProfile.CONTROLLER_ACTION_SELECT;
             }

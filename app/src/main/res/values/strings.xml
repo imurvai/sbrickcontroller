@@ -10,4 +10,5 @@
     <string name="title_activity_edit_controller_profile">EditControllerProfileActivity</string>
     <string name="title_activity_edit_controller_action">EditControllerActionActivity</string>
     <string name="title_activity_controller">ControllerActivity</string>
+    <string name="title_activity_controller_config">ControllerConfigActivity</string>
 </resources>

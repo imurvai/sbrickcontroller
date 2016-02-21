@@ -25,86 +25,92 @@
 
         <activity
             android:name=".MainActivity"
+            android:configChanges="orientation|keyboardHidden"
             android:label="SBrickController"
             android:launchMode="standard"
-            android:configChanges="orientation|keyboardHidden"
             android:screenOrientation="landscape">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
         <activity
             android:name=".SBrickListActivity"
+            android:configChanges="orientation|keyboardHidden"
             android:label="SBrick list"
             android:launchMode="singleTop"
-            android:configChanges="orientation|keyboardHidden"
-            android:screenOrientation="landscape"
-            android:parentActivityName=".MainActivity">
+            android:parentActivityName=".MainActivity"
+            android:screenOrientation="landscape">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.scn.sbrickcontroller.MainActivity" />
         </activity>
-
         <activity
             android:name=".SBrickDetailsActivity"
+            android:configChanges="orientation|keyboardHidden"
             android:label="SBrick details"
             android:launchMode="standard"
-            android:configChanges="orientation|keyboardHidden"
-            android:screenOrientation="landscape"
-            android:parentActivityName=".SBrickListActivity">
+            android:parentActivityName=".SBrickListActivity"
+            android:screenOrientation="landscape">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.scn.sbrickcontroller.SBrickListActivity" />
         </activity>
-
         <activity
             android:name=".ControllerProfileListActivity"
+            android:configChanges="orientation|keyboardHidden"
             android:label="Controller profiles"
             android:launchMode="singleTop"
-            android:configChanges="orientation|keyboardHidden"
-            android:screenOrientation="landscape"
-            android:parentActivityName=".MainActivity">
+            android:parentActivityName=".MainActivity"
+            android:screenOrientation="landscape">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.scn.sbrickcontroller.MainActivity" />
         </activity>
-
         <activity
             android:name=".EditControllerProfileActivity"
+            android:configChanges="orientation|keyboardHidden"
             android:label="Edit controller profile"
             android:launchMode="singleTop"
-            android:configChanges="orientation|keyboardHidden"
-            android:screenOrientation="landscape"
-            android:parentActivityName=".ControllerProfileListActivity">
+            android:parentActivityName=".ControllerProfileListActivity"
+            android:screenOrientation="landscape">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.scn.sbrickcontroller.ControllerProfileListActivity" />
         </activity>
-
         <activity
             android:name=".EditControllerActionActivity"
+            android:configChanges="orientation|keyboardHidden"
             android:label="Edit controller action"
             android:launchMode="standard"
-            android:configChanges="orientation|keyboardHidden"
-            android:screenOrientation="landscape"
-            android:parentActivityName=".EditControllerProfileActivity">
+            android:parentActivityName=".EditControllerProfileActivity"
+            android:screenOrientation="landscape">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.scn.sbrickcontroller.EditControllerProfileActivity" />
         </activity>
-
         <activity
             android:name=".ControllerActivity"
+            android:configChanges="orientation|keyboardHidden"
             android:label="SBrick Controller"
             android:launchMode="standard"
-            android:configChanges="orientation|keyboardHidden"
-            android:screenOrientation="landscape"
-            android:parentActivityName=".ControllerProfileListActivity">
+            android:parentActivityName=".ControllerProfileListActivity"
+            android:screenOrientation="landscape">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.scn.sbrickcontroller.ControllerProfileListActivity" />
+        </activity>
+        <activity
+            android:name=".ControllerConfigActivity"
+            android:configChanges="orientation|keyboardHidden"
+            android:label="Controller configuration"
+            android:launchMode="standard"
+            android:parentActivityName=".MainActivity">
+            android:screenOrientation="landscape">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.scn.sbrickcontroller.MainActivity" />
         </activity>
     </application>
 

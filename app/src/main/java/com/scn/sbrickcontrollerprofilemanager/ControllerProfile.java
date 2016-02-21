@@ -20,22 +20,22 @@ public class ControllerProfile implements Parcelable {
     // Public constants
     //
 
-    public static final String CONTROLLER_ACTION_DPAD_LEFT_RIGHT = "CONTROLLER_ACTION_DPAD_LEFT_RIGHT";
-    public static final String CONTROLLER_ACTION_DPAD_UP_DOWN = "CONTROLLER_ACTION_DPAD_UP_DOWN";
-    public static final String CONTROLLER_ACTION_AXIS_X = "CONTROLLER_ACTION_AXIS_X";
-    public static final String CONTROLLER_ACTION_AXIS_Y = "CONTROLLER_ACTION_AXIS_Y";
-    public static final String CONTROLLER_ACTION_THUMB_L = "CONTROLLER_ACTION_THUMB_L";
-    public static final String CONTROLLER_ACTION_AXIS_Z = "CONTROLLER_ACTION_AXIS_Z";
-    public static final String CONTROLLER_ACTION_AXIS_RZ = "CONTROLLER_ACTION_AXIS_RZ";
-    public static final String CONTROLLER_ACTION_THUMB_R = "CONTROLLER_ACTION_THUMB_R";
+    public static final String CONTROLLER_ACTION_DPAD_HORIZONTAL = "CONTROLLER_ACTION_DPAD_HORIZONTAL";
+    public static final String CONTROLLER_ACTION_DPAD_VERTICAL = "CONTROLLER_ACTION_DPAD_VERTICAL";
+    public static final String CONTROLLER_ACTION_LEFT_JOY_HORIZONTAL = "CONTROLLER_ACTION_LEFT_JOY_HORIZONTAL";
+    public static final String CONTROLLER_ACTION_LEFT_JOY_VERTICAL = "CONTROLLER_ACTION_LEFT_JOY_VERTICAL";
+    public static final String CONTROLLER_ACTION_LEFT_THUMB = "CONTROLLER_ACTION_LEFT_THUMB";
+    public static final String CONTROLLER_ACTION_RIGHT_JOY_HORIZONTAL = "CONTROLLER_ACTION_RIGHT_JOY_HORIZONTAL";
+    public static final String CONTROLLER_ACTION_RIGHT_JOY_VERTICAL = "CONTROLLER_ACTION_RIGHT_JOY_VERTICAL";
+    public static final String CONTROLLER_ACTION_RIGHT_THUMB = "CONTROLLER_ACTION_RIGHT_THUMB";
     public static final String CONTROLLER_ACTION_A = "CONTROLLER_ACTION_A";
     public static final String CONTROLLER_ACTION_B = "CONTROLLER_ACTION_B";
     public static final String CONTROLLER_ACTION_X = "CONTROLLER_ACTION_X";
     public static final String CONTROLLER_ACTION_Y = "CONTROLLER_ACTION_Y";
-    public static final String CONTROLLER_ACTION_R1 = "CONTROLLER_ACTION_R1";
-    public static final String CONTROLLER_ACTION_R_TRIGGER = "CONTROLLER_ACTION_R_TRIGGER";
-    public static final String CONTROLLER_ACTION_L1 = "CONTROLLER_ACTION_L1";
-    public static final String CONTROLLER_ACTION_L_TRIGGER = "CONTROLLER_ACTION_L_TRIGGER";
+    public static final String CONTROLLER_ACTION_RIGHT_TRIGGER_BUTTON = "CONTROLLER_ACTION_RIGHT_TRIGGER_BUTTON";
+    public static final String CONTROLLER_ACTION_RIGHT_TRIGGER = "CONTROLLER_ACTION_RIGHT_TRIGGER";
+    public static final String CONTROLLER_ACTION_LEFT_TRIGGER_BUTTON = "CONTROLLER_ACTION_LEFT_TRIGGER_BUTTON";
+    public static final String CONTROLLER_ACTION_LEFT_TRIGGER = "CONTROLLER_ACTION_LEFT_TRIGGER";
     public static final String CONTROLLER_ACTION_START = "CONTROLLER_ACTION_START";
     public static final String CONTROLLER_ACTION_SELECT = "CONTROLLER_ACTION_SELECT";
 
@@ -227,22 +227,22 @@ public class ControllerProfile implements Parcelable {
      */
     public static String getControllerActionName(String controllerActionId) {
         switch (controllerActionId) {
-            case CONTROLLER_ACTION_DPAD_LEFT_RIGHT: return "Dpad horizontal";
-            case CONTROLLER_ACTION_DPAD_UP_DOWN: return "Dpad vertical";
-            case CONTROLLER_ACTION_AXIS_X: return "Left joy horizontal";
-            case CONTROLLER_ACTION_AXIS_Y: return "Left joy vertical";
-            case CONTROLLER_ACTION_THUMB_L: return "Left thumb";
-            case CONTROLLER_ACTION_AXIS_Z: return "Right joy horizontal";
-            case CONTROLLER_ACTION_AXIS_RZ: return "Right joy vertical";
-            case CONTROLLER_ACTION_THUMB_R: return "Right thumb";
+            case CONTROLLER_ACTION_DPAD_HORIZONTAL: return "Dpad horizontal";
+            case CONTROLLER_ACTION_DPAD_VERTICAL: return "Dpad vertical";
+            case CONTROLLER_ACTION_LEFT_JOY_HORIZONTAL: return "Left joy horizontal";
+            case CONTROLLER_ACTION_LEFT_JOY_VERTICAL: return "Left joy vertical";
+            case CONTROLLER_ACTION_LEFT_THUMB: return "Left thumb";
+            case CONTROLLER_ACTION_RIGHT_JOY_HORIZONTAL: return "Right joy horizontal";
+            case CONTROLLER_ACTION_RIGHT_JOY_VERTICAL: return "Right joy vertical";
+            case CONTROLLER_ACTION_RIGHT_THUMB: return "Right thumb";
             case CONTROLLER_ACTION_A: return "Button A";
             case CONTROLLER_ACTION_B: return "Button B";
             case CONTROLLER_ACTION_X: return "Button X";
             case CONTROLLER_ACTION_Y: return "Button Y";
-            case CONTROLLER_ACTION_R1: return "Right trigger button";
-            case CONTROLLER_ACTION_R_TRIGGER: return "Right trigger";
-            case CONTROLLER_ACTION_L1: return "Left trigger button";
-            case CONTROLLER_ACTION_L_TRIGGER: return "Left trigger";
+            case CONTROLLER_ACTION_RIGHT_TRIGGER_BUTTON: return "Right trigger button";
+            case CONTROLLER_ACTION_RIGHT_TRIGGER: return "Right trigger";
+            case CONTROLLER_ACTION_LEFT_TRIGGER_BUTTON: return "Left trigger button";
+            case CONTROLLER_ACTION_LEFT_TRIGGER: return "Left trigger";
             case CONTROLLER_ACTION_START: return "Start button";
             case CONTROLLER_ACTION_SELECT: return "Select button";
         }
@@ -257,24 +257,24 @@ public class ControllerProfile implements Parcelable {
     public static boolean isToggleApplicable(String controllerActionId) {
 
         switch (controllerActionId) {
-            case CONTROLLER_ACTION_DPAD_LEFT_RIGHT:
-            case CONTROLLER_ACTION_DPAD_UP_DOWN:
-            case CONTROLLER_ACTION_AXIS_X:
-            case CONTROLLER_ACTION_AXIS_Y:
-            case CONTROLLER_ACTION_AXIS_Z:
-            case CONTROLLER_ACTION_AXIS_RZ:
-            case CONTROLLER_ACTION_R_TRIGGER:
-            case CONTROLLER_ACTION_L_TRIGGER:
+            case CONTROLLER_ACTION_DPAD_HORIZONTAL:
+            case CONTROLLER_ACTION_DPAD_VERTICAL:
+            case CONTROLLER_ACTION_LEFT_JOY_HORIZONTAL:
+            case CONTROLLER_ACTION_LEFT_JOY_VERTICAL:
+            case CONTROLLER_ACTION_RIGHT_JOY_HORIZONTAL:
+            case CONTROLLER_ACTION_RIGHT_JOY_VERTICAL:
+            case CONTROLLER_ACTION_RIGHT_TRIGGER:
+            case CONTROLLER_ACTION_LEFT_TRIGGER:
                 return false;
 
-            case CONTROLLER_ACTION_THUMB_L:
-            case CONTROLLER_ACTION_THUMB_R:
+            case CONTROLLER_ACTION_LEFT_THUMB:
+            case CONTROLLER_ACTION_RIGHT_THUMB:
             case CONTROLLER_ACTION_A:
             case CONTROLLER_ACTION_B:
             case CONTROLLER_ACTION_X:
             case CONTROLLER_ACTION_Y:
-            case CONTROLLER_ACTION_R1:
-            case CONTROLLER_ACTION_L1:
+            case CONTROLLER_ACTION_RIGHT_TRIGGER_BUTTON:
+            case CONTROLLER_ACTION_LEFT_TRIGGER_BUTTON:
             case CONTROLLER_ACTION_START:
             case CONTROLLER_ACTION_SELECT:
                 return true;
