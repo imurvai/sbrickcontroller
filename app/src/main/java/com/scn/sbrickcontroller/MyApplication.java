@@ -3,6 +3,7 @@ package com.scn.sbrickcontroller;
 import android.app.Application;
 import android.util.Log;
 
+import com.scn.sbrickcontrollerprofilemanager.ControllerConfigManagerHolder;
 import com.scn.sbrickcontrollerprofilemanager.ControllerProfileManagerHolder;
 import com.scn.sbrickmanager.SBrickManagerHolder;
 
@@ -29,7 +30,10 @@ public class MyApplication extends Application {
         SBrickManagerHolder.CreateSBrickManagerSingleton(this);
         SBrickManagerHolder.getManager().loadSBricks();
 
-        ControllerProfileManagerHolder.createSBrickControllerProfileManager(this);
+        ControllerProfileManagerHolder.createControllerProfileManager(this);
         ControllerProfileManagerHolder.getManager().loadProfiles();
+
+        ControllerConfigManagerHolder.createControllerConfigManager(this);
+        ControllerConfigManagerHolder.getManager().loadConfig();
     }
 }

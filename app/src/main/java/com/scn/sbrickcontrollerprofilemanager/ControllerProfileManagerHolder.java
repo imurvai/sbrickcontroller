@@ -27,7 +27,11 @@ public final class ControllerProfileManagerHolder {
     // API
     //
 
-    public static synchronized void createSBrickControllerProfileManager(Context context) {
+    /**
+     * Creates the controller profile manager.
+     * @param context is the application context.
+     */
+    public static synchronized void createControllerProfileManager(Context context) {
         Log.i(TAG, "createControllerProfileManager...");
 
         if (manager != null)
