@@ -20,9 +20,9 @@ public class ControllerProfileManager {
 
     private static final String TAG = ControllerProfileManager.class.getSimpleName();
 
-    private static final String SBrickControllerProfilesPreferencesName = "SBrickControllerProfiles";
-    private static final String SBrickControllerProfileCountKey = "SBrickControllerProfileCountKey";
-    private static final String SBrickControllerProfileNameKey = "SBrickControllerProfileNameKey";
+    private static final String ControllerProfilesPreferencesName = "ControllerProfiles";
+    private static final String ControllerProfileCountKey = "ControllerProfileCountKey";
+    private static final String ControllerProfileNameKey = "ControllerProfileNameKey";
 
     private Context context;
     private Map<String, ControllerProfile> controllerProfiles = new HashMap<>();
@@ -49,14 +49,14 @@ public class ControllerProfileManager {
         Log.i(TAG, "loadProfiles...");
 
         try {
-            SharedPreferences prefs = context.getSharedPreferences(SBrickControllerProfilesPreferencesName, Context.MODE_PRIVATE);
+            SharedPreferences prefs = context.getSharedPreferences(ControllerProfilesPreferencesName, Context.MODE_PRIVATE);
 
             controllerProfiles.clear();
 
-            int profileCount = prefs.getInt(SBrickControllerProfileCountKey, 0);
+            int profileCount = prefs.getInt(ControllerProfileCountKey, 0);
 
             for (int i = 0; i < profileCount; i++) {
-                String profileName = prefs.getString(SBrickControllerProfileNameKey + "_" + i, "");
+                String profileName = prefs.getString(ControllerProfileNameKey + "_" + i, "");
                 ControllerProfile profile = new ControllerProfile(prefs, profileName);
                 controllerProfiles.put(profile.getName(), profile);
             }
@@ -77,17 +77,17 @@ public class ControllerProfileManager {
         Log.i(TAG, "saveProfiles...");
 
         try {
-            SharedPreferences prefs = context.getSharedPreferences(SBrickControllerProfilesPreferencesName, Context.MODE_PRIVATE);
+            SharedPreferences prefs = context.getSharedPreferences(ControllerProfilesPreferencesName, Context.MODE_PRIVATE);
             SharedPreferences.Editor editor = prefs.edit();
 
             editor.clear();
 
-            editor.putInt(SBrickControllerProfileCountKey, controllerProfiles.size());
+            editor.putInt(ControllerProfileCountKey, controllerProfiles.size());
 
             int profileNameIndex = 0;
             for (ControllerProfile profile : controllerProfiles.values()) {
 
-                editor.putString(SBrickControllerProfileNameKey + "_" + profileNameIndex++, profile.getName());
+                editor.putString(ControllerProfileNameKey + "_" + profileNameIndex++, profile.getName());
                 profile.saveToPreferences(editor);
             }
 

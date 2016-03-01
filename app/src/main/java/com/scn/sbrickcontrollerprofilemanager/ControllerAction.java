@@ -20,11 +20,13 @@ public final class ControllerAction implements Parcelable {
     private static final String ChannelKey = "channel_key";
     private static final String InvertKey = "invert_key";
     private static final String ToggleKey = "toggle_key";
+    private static final String MaxOutputKey = "max_output";
 
     private String sbrickAddress;
     private int channel;
     private boolean invert;
     private boolean toggle;
+    private int maxOutput;
 
     //
     // Constructor.
@@ -37,16 +39,18 @@ public final class ControllerAction implements Parcelable {
      * @param invert is true if value has to be inverted.
      * @param toggle is true if the action is a toggle switch.
      */
-    public ControllerAction(String sbrickAddress, int channel, boolean invert, boolean toggle) {
+    public ControllerAction(String sbrickAddress, int channel, boolean invert, boolean toggle, int maxOutput) {
         Log.i(TAG, "ControllerAction...");
 
         validateSBrickAddress(sbrickAddress);
         validateChannel(channel);
+        validateMaxOutput(maxOutput);
 
         this.sbrickAddress = sbrickAddress;
         this.channel = channel;
         this.invert = invert;
         this.toggle = toggle;
+        this.maxOutput = maxOutput;
     }
 
     ControllerAction(SharedPreferences prefs, String profileName, String controllerActionId, int controllerActionIndex) {
@@ -57,9 +61,11 @@ public final class ControllerAction implements Parcelable {
         channel = prefs.getInt(keyBase + ChannelKey, 0);
         invert = prefs.getInt(keyBase + InvertKey, 0) != 0;
         toggle = prefs.getInt(keyBase + ToggleKey, 0) != 0;
+        maxOutput = prefs.getInt(keyBase + MaxOutputKey, 0);
 
         validateSBrickAddress(sbrickAddress);
         validateChannel(channel);
+        validateMaxOutput(maxOutput);
     }
 
     ControllerAction(Parcel parcel) {
@@ -69,9 +75,11 @@ public final class ControllerAction implements Parcelable {
         channel = parcel.readInt();
         invert = parcel.readInt() != 0;
         toggle = parcel.readInt() != 0;
+        maxOutput = parcel.readInt();
 
         validateSBrickAddress(sbrickAddress);
         validateChannel(channel);
+        validateMaxOutput(maxOutput);
     }
 
     //
@@ -98,9 +106,15 @@ public final class ControllerAction implements Parcelable {
 
     /**
      * Gets the value indicating if the action is a toggle switch.
-     * @return
+     * @return True if the controller action is a toggle switch.
      */
     public boolean getToggle() { return toggle; }
+
+    /**
+     * Gets the max output percent.
+     * @return The max output in percent.
+     */
+    public int getMaxOutput() { return maxOutput; }
 
     //
     // Object overrides
@@ -108,7 +122,11 @@ public final class ControllerAction implements Parcelable {
 
     @Override
     public String toString() {
-        return sbrickAddress + " - " + channel + " - " + (invert ? "invert" : "not-invert") + " - " + (toggle ? "toggle" : "not-toggle");
+        return sbrickAddress + " - " +
+               channel + " - " +
+               (invert ? "invert" : "not-invert") + " - " +
+               (toggle ? "toggle" : "not-toggle") + " - " +
+               maxOutput + "%";
     }
 
     @Override
@@ -125,12 +143,13 @@ public final class ControllerAction implements Parcelable {
         return sbrickAddress.equals(other.getSBrickAddress()) &&
                 channel == other.getChannel() &&
                 invert == other.getInvert() &&
-                toggle == other.getToggle();
+                toggle == other.getToggle() &&
+                maxOutput == other.getMaxOutput();
     }
 
     @Override
     public int hashCode() {
-        return sbrickAddress.hashCode() ^ (channel * 377) ^ (invert ? 1 : -1) ^ (invert ? 2 : -2);
+        return sbrickAddress.hashCode() ^ (channel * 377) ^ (invert ? 1 : -1) ^ (invert ? 2 : -2) * (maxOutput * 379);
     }
 
     //
@@ -145,6 +164,7 @@ public final class ControllerAction implements Parcelable {
         editor.putInt(keyBase + ChannelKey, channel);
         editor.putInt(keyBase + InvertKey, invert ? 1 : 0);
         editor.putInt(keyBase + ToggleKey, toggle ? 1 : 0);
+        editor.putInt(keyBase + MaxOutputKey, maxOutput);
     }
 
     //
@@ -164,6 +184,7 @@ public final class ControllerAction implements Parcelable {
         dest.writeInt(channel);
         dest.writeInt(invert ? 1 : 0);
         dest.writeInt(toggle ? 1 : 0);
+        dest.writeInt(maxOutput);
     }
 
     public static final Parcelable.Creator CREATOR = new Parcelable.Creator() {
@@ -191,5 +212,10 @@ public final class ControllerAction implements Parcelable {
     private void validateChannel(int channel) {
         if (channel < 0 || 3 < channel)
             throw new RuntimeException("Channel must be in range [0, 3].");
+    }
+
+    private void validateMaxOutput(int maxOutput) {
+        if (maxOutput < 0 || 100 < maxOutput)
+            throw new RuntimeException("Max output must be in range [0, 100].");
     }
 }

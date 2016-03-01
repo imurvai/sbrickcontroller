@@ -218,16 +218,17 @@ public class ControllerActivity extends ActionBarActivity {
                 int channel = controllerAction.getChannel();
                 boolean invert = controllerAction.getInvert();
                 boolean toggle = controllerAction.getToggle();
+                int maxValue = (255 * controllerAction.getMaxOutput()) / 100;
 
                 if (!toggle) {
 
-                    int value = invert ? -255 : 255;
+                    int value = invert ? -maxValue : maxValue;
                     if (sbrick.sendCommand(channel, value))
                         channelValuesMap.get(sbrickAddress)[channel] = value;
                 }
                 else {
 
-                    int value = (channelValuesMap.get(sbrickAddress)[channel]) == 0 ? (invert ? -255 : 255) : 0;
+                    int value = (channelValuesMap.get(sbrickAddress)[channel]) == 0 ? (invert ? -maxValue : maxValue) : 0;
                     if (sbrick.sendCommand(channel, value))
                         channelValuesMap.get(sbrickAddress)[channel] = value;
                 }
@@ -356,7 +357,8 @@ public class ControllerActivity extends ActionBarActivity {
 
             String sbrickAddress = controllerAction.getSBrickAddress();
             int channel = controllerAction.getChannel();
-            int value = (int) (event.getAxisValue(motionEventId) * (controllerAction.getInvert() ? -255 : 255));
+            int maxValue = (255 * controllerAction.getMaxOutput()) / 100;
+            int value = (int) (event.getAxisValue(motionEventId) * (controllerAction.getInvert() ? -maxValue : maxValue));
 
             // Joystick not always goes back to 0 exactly
             if (Math.abs(value) < 10)

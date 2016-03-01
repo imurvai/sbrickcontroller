@@ -48,6 +48,7 @@ public class EditControllerActionActivity extends BaseActivity {
     private int selectedChannel;
     private boolean selecedInvert;
     private boolean selectedToggle;
+    private int selectedMaxOutput;
 
     //
     // Activity overrides
@@ -73,6 +74,7 @@ public class EditControllerActionActivity extends BaseActivity {
             selectedChannel = controllerAction.getChannel();
             selecedInvert = controllerAction.getInvert();
             selectedToggle = controllerAction.getToggle();
+            selectedMaxOutput = controllerAction.getMaxOutput();
         }
         else {
             Log.i(TAG, "  new instance...");
@@ -87,12 +89,14 @@ public class EditControllerActionActivity extends BaseActivity {
                 selectedChannel = 0;
                 selecedInvert = false;
                 selectedToggle = false;
+                selectedMaxOutput = 100;
             }
             else {
                 selectedSBrickAddress = originalControllerAction.getSBrickAddress();
                 selectedChannel = originalControllerAction.getChannel();
                 selecedInvert = originalControllerAction.getInvert();
                 selectedToggle = originalControllerAction.getToggle();
+                selectedMaxOutput = originalControllerAction.getMaxOutput();
             }
         }
 
@@ -177,6 +181,8 @@ public class EditControllerActionActivity extends BaseActivity {
         });
 
         setSelectedChannel(selectedChannel);
+
+        // TODO: add the max output settings
     }
 
     @Override
@@ -196,7 +202,7 @@ public class EditControllerActionActivity extends BaseActivity {
         Log.i(TAG, "onSaveInstanceState...");
         super.onSaveInstanceState(outState);
 
-        ControllerAction controllerAction = new ControllerAction(selectedSBrickAddress, selectedChannel, selecedInvert, selectedToggle);
+        ControllerAction controllerAction = new ControllerAction(selectedSBrickAddress, selectedChannel, selecedInvert, selectedToggle, selectedMaxOutput);
 
         outState.putString(CONTROLLER_ACTION_ID_KEY, controllerActionId);
         outState.putParcelable(CONTROLLER_ACTION_KEY, controllerAction);
@@ -228,7 +234,7 @@ public class EditControllerActionActivity extends BaseActivity {
             case R.id.menu_item_done:
                 Log.i(TAG, "  menu_item_done");
 
-                ControllerAction controllerAction = new ControllerAction(selectedSBrickAddress, selectedChannel, selecedInvert, selectedToggle);
+                ControllerAction controllerAction = new ControllerAction(selectedSBrickAddress, selectedChannel, selecedInvert, selectedToggle, selectedMaxOutput);
 
                 Intent intent = new Intent();
                 intent.putExtra(Constants.EXTRA_CONTROLLER_ACTION_ID, controllerActionId);
