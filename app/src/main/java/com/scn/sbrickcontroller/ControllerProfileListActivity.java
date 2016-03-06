@@ -63,28 +63,13 @@ public class ControllerProfileListActivity extends BaseActivity {
 
                 // Check if the profile contains controller actions
                 if (profile.getSBrickAddresses().size() == 0) {
-                    Helper.showMessageBox(
-                            ControllerProfileListActivity.this,
-                            "Please add controller actions to the profile first.",
-                            new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    // Do nothing here
-                                }
-                            });
+                    Helper.showMessageBox(ControllerProfileListActivity.this, "Please add controller actions to the profile first.", null);
                     return;
                 }
 
                 // Check if the SBricks are known in the profile
                 if (!validateProfile(profile)) {
-                    Helper.showMessageBox(
-                            ControllerProfileListActivity.this,
-                            "Some of the SBricks in this profile is unknown. Please do a scan and edit the profile.",
-                            new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                }
-                            });
+                    Helper.showMessageBox(ControllerProfileListActivity.this, "Some of the SBricks in this profile is unknown. Please do a scan and edit the profile.", null);
                     return;
                 }
 
@@ -113,14 +98,7 @@ public class ControllerProfileListActivity extends BaseActivity {
         super.onPause();
 
         if (!ControllerProfileManagerHolder.getManager().saveProfiles()) {
-            Helper.showMessageBox(
-                    this,
-                    "Could not save controller profiles.",
-                    new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                        }
-                    });
+            Helper.showMessageBox(this, "Could not save controller profiles.", null);
         }
     }
 
@@ -184,11 +162,7 @@ public class ControllerProfileListActivity extends BaseActivity {
                     }
                 }
                 else {
-                    Helper.showMessageBox(this, "Please select profiles first to play with.", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                        }
-                    });
+                    Helper.showMessageBox(this, "Please select profiles first to play with.", null);
                 }
 
                 return true;

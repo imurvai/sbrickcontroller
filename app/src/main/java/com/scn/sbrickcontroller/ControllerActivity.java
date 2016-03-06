@@ -291,6 +291,9 @@ public class ControllerActivity extends ActionBarActivity {
             processMotionEvent(event, MotionEvent.AXIS_Y, ControllerProfile.CONTROLLER_ACTION_LEFT_JOY_VERTICAL, channelNewValuesMap);
             processMotionEvent(event, MotionEvent.AXIS_Z, ControllerProfile.CONTROLLER_ACTION_RIGHT_JOY_HORIZONTAL, channelNewValuesMap);
             processMotionEvent(event, MotionEvent.AXIS_RZ, ControllerProfile.CONTROLLER_ACTION_RIGHT_JOY_VERTICAL, channelNewValuesMap);
+            processMotionEvent(event, MotionEvent.AXIS_HAT_X, ControllerProfile.CONTROLLER_ACTION_DPAD_HORIZONTAL, channelNewValuesMap);
+            processMotionEvent(event, MotionEvent.AXIS_HAT_Y, ControllerProfile.CONTROLLER_ACTION_DPAD_VERTICAL, channelNewValuesMap);
+
             if (swapTriggers) {
                 processMotionEvent(event, MotionEvent.AXIS_BRAKE, ControllerProfile.CONTROLLER_ACTION_LEFT_TRIGGER, channelNewValuesMap);
                 processMotionEvent(event, MotionEvent.AXIS_GAS, ControllerProfile.CONTROLLER_ACTION_RIGHT_TRIGGER, channelNewValuesMap);
@@ -299,8 +302,6 @@ public class ControllerActivity extends ActionBarActivity {
                 processMotionEvent(event, MotionEvent.AXIS_GAS, ControllerProfile.CONTROLLER_ACTION_LEFT_TRIGGER, channelNewValuesMap);
                 processMotionEvent(event, MotionEvent.AXIS_BRAKE, ControllerProfile.CONTROLLER_ACTION_RIGHT_TRIGGER, channelNewValuesMap);
             }
-            processMotionEvent(event, MotionEvent.AXIS_HAT_X, ControllerProfile.CONTROLLER_ACTION_DPAD_HORIZONTAL, channelNewValuesMap);
-            processMotionEvent(event, MotionEvent.AXIS_HAT_Y, ControllerProfile.CONTROLLER_ACTION_DPAD_VERTICAL, channelNewValuesMap);
 
             for (String sbrickAddress: channelNewValuesMap.keySet()) {
                 SBrick sbrick = sbricksMap.get(sbrickAddress);

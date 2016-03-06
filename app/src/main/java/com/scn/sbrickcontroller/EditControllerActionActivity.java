@@ -115,8 +115,6 @@ public class EditControllerActionActivity extends BaseActivity {
 
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
-                Log.i(TAG, "sbSelectSBrick.onNothingSelected...");
-                // Do nothing here
             }
         });
 

@@ -202,11 +202,7 @@ public class SBrickListActivity extends BaseActivity {
                     }.execute();
                 }
                 else {
-                    Helper.showMessageBox(SBrickListActivity.this, "Could not start scanning for SBricks.", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                        }
-                    });
+                    Helper.showMessageBox(SBrickListActivity.this, "Could not start scanning for SBricks.", null);
                 }
 
                 return true;
