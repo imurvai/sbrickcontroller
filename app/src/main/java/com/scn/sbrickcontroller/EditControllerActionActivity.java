@@ -13,13 +13,13 @@ import android.widget.ArrayAdapter;
 import android.widget.CompoundButton;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
+import android.widget.SeekBar;
 import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
 
 import com.scn.sbrickcontrollerprofilemanager.ControllerAction;
 import com.scn.sbrickcontrollerprofilemanager.ControllerProfile;
-import com.scn.sbrickcontrollerprofilemanager.ControllerProfileManagerHolder;
 import com.scn.sbrickmanager.SBrick;
 import com.scn.sbrickmanager.SBrickManagerHolder;
 
@@ -46,7 +46,7 @@ public class EditControllerActionActivity extends BaseActivity {
 
     private String selectedSBrickAddress;
     private int selectedChannel;
-    private boolean selecedInvert;
+    private boolean selectedInvert;
     private boolean selectedToggle;
     private int selectedMaxOutput;
 
@@ -72,7 +72,7 @@ public class EditControllerActionActivity extends BaseActivity {
 
             selectedSBrickAddress = controllerAction.getSBrickAddress();
             selectedChannel = controllerAction.getChannel();
-            selecedInvert = controllerAction.getInvert();
+            selectedInvert = controllerAction.getInvert();
             selectedToggle = controllerAction.getToggle();
             selectedMaxOutput = controllerAction.getMaxOutput();
         }
@@ -87,14 +87,14 @@ public class EditControllerActionActivity extends BaseActivity {
                 Log.i(TAG, "  new controller action.");
                 selectedSBrickAddress = sbricks.get(0).getAddress();
                 selectedChannel = 0;
-                selecedInvert = false;
+                selectedInvert = false;
                 selectedToggle = false;
                 selectedMaxOutput = 100;
             }
             else {
                 selectedSBrickAddress = originalControllerAction.getSBrickAddress();
                 selectedChannel = originalControllerAction.getChannel();
-                selecedInvert = originalControllerAction.getInvert();
+                selectedInvert = originalControllerAction.getInvert();
                 selectedToggle = originalControllerAction.getToggle();
                 selectedMaxOutput = originalControllerAction.getMaxOutput();
             }
@@ -121,12 +121,12 @@ public class EditControllerActionActivity extends BaseActivity {
         });
 
         Switch swInvertChannel = (Switch)findViewById(R.id.switch_invert_channel);
-        swInvertChannel.setChecked(selecedInvert);
+        swInvertChannel.setChecked(selectedInvert);
         swInvertChannel.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 Log.i(TAG, "swInvertChannel.onCheckedChanged...");
-                selecedInvert = isChecked;
+                selectedInvert = isChecked;
             }
         });
 
@@ -182,7 +182,24 @@ public class EditControllerActionActivity extends BaseActivity {
 
         setSelectedChannel(selectedChannel);
 
-        // TODO: add the max output settings
+        final TextView twMaxOutput = (TextView)findViewById(R.id.textview_max_output);
+        twMaxOutput.setText(Integer.toString(selectedMaxOutput));
+
+        SeekBar sbMaxOutput = (SeekBar)findViewById(R.id.seekbar_max_output);
+        sbMaxOutput.setProgress(selectedMaxOutput);
+        sbMaxOutput.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                if (fromUser) {
+                    selectedMaxOutput = progress;
+                    twMaxOutput.setText(Integer.toString(selectedMaxOutput));
+                }
+            }
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) { }
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) { }
+        });
     }
 
     @Override
@@ -202,7 +219,7 @@ public class EditControllerActionActivity extends BaseActivity {
         Log.i(TAG, "onSaveInstanceState...");
         super.onSaveInstanceState(outState);
 
-        ControllerAction controllerAction = new ControllerAction(selectedSBrickAddress, selectedChannel, selecedInvert, selectedToggle, selectedMaxOutput);
+        ControllerAction controllerAction = new ControllerAction(selectedSBrickAddress, selectedChannel, selectedInvert, selectedToggle, selectedMaxOutput);
 
         outState.putString(CONTROLLER_ACTION_ID_KEY, controllerActionId);
         outState.putParcelable(CONTROLLER_ACTION_KEY, controllerAction);
@@ -234,7 +251,7 @@ public class EditControllerActionActivity extends BaseActivity {
             case R.id.menu_item_done:
                 Log.i(TAG, "  menu_item_done");
 
-                ControllerAction controllerAction = new ControllerAction(selectedSBrickAddress, selectedChannel, selecedInvert, selectedToggle, selectedMaxOutput);
+                ControllerAction controllerAction = new ControllerAction(selectedSBrickAddress, selectedChannel, selectedInvert, selectedToggle, selectedMaxOutput);
 
                 Intent intent = new Intent();
                 intent.putExtra(Constants.EXTRA_CONTROLLER_ACTION_ID, controllerActionId);

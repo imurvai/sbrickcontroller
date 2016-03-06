@@ -6,8 +6,10 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.graphics.Typeface;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.NavUtils;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.ActionBarActivity;
@@ -55,6 +57,8 @@ public class ControllerActivity extends ActionBarActivity {
     private ProgressDialog progressDialog = null;
 
     private boolean allSBrickOk = true;
+
+    private boolean swapTriggers = false;
 
     //
     // Activity overrides
@@ -110,6 +114,15 @@ public class ControllerActivity extends ActionBarActivity {
     public void onResume() {
         Log.i(TAG, "onResume...");
         super.onResume();
+
+        // Check swap triggers in the default preferences
+        try {
+            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+            swapTriggers = prefs.getBoolean("swap_triggers", false);
+        }
+        catch (Exception ex) {
+            Log.e(TAG, "Could not read swap-triggers from preferences.", ex);
+        }
 
         allSBrickOk = true;
         for (Map.Entry<String, SBrick> kvp: sbricksMap.entrySet()) {
@@ -278,8 +291,14 @@ public class ControllerActivity extends ActionBarActivity {
             processMotionEvent(event, MotionEvent.AXIS_Y, ControllerProfile.CONTROLLER_ACTION_LEFT_JOY_VERTICAL, channelNewValuesMap);
             processMotionEvent(event, MotionEvent.AXIS_Z, ControllerProfile.CONTROLLER_ACTION_RIGHT_JOY_HORIZONTAL, channelNewValuesMap);
             processMotionEvent(event, MotionEvent.AXIS_RZ, ControllerProfile.CONTROLLER_ACTION_RIGHT_JOY_VERTICAL, channelNewValuesMap);
-            processMotionEvent(event, MotionEvent.AXIS_GAS, ControllerProfile.CONTROLLER_ACTION_LEFT_TRIGGER, channelNewValuesMap);
-            processMotionEvent(event, MotionEvent.AXIS_BRAKE, ControllerProfile.CONTROLLER_ACTION_RIGHT_TRIGGER, channelNewValuesMap);
+            if (swapTriggers) {
+                processMotionEvent(event, MotionEvent.AXIS_BRAKE, ControllerProfile.CONTROLLER_ACTION_LEFT_TRIGGER, channelNewValuesMap);
+                processMotionEvent(event, MotionEvent.AXIS_GAS, ControllerProfile.CONTROLLER_ACTION_RIGHT_TRIGGER, channelNewValuesMap);
+            }
+            else {
+                processMotionEvent(event, MotionEvent.AXIS_GAS, ControllerProfile.CONTROLLER_ACTION_LEFT_TRIGGER, channelNewValuesMap);
+                processMotionEvent(event, MotionEvent.AXIS_BRAKE, ControllerProfile.CONTROLLER_ACTION_RIGHT_TRIGGER, channelNewValuesMap);
+            }
             processMotionEvent(event, MotionEvent.AXIS_HAT_X, ControllerProfile.CONTROLLER_ACTION_DPAD_HORIZONTAL, channelNewValuesMap);
             processMotionEvent(event, MotionEvent.AXIS_HAT_Y, ControllerProfile.CONTROLLER_ACTION_DPAD_VERTICAL, channelNewValuesMap);
 
@@ -441,6 +460,10 @@ public class ControllerActivity extends ActionBarActivity {
             }
         }
     };
+
+    //
+    //
+    //
 
     private static class ControllerProfileListAdapter extends BaseAdapter {
 

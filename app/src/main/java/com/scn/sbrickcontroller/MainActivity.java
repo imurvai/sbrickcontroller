@@ -103,6 +103,11 @@ public class MainActivity extends BaseActivity {
 
         switch (item.getItemId()) {
 
+            case R.id.menu_item_preferences:
+
+                startActivity(new Intent(this, AppPreferencesActivity.class));
+                return true;
+
             case R.id.menu_item_about:
 
                 String versionName = "";
@@ -111,12 +116,7 @@ public class MainActivity extends BaseActivity {
                 } catch (Exception ex) { }
 
                 String message = "Version " + versionName + "\n\n2016 SCN";
-
-                Helper.showMessageBox(this, "SBrickController", message, R.drawable.ic_launcher, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                    }
-                });
+                Helper.showMessageBox(this, "SBrickController", message, R.drawable.ic_launcher, null);
 
                 return true;
         }

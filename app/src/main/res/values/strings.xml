@@ -11,4 +11,6 @@
     <string name="title_activity_edit_controller_action">EditControllerActionActivity</string>
     <string name="title_activity_controller">ControllerActivity</string>
     <string name="title_activity_controller_config">ControllerConfigActivity</string>
+    <string name="title_activity_app_preferences">AppPreferencesActivity</string>
+    <string name="action_settings">Settings</string>
 </resources>

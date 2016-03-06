@@ -106,7 +106,18 @@
             android:configChanges="orientation|keyboardHidden"
             android:label="Controller configuration"
             android:launchMode="standard"
-            android:parentActivityName=".MainActivity">
+            android:parentActivityName=".MainActivity"
+            android:screenOrientation="landscape">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.scn.sbrickcontroller.MainActivity" />
+        </activity>
+        <activity
+            android:name=".AppPreferencesActivity"
+            android:configChanges="orientation|keyboardHidden"
+            android:label="SBrickController settings"
+            android:launchMode="standard"
+            android:parentActivityName=".MainActivity"
             android:screenOrientation="landscape">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
