@@ -15,6 +15,12 @@ import android.content.pm.PackageManager;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
+import com.scn.sbrickmanager.sbrickcommand.Command;
+import com.scn.sbrickmanager.sbrickcommand.ConnectCommand;
+import com.scn.sbrickmanager.sbrickcommand.QuitCommand;
+import com.scn.sbrickmanager.sbrickcommand.ReadCharacteristicCommand;
+import com.scn.sbrickmanager.sbrickcommand.WriteCharacteristicCommand;
+
 /**
  * SBrickManager implementation.
  */
@@ -66,7 +72,7 @@ class SBrickManagerImpl extends SBrickManagerBase {
         }
 
         BluetoothDevice sbrickDevice = bluetoothAdapter.getRemoteDevice(sbrickAddress);
-        SBrick sbrick = new SBrickImpl(context, sbrickDevice);
+        SBrick sbrick = new SBrickImpl(context, this, sbrickDevice);
         sbrickMap.put(sbrickAddress, sbrick);
         return sbrick;
     }
@@ -140,6 +146,7 @@ class SBrickManagerImpl extends SBrickManagerBase {
     //
 
     private final BluetoothAdapter.LeScanCallback leScanCallback = new BluetoothAdapter.LeScanCallback() {
+
         @Override
         public synchronized void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord) {
             Log.i(TAG, "onScanResult...");
@@ -151,7 +158,7 @@ class SBrickManagerImpl extends SBrickManagerBase {
                         Log.i(TAG, "    Device address    : " + device.getAddress());
                         Log.i(TAG, "    Device name       : " + device.getName());
 
-                        SBrick sbrick = new SBrickImpl(context, device);
+                        SBrick sbrick = new SBrickImpl(context, SBrickManagerImpl.this, device);
                         sbrickMap.put(device.getAddress(), sbrick);
 
                         Intent sendIntent = new Intent();

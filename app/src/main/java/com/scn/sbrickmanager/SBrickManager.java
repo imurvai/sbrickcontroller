@@ -80,4 +80,15 @@ public interface SBrickManager {
      * @param sbrickAddress The SBrick address.
      */
     void forgetSBrick(String sbrickAddress);
+
+    /**
+     * Starts the SBrick command processing.
+     * @return true if OK, false otherwise.
+     */
+    boolean startCommandProcessing();
+
+    /**
+     * Stops the SBrick command processing.
+     */
+    void stopCommandProcessing();
 }

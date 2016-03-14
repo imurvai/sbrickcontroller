@@ -121,13 +121,13 @@ public class ControllerActivity extends ActionBarActivity {
             swapTriggers = prefs.getBoolean("swap_triggers", false);
         }
         catch (Exception ex) {
-            Log.e(TAG, "Could not read swap-triggers from preferences.", ex);
+            Log.e(TAG, "  Could not read swap-triggers from preferences.", ex);
         }
 
         allSBrickOk = true;
         for (Map.Entry<String, SBrick> kvp: sbricksMap.entrySet()) {
             if (kvp.getValue() == null) {
-                Log.w(TAG, "SBrick from the profile is not found - " + kvp.getKey());
+                Log.w(TAG, "  SBrick from the profile is not found - " + kvp.getKey());
                 allSBrickOk = false;
 
                 Helper.showMessageBox(
@@ -144,37 +144,45 @@ public class ControllerActivity extends ActionBarActivity {
         }
 
         if (allSBrickOk) {
-            Log.i(TAG, "All the SBricks in this profile are OK.");
+            Log.i(TAG, "  All the SBricks in this profile are OK.");
 
             IntentFilter filter = new IntentFilter();
             filter.addAction(SBrick.ACTION_SBRICK_CONNECTED);
+            filter.addAction(SBrick.ACTION_SBRICK_CONNECT_FAILED);
             filter.addAction(SBrick.ACTION_SBRICK_DISCONNECTED);
             filter.addAction(SBrick.ACTION_SBRICK_CHARACTERISTIC_READ);
             LocalBroadcastManager.getInstance(this).registerReceiver(sbrickBroadcastReceiver, filter);
 
-            if (connectToSBricks()) {
-                progressDialog = Helper.showProgressDialog(
-                        this,
-                        "Connecting to SBrick(s)...",
-                        new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                Log.i(TAG, "onClick...");
-                                ControllerActivity.this.finish();
-                            }
-                        });
-            }
-            else {
-                Helper.showMessageBox(
-                    this,
-                    "Could not start connecting to SBricks.",
-                    new DialogInterface.OnClickListener() {
+            Log.i(TAG, "  Start the SBrick command processing...");
+            if (SBrickManagerHolder.getManager().startCommandProcessing()) {
+
+                if (connectToSBricks()) {
+                    progressDialog = Helper.showProgressDialog(this, "Connecting to SBrick(s)...", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                            Log.i(TAG, "onClick...");
+                            ControllerActivity.this.finish();
+                        }
+                    });
+                }
+                else {
+                    Helper.showMessageBox(this, "Could not start connecting to SBricks.", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             Log.i(TAG, "onClick...");
                             ControllerActivity.this.finish();
                         }
                     });
+                }
+            }
+            else {
+                Helper.showMessageBox(this, "Could not start the command processing.", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        Log.i(TAG, "onClick...");
+                        ControllerActivity.this.finish();
+                    }
+                });
             }
         }
     }
@@ -189,6 +197,7 @@ public class ControllerActivity extends ActionBarActivity {
             LocalBroadcastManager.getInstance(this).unregisterReceiver(sbrickBroadcastReceiver);
 
             disconnectFromSBricks();
+            SBrickManagerHolder.getManager().stopCommandProcessing();
 
             Log.i(TAG, "  Dismiss the progress dialog if open...");
             if (progressDialog != null) {
@@ -324,7 +333,7 @@ public class ControllerActivity extends ActionBarActivity {
     }
 
     //
-    // Private members
+    // Private methods
     //
 
     private boolean connectToSBricks() {
@@ -339,10 +348,12 @@ public class ControllerActivity extends ActionBarActivity {
         }
 
         if (!isAllOk) {
+            Log.w(TAG, "  Failed to connect some of the SBricks.");
             disconnectFromSBricks();
+            return false;
         }
 
-        return isAllOk;
+        return true;
     }
 
     private void disconnectFromSBricks() {
@@ -359,12 +370,12 @@ public class ControllerActivity extends ActionBarActivity {
 
         for (SBrick sbrick : sbricksMap.values()) {
             if (!sbrick.isConnected()) {
-                Log.i(TAG, "  Not all SBrick is connected.");
+                Log.i(TAG, "  Not all SBricks are connected.");
                 return false;
             }
         }
 
-        Log.i(TAG, "  All SBrick is connected.");
+        Log.i(TAG, "  All SBricks are connected.");
         return true;
     }
 
@@ -420,9 +431,14 @@ public class ControllerActivity extends ActionBarActivity {
         return new HashSet<>();
     }
 
+    //
+    // Broadcast receiver
+    //
+
     private final BroadcastReceiver sbrickBroadcastReceiver = new BroadcastReceiver() {
+
         @Override
-        public void onReceive(Context context, Intent intent) {
+        public synchronized void onReceive(Context context, Intent intent) {
             Log.i(TAG, "sbrickBroadcastReceiver.onReceive...");
 
             switch (intent.getAction()) {
@@ -438,6 +454,24 @@ public class ControllerActivity extends ActionBarActivity {
 
                     break;
 
+                case SBrick.ACTION_SBRICK_CONNECT_FAILED:
+                    Log.i(TAG, "  ACTION_SBRICK_CONNECT_FAILED");
+
+                    if (progressDialog != null) {
+                        progressDialog.dismiss();
+                        progressDialog = null;
+                    }
+
+                    Helper.showMessageBox(ControllerActivity.this, "Failed to connect to SBricks.", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            Log.i(TAG, "onClick...");
+                            ControllerActivity.this.finish();
+                        }
+                    });
+
+                    break;
+
                 case SBrick.ACTION_SBRICK_DISCONNECTED:
                     Log.i(TAG, "  ACTION_SBRICK_DISCONNECTED");
 
@@ -446,16 +480,13 @@ public class ControllerActivity extends ActionBarActivity {
                         progressDialog = null;
                     }
 
-                    progressDialog = Helper.showProgressDialog(
-                            ControllerActivity.this,
-                            "Reconnecting to SBricks...",
-                            new DialogInterface.OnClickListener() {
+                    progressDialog = Helper.showProgressDialog(ControllerActivity.this, "Reconnecting to SBricks...", new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
-                                    Log.i(TAG, "onClick...");
-                                    ControllerActivity.this.finish();
-                                }
-                            });
+                            Log.i(TAG, "onClick...");
+                            ControllerActivity.this.finish();
+                        }
+                    });
 
                     break;
             }

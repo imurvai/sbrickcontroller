@@ -7,6 +7,9 @@ import android.os.AsyncTask;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
+import com.scn.sbrickmanager.sbrickcommand.Command;
+import com.scn.sbrickmanager.sbrickcommand.CommandMethod;
+
 /**
  * SBrick mock implementation.
  */
@@ -21,13 +24,14 @@ public class SBrickMock extends SBrickBase {
     private final String address;
 
     private AsyncTask<Void, Void, Void> connectionAsyncTask = null;
+    private AsyncTask<Void, Void, Void> discoverServicesAsyncTask = null;
 
     //
-    // API
+    // Constructor
     //
 
-    SBrickMock(Context context, String address, String name) {
-        super(context);
+    SBrickMock(Context context, SBrickManagerBase sbrickManager, String address, String name) {
+        super(context, sbrickManager);
 
         Log.i(TAG, "SBrickMock...");
         Log.i(TAG, "  Address: " + address);
@@ -37,73 +41,13 @@ public class SBrickMock extends SBrickBase {
         setName(name);
     }
 
+    //
+    // SBrick overrides
+    //
+
     @Override
     public String getAddress() {
         return address;
-    }
-
-    @Override
-    public synchronized boolean connect() {
-        Log.i(TAG, "connect - " + getAddress());
-
-        if (isConnected) {
-            Log.i(TAG, "  Already connected.");
-            return false;
-        }
-
-        if (connectionAsyncTask != null) {
-            Log.i(TAG, "  Already connecting.");
-            return false;
-        }
-
-        connectionAsyncTask = new AsyncTask<Void, Void, Void>() {
-
-            @Override
-            protected Void doInBackground(Void... params) {
-
-                try {
-                    Thread.sleep(300);
-                }
-                catch (Exception ex) {
-                }
-
-                return null;
-            }
-
-            @Override
-            protected synchronized void onCancelled() {
-                super.onCancelled();
-                isConnected = false;
-                connectionAsyncTask = null;
-            }
-
-            @Override
-            protected synchronized void onPostExecute(Void aVoid) {
-                super.onPostExecute(aVoid);
-                isConnected = true;
-                connectionAsyncTask = null;
-                isConnected = true;
-                startCommandProcessing();
-                sendLocalBroadcast(ACTION_SBRICK_CONNECTED);
-            }
-        }.execute();
-
-        return true;
-    }
-
-    @Override
-    public synchronized void disconnect() {
-        Log.i(TAG, "disconnect - " + getAddress());
-
-        if (connectionAsyncTask != null)
-            connectionAsyncTask.cancel(true);
-
-        if (!isConnected) {
-            Log.i(TAG, "  Already disconnected.");
-            return;
-        }
-
-        isConnected = false;
     }
 
     //
@@ -111,15 +55,110 @@ public class SBrickMock extends SBrickBase {
     //
 
     @Override
-    protected boolean processCommand(Command command) {
-        Log.i(TAG, "processCommand...");
+    protected CommandMethod createConnectCommandMethod() {
+        Log.i(TAG, "createConnectCommandMethod - " + getAddress());
 
-        switch (command.getCommandType()) {
+        return new CommandMethod() {
+            @Override
+            public synchronized boolean execute() {
 
-            case READ_CHARACTERISTIC:
+                connectionAsyncTask = new AsyncTask<Void, Void, Void>() {
+
+                    @Override
+                    protected Void doInBackground(Void... params) {
+
+                        try {
+                            Thread.sleep(300);
+                        }
+                        catch (Exception ex) {
+                        }
+
+                        return null;
+                    }
+
+                    @Override
+                    protected synchronized void onCancelled() {
+                        super.onCancelled();
+                        isConnected = false;
+                        connectionAsyncTask = null;
+
+                        sbrickManager.releaseCommandSemaphore();
+                    }
+
+                    @Override
+                    protected synchronized void onPostExecute(Void aVoid) {
+                        super.onPostExecute(aVoid);
+                        connectionAsyncTask = null;
+
+                        // Discover services
+                        CommandMethod commandMethod = createDiscoverServicesCommandMethod();
+                        sbrickManager.sendCommand(Command.newDiscoverServicesCommand(SBrickMock.this, commandMethod));
+
+                        sbrickManager.releaseCommandSemaphore();
+                    }
+                }.execute();
+
+                return true;
+            }
+        };
+    }
+
+    @Override
+    protected CommandMethod createDiscoverServicesCommandMethod() {
+        Log.i(TAG, "createDiscoverServicesCommandMethod - " + getAddress());
+
+        return new CommandMethod() {
+            @Override
+            public synchronized boolean execute() {
+
+                discoverServicesAsyncTask = new AsyncTask<Void, Void, Void>() {
+
+                    @Override
+                    protected Void doInBackground(Void... params) {
+
+                        try {
+                            Thread.sleep(300);
+                        }
+                        catch (Exception ex) {
+                        }
+
+                        return null;
+                    }
+
+                    @Override
+                    protected synchronized void onCancelled() {
+                        super.onCancelled();
+                        isConnected = false;
+                        discoverServicesAsyncTask = null;
+
+                        sbrickManager.releaseCommandSemaphore();
+                    }
+
+                    @Override
+                    protected synchronized void onPostExecute(Void aVoid) {
+                        super.onPostExecute(aVoid);
+                        discoverServicesAsyncTask = null;
+                        isConnected = true;
+
+                        sbrickManager.releaseCommandSemaphore();
+                        sendLocalBroadcast(ACTION_SBRICK_CONNECTED);
+                    }
+                }.execute();
+
+                return true;
+            }
+        };
+    }
+
+    @Override
+    protected CommandMethod createReadCharacteristicCommandMethod(final SBrickCharacteristicType characteristicType) {
+        Log.i(TAG, "createReadCharacteristicCommandMethod - " + getAddress());
+
+        return new CommandMethod() {
+            @Override
+            public boolean execute() {
 
                 String value = "N/A";
-                SBrickCharacteristicType characteristicType = (SBrickCharacteristicType)command.getCharacteristicType();
 
                 switch (characteristicType) {
                     case DeviceName:
@@ -149,6 +188,9 @@ public class SBrickMock extends SBrickBase {
                         break;
                 }
 
+
+                sbrickManager.releaseCommandSemaphore();
+
                 Intent intent = new Intent();
                 intent.setAction(ACTION_SBRICK_CHARACTERISTIC_READ);
                 intent.putExtra(EXTRA_SBRICK_ADDRESS, getAddress());
@@ -156,13 +198,54 @@ public class SBrickMock extends SBrickBase {
                 intent.putExtra(EXTRA_CHARACTERISTIC_VALUE, value);
                 LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
 
-            case SEND_QUICK_DRIVE:
-            case SEND_REMOTE_CONTROL:
-                // Do nothing
-                break;
+                return true;
+            }
+        };
+    }
+
+    @Override
+    protected CommandMethod createWriteRemoteControlCommandMethod(int channel, int value) {
+        Log.i(TAG, "createWriteRemoteControlCommandMethod - " + getAddress());
+
+        return new CommandMethod() {
+            @Override
+            public boolean execute() {
+
+                sbrickManager.releaseCommandSemaphore();
+                return true;
+            }
+        };
+    }
+
+    @Override
+    protected CommandMethod createWriteQuickDriveCommandMethod(int v0, int v1, int v2, int v3) {
+        Log.i(TAG, "createWriteQuickDriveCommandMethod - " + getAddress());
+
+        return new CommandMethod() {
+            @Override
+            public boolean execute() {
+
+                sbrickManager.releaseCommandSemaphore();
+                return true;
+            }
+        };
+    }
+
+    @Override
+    public synchronized void disconnect() {
+        Log.i(TAG, "disconnect - " + getAddress());
+
+        if (connectionAsyncTask != null)
+            connectionAsyncTask.cancel(true);
+
+        if (discoverServicesAsyncTask != null)
+            discoverServicesAsyncTask.cancel(true);
+
+        if (!isConnected) {
+            Log.i(TAG, "  Already disconnected.");
+            return;
         }
 
-        commandSendingSemaphore.release();
-        return true;
+        isConnected = false;
     }
 }

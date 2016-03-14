@@ -47,7 +47,7 @@ class SBrickManagerMock extends SBrickManagerBase {
             return sbrickMap.get(sbrickAddress);
         }
 
-        SBrick sbrick = new SBrickMock(context, sbrickAddress, "SCNBrick");
+        SBrick sbrick = new SBrickMock(context, this, sbrickAddress, "SCNBrick");
         sbrickMap.put(sbrickAddress, sbrick);
         return sbrick;
     }

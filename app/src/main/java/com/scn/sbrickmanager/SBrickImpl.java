@@ -12,6 +12,11 @@ import android.content.Intent;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
+import com.scn.sbrickmanager.sbrickcommand.Command;
+import com.scn.sbrickmanager.sbrickcommand.CommandMethod;
+import com.scn.sbrickmanager.sbrickcommand.WriteQuickDriveCommand;
+import com.scn.sbrickmanager.sbrickcommand.WriteRemoteControlCommand;
+
 import java.util.Iterator;
 import java.util.List;
 import java.util.Timer;
@@ -52,11 +57,11 @@ class SBrickImpl extends SBrickBase {
     private BluetoothGattCharacteristic quickDriveCharacteristic = null;
 
     //
-    // API
+    // Constructor
     //
 
-    SBrickImpl(Context context, BluetoothDevice bluetoothDevice) {
-        super(context);
+    SBrickImpl(Context context, SBrickManagerBase sbrickManager, BluetoothDevice bluetoothDevice) {
+        super(context, sbrickManager);
 
         Log.i(TAG, "SBrickImpl...");
         Log.i(TAG, "  address: " + bluetoothDevice.getAddress());
@@ -66,43 +71,24 @@ class SBrickImpl extends SBrickBase {
         setName(bluetoothDevice.getName());
     }
 
+    //
+    // SBrick overrides
+    //
+
     @Override
     public synchronized String getAddress() {
         return bluetoothDevice.getAddress();
     }
 
     @Override
-    public synchronized boolean connect() {
-        Log.i(TAG, "connect - " + getAddress());
-
-        if (isConnected) {
-            Log.i(TAG, "  Already connected.");
-            return false;
-        }
-
-        bluetoothGatt = bluetoothDevice.connectGatt(context, true, gattCallback);
-        if (bluetoothGatt == null)
-            throw new RuntimeException("Can't create GATT - " + getAddress());
-
-        return true;
-    }
-
-    @Override
     public synchronized void disconnect() {
         Log.i(TAG, "disconnect - " + getAddress());
 
-        if (!isConnected) {
-            Log.i(TAG, "  Already disconnected.");
-
-            if (bluetoothGatt != null)
-                bluetoothGatt.close();
-
-            return;
+        if (isConnected && bluetoothGatt != null) {
+            bluetoothGatt.disconnect();
+            bluetoothGatt.close();
         }
 
-        stopCommandProcessing();
-        bluetoothGatt.disconnect();
-        bluetoothGatt.close();
         isConnected = false;
         remoteControlCharacteristic = null;
         quickDriveCharacteristic = null;
@@ -113,89 +99,141 @@ class SBrickImpl extends SBrickBase {
     //
 
     @Override
-    protected synchronized boolean processCommand(Command command) {
-        //Log.i(TAG, "processCommand...");
-        //Log.i(TAG, "  command: " + command);
+    protected CommandMethod createConnectCommandMethod() {
+        Log.i(TAG, "createConnectCommandMethod - " + getAddress());
 
-        try {
-            switch (command.getCommandType()) {
+        return new CommandMethod() {
+            @Override
+            public boolean execute() {
+                Log.i(TAG, "Connect command method - " + getAddress());
 
-                case READ_CHARACTERISTIC:
-                    Log.i(TAG, "  READ_CAHRACTERISTIC");
+                bluetoothGatt = bluetoothDevice.connectGatt(context, true, gattCallback);
+                if (bluetoothGatt == null) {
+                    Log.w(TAG, "  Can't connect to GATT for SBrick: " + getAddress());
+                    return false;
+                }
 
-                    SBrickCharacteristicType characteristicType = command.getCharacteristicType();
-                    String serviceUUID = "";
-                    String characteristicUUID = "";
-
-                    switch (characteristicType) {
-                        case DeviceName:
-                            serviceUUID = SERVICE_PARTIAL_UUID_GENERIC_GAP;
-                            characteristicUUID = CHARACTERISTIC_PARTIAL_UUID_DEVICE_NAME;
-                            break;
-
-                        case Appearance:
-                            serviceUUID = SERVICE_PARTIAL_UUID_GENERIC_GAP;
-                            characteristicUUID = CHARACTERISTIC_PARTIAL_UUID_APPEARANCE;
-                            break;
-
-                        case ModelNumber:
-                            serviceUUID = SERVICE_PARTIAL_UUID_DEVICE_INFORMATION;
-                            characteristicUUID = CHARACTERISTIC_PARTIAL_UUID_MODEL_NUMBER;
-                            break;
-
-                        case FirmwareRevision:
-                            serviceUUID = SERVICE_PARTIAL_UUID_DEVICE_INFORMATION;
-                            characteristicUUID = CHARACTERISTIC_PARTIAL_UUID_FIRMWARE_REVISION;
-                            break;
-
-                        case HardwareRevision:
-                            serviceUUID = SERVICE_PARTIAL_UUID_DEVICE_INFORMATION;
-                            characteristicUUID = CHARACTERISTIC_PARTIAL_UUID_HARDWARE_REVISION;
-                            break;
-
-                        case SoftwareRevision:
-                            serviceUUID = SERVICE_PARTIAL_UUID_DEVICE_INFORMATION;
-                            characteristicUUID = CHARACTERISTIC_PARTIAL_UUID_SOFTWARE_REVISION;
-                            break;
-
-                        case ManufacturerName:
-                            serviceUUID = SERVICE_PARTIAL_UUID_DEVICE_INFORMATION;
-                            characteristicUUID = CHARACTERISTIC_PARTIAL_UUID_MANUFACTURER_NAME;
-                            break;
-                    }
-
-                    BluetoothGattCharacteristic gattCharacteristic = getGattCharacteristic(bluetoothGatt, serviceUUID, characteristicUUID);
-                    if (gattCharacteristic == null)
-                        return false;
-
-                    return bluetoothGatt.readCharacteristic(gattCharacteristic);
-
-                case SEND_REMOTE_CONTROL:
-                    //Log.i(TAG, "  SEND_REMOTE_CONTROL");
-
-                    lastWriteCommand = command;
-                    byte[] commandBuffer = command.getCommandBuffer();
-                    return remoteControlCharacteristic.setValue(commandBuffer) &&
-                           bluetoothGatt.writeCharacteristic(remoteControlCharacteristic);
-
-                case SEND_QUICK_DRIVE:
-                    //Log.i(TAG, "  SEND_QUICK_DRIVE");
-
-                    lastWriteCommand = command;
-                    byte[] commandBuffer2 = command.getCommandBuffer();
-                    return quickDriveCharacteristic.setValue(commandBuffer2) &&
-                           bluetoothGatt.writeCharacteristic(quickDriveCharacteristic);
-
-                case QUIT:
-                    Log.i(TAG, "  QUIT");
-                    return true;
+                return true;
             }
-        }
-        catch (Exception ex) {
-            Log.e(TAG, "Error duing processing the next command.");
-        }
+        };
+    }
 
-        return false;
+    @Override
+    protected CommandMethod createDiscoverServicesCommandMethod() {
+        Log.i(TAG, "createDiscoverServicesCommandMethod - " + getAddress());
+
+        return new CommandMethod() {
+            @Override
+            public boolean execute() {
+                Log.i(TAG, "Discover services command method - " + getAddress());
+
+                if (bluetoothGatt == null) {
+                    Log.w(TAG, "  bluetoothGatt is null.");
+                    return false;
+                }
+
+                return bluetoothGatt.discoverServices();
+            }
+        };
+    }
+
+    @Override
+    protected CommandMethod createReadCharacteristicCommandMethod(final SBrickCharacteristicType characteristicType) {
+        Log.i(TAG, "createReadCharacteristicCommandMethod - " + getAddress());
+
+        return new CommandMethod() {
+            @Override
+            public boolean execute() {
+                Log.i(TAG, "Read characteristic command method - " + getAddress());
+
+                String serviceUUID = "";
+                String characteristicUUID = "";
+
+                switch (characteristicType) {
+                    case DeviceName:
+                        serviceUUID = SERVICE_PARTIAL_UUID_GENERIC_GAP;
+                        characteristicUUID = CHARACTERISTIC_PARTIAL_UUID_DEVICE_NAME;
+                        break;
+
+                    case Appearance:
+                        serviceUUID = SERVICE_PARTIAL_UUID_GENERIC_GAP;
+                        characteristicUUID = CHARACTERISTIC_PARTIAL_UUID_APPEARANCE;
+                        break;
+
+                    case ModelNumber:
+                        serviceUUID = SERVICE_PARTIAL_UUID_DEVICE_INFORMATION;
+                        characteristicUUID = CHARACTERISTIC_PARTIAL_UUID_MODEL_NUMBER;
+                        break;
+
+                    case FirmwareRevision:
+                        serviceUUID = SERVICE_PARTIAL_UUID_DEVICE_INFORMATION;
+                        characteristicUUID = CHARACTERISTIC_PARTIAL_UUID_FIRMWARE_REVISION;
+                        break;
+
+                    case HardwareRevision:
+                        serviceUUID = SERVICE_PARTIAL_UUID_DEVICE_INFORMATION;
+                        characteristicUUID = CHARACTERISTIC_PARTIAL_UUID_HARDWARE_REVISION;
+                        break;
+
+                    case SoftwareRevision:
+                        serviceUUID = SERVICE_PARTIAL_UUID_DEVICE_INFORMATION;
+                        characteristicUUID = CHARACTERISTIC_PARTIAL_UUID_SOFTWARE_REVISION;
+                        break;
+
+                    case ManufacturerName:
+                        serviceUUID = SERVICE_PARTIAL_UUID_DEVICE_INFORMATION;
+                        characteristicUUID = CHARACTERISTIC_PARTIAL_UUID_MANUFACTURER_NAME;
+                        break;
+                }
+
+                BluetoothGattCharacteristic gattCharacteristic = getGattCharacteristic(bluetoothGatt, serviceUUID, characteristicUUID);
+                if (gattCharacteristic == null)
+                    return false;
+
+                return bluetoothGatt.readCharacteristic(gattCharacteristic);
+            }
+        };
+    }
+
+    @Override
+    protected CommandMethod createWriteRemoteControlCommandMethod(final int channel, final int value) {
+        Log.i(TAG, "createWriteRemoteControlCommandMethod - " + getAddress());
+
+        return new CommandMethod() {
+            @Override
+            public boolean execute() {
+                Log.i(TAG, "Write remote control command method - " + getAddress());
+
+                byte invert = (byte)((0 <= value) ? 0 : 1);
+                byte byteValue = (byte)(Math.min(255, Math.abs(value)));
+
+                byte[] commandBuffer = new byte[] { 0x01, (byte)channel, invert, byteValue};
+                return remoteControlCharacteristic.setValue(commandBuffer) &&
+                        bluetoothGatt.writeCharacteristic(remoteControlCharacteristic);
+            }
+        };
+    }
+
+    @Override
+    protected CommandMethod createWriteQuickDriveCommandMethod(final int v0, final int v1, final int v2, final int v3) {
+        Log.i(TAG, "createWriteQuickDriveCommandMethod - " + getAddress());
+
+        return new CommandMethod() {
+            @Override
+            public boolean execute() {
+                Log.i(TAG, "Write quick drive command method - " + getAddress());
+
+                // 0 doesn't stop the watchdog on quick drive, let's set the second bit to 1
+                byte bv0 = (byte)((Math.min(255, Math.abs(v0)) & 0xfe) | 0x02 | (0 <= v0 ? 0 : 1));
+                byte bv1 = (byte)((Math.min(255, Math.abs(v1)) & 0xfe) | 0x02 | (0 <= v1 ? 0 : 1));
+                byte bv2 = (byte)((Math.min(255, Math.abs(v2)) & 0xfe) | 0x02 | (0 <= v2 ? 0 : 1));
+                byte bv3 = (byte)((Math.min(255, Math.abs(v3)) & 0xfe) | 0x02 | (0 <= v3 ? 0 : 1));
+
+                byte[] commandBuffer = new byte[] { bv0, bv1, bv2, bv3 };
+                return quickDriveCharacteristic.setValue(commandBuffer) &&
+                        bluetoothGatt.writeCharacteristic(quickDriveCharacteristic);
+            }
+        };
     }
 
     //
@@ -208,166 +246,153 @@ class SBrickImpl extends SBrickBase {
         public synchronized void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
             Log.i(TAG, "BluetoothGattCallback.onConnectionStateChange - " + getAddress());
 
-            switch (newState) {
-                case BluetoothProfile.STATE_CONNECTING:
-                    Log.i(TAG, "  STATE_CONNECTING");
-                    break;
+            if (status == BluetoothGatt.GATT_SUCCESS) {
 
-                case BluetoothProfile.STATE_CONNECTED:
-                    Log.i(TAG, "  STATE_CONNECTED");
+                switch (newState) {
+                    case BluetoothProfile.STATE_CONNECTED:
+                        Log.i(TAG, "  STATE_CONNECTED");
 
-                    bluetoothGatt = gatt;
+                        bluetoothGatt = gatt;
 
-                    Log.i(TAG, " Discovering GATT services...");
-                    if (!gatt.discoverServices()) {
-                        Log.w(TAG, "  Failed to start discovering GATT services.");
-                        disconnect();
-                    }
-                    break;
+                        // Discover services
+                        CommandMethod commandMethod = createDiscoverServicesCommandMethod();
+                        sbrickManager.sendCommand(Command.newDiscoverServicesCommand(SBrickImpl.this, commandMethod));
+                        break;
 
-                case BluetoothProfile.STATE_DISCONNECTING:
-                    Log.i(TAG, "  STATE_DISCONNECTING");
-                    break;
+                    case BluetoothProfile.STATE_DISCONNECTED:
+                        Log.i(TAG, "  STATE_DISCONNECTED");
 
-                case BluetoothProfile.STATE_DISCONNECTED:
-                    Log.i(TAG, "  STATE_DISCONNECTED");
+                        isConnected = false;
+                        remoteControlCharacteristic = null;
+                        quickDriveCharacteristic = null;
 
-                    stopCommandProcessing();
-                    isConnected = false;
-                    remoteControlCharacteristic = null;
-                    quickDriveCharacteristic = null;
+                        sendLocalBroadcast(ACTION_SBRICK_DISCONNECTED);
+                        break;
 
-                    sendLocalBroadcast(ACTION_SBRICK_DISCONNECTED);
-                    break;
-
-                default:
-                    Log.w(TAG, "  Unknown state.");
-                    break;
+                    default:
+                        Log.i(TAG, "  State: " + newState);
+                        break;
+                }
+            }
+            else {
+                Log.w(TAG, "  GATT not success.");
+                sendLocalBroadcast(ACTION_SBRICK_CONNECT_FAILED);
             }
 
-            super.onConnectionStateChange(gatt, status, newState);
+            // Release the semaphore to let the command process thread to proceed.
+            sbrickManager.releaseCommandSemaphore();
         }
 
         @Override
         public synchronized void onServicesDiscovered(BluetoothGatt gatt, int status) {
             Log.i(TAG, "BluetoothGattCallback.onServicesDiscovered - " + getAddress());
 
-            switch (status) {
+            if (status == BluetoothGatt.GATT_SUCCESS) {
+                Log.i(TAG, "  GATT_SUCCESS");
+                //logServices(gatt);
 
-                case BluetoothGatt.GATT_SUCCESS:
-                    Log.i(TAG, "  GATT_SUCCESS");
-                    //logServices(gatt);
+                remoteControlCharacteristic = getGattCharacteristic(gatt, SERVICE_UUID_REMOTE_CONTROL, CHARACTERISTIC_UUID_REMOTE_CONTROL);
+                quickDriveCharacteristic = getGattCharacteristic(gatt, SERVICE_UUID_REMOTE_CONTROL, CHARACTERISTIC_UUID_QUICK_DRIVE);
+                isConnected = true;
 
-                    remoteControlCharacteristic = getGattCharacteristic(gatt, SERVICE_UUID_REMOTE_CONTROL, CHARACTERISTIC_UUID_REMOTE_CONTROL);
-                    quickDriveCharacteristic = getGattCharacteristic(gatt, SERVICE_UUID_REMOTE_CONTROL, CHARACTERISTIC_UUID_QUICK_DRIVE);
-                    startCommandProcessing();
-                    isConnected = true;
-
-                    sendLocalBroadcast(ACTION_SBRICK_CONNECTED);
-                    break;
-
-                case BluetoothGatt.GATT_FAILURE:
-                    Log.w(TAG, "  GATT_FAILURE");
-                    disconnect();
-                    break;
-
-                default:
-                    Log.w(TAG, "  GATT status: " + status);
-                    break;
+                sendLocalBroadcast(ACTION_SBRICK_CONNECTED);
+            }
+            else {
+                Log.w(TAG, "  GATT not success.");
+                disconnect();
+                sendLocalBroadcast(ACTION_SBRICK_CONNECT_FAILED);
             }
 
-            super.onServicesDiscovered(gatt, status);
+            // Release the semaphore to let the command process thread to proceed.
+            sbrickManager.releaseCommandSemaphore();
         }
 
         @Override
         public synchronized void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
             Log.i(TAG, "BluetoothGattCallback.onCharacteristicRead - " + getAddress());
 
-            switch (status) {
-                case BluetoothGatt.GATT_SUCCESS:
-                    Log.i(TAG, "  GATT_SUCCESS");
+            if (status == BluetoothGatt.GATT_SUCCESS) {
+                Log.i(TAG, "  GATT_SUCCESS");
 
-                    String value = "N/A";
-                    SBrickCharacteristicType characteristicType = getSBrickCharacteristicType(characteristic);
+                String value = "N/A";
+                SBrickCharacteristicType characteristicType = getSBrickCharacteristicType(characteristic);
 
-                    switch (characteristicType) {
-                        case DeviceName:
-                        case ModelNumber:
-                        case FirmwareRevision:
-                        case HardwareRevision:
-                        case SoftwareRevision:
-                        case ManufacturerName:
-                            value = characteristic.getStringValue(0);
-                            break;
+                switch (characteristicType) {
+                    case DeviceName:
+                    case ModelNumber:
+                    case FirmwareRevision:
+                    case HardwareRevision:
+                    case SoftwareRevision:
+                    case ManufacturerName:
+                        value = characteristic.getStringValue(0);
+                        break;
 
-                        case Appearance:
-                            value = String.valueOf(characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT16, 0));
-                            break;
+                    case Appearance:
+                        value = String.valueOf(characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT16, 0));
+                        break;
 
-                        default:
-                            Log.i(TAG, "  Unknown characteristic.");
-                            break;
-                    }
+                    default:
+                        Log.i(TAG, "  Unknown characteristic.");
+                        break;
+                }
 
-                    Intent intent = new Intent();
-                    intent.setAction(ACTION_SBRICK_CHARACTERISTIC_READ);
-                    intent.putExtra(EXTRA_SBRICK_ADDRESS, getAddress());
-                    intent.putExtra(EXTRA_CHARACTERISTIC_TYPE, characteristicType.name());
-                    intent.putExtra(EXTRA_CHARACTERISTIC_VALUE, value);
-                    LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
-                    break;
-
-                default:
-                    Log.w(TAG, "  GATT status: " + status);
-                    break;
+                Intent intent = new Intent();
+                intent.setAction(ACTION_SBRICK_CHARACTERISTIC_READ);
+                intent.putExtra(EXTRA_SBRICK_ADDRESS, getAddress());
+                intent.putExtra(EXTRA_CHARACTERISTIC_TYPE, characteristicType.name());
+                intent.putExtra(EXTRA_CHARACTERISTIC_VALUE, value);
+                LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
+            }
+            else {
+                Log.w(TAG, "  GATT not success.");
+                sendLocalBroadcast(ACTION_SBRICK_READ_CHARACTERISTIC_FAILED);
             }
 
             // Release the semaphore to let the command process thread to proceed.
-            commandSendingSemaphore.release();
-
-            super.onCharacteristicRead(gatt, characteristic, status);
+            sbrickManager.releaseCommandSemaphore();
         }
 
         @Override
         public synchronized void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
-            //Log.i(TAG, "onCharacteristicWrite...");
+            Log.i(TAG, "BluetoothGattCallback.onCharacteristicWrite...");
 
             if (status == BluetoothGatt.GATT_SUCCESS) {
-                //Log.i(TAG, "onCharacteristicWrite - GATT_SUCCESS");
+                Log.i(TAG, "  GATT_SUCCESS");
 
                 if (lastWriteCommand != null) {
 
-                    boolean needWatchdog = false;
-
                     // Update channel values
-                    switch (lastWriteCommand.getCommandType()) {
+                    if (lastWriteCommand instanceof WriteRemoteControlCommand) {
+                        Log.i(TAG, "  Last write command is remote control.");
 
-                        case SEND_REMOTE_CONTROL:
-                            channelValues[lastWriteCommand.getChannel()] = lastWriteCommand.getChannelValues()[0];
-                            needWatchdog = channelValues[0] != 0 || channelValues[1] != 0 || channelValues[2] != 0 || channelValues[3] != 0;
-                            break;
+                        WriteRemoteControlCommand command = (WriteRemoteControlCommand)lastWriteCommand;
+                        channelValues[command.getChannel()] = command.getValue();
+                    }
+                    else if (lastWriteCommand instanceof WriteQuickDriveCommand) {
+                        Log.i(TAG, "  Last write command is quick drive.");
 
-                        case SEND_QUICK_DRIVE:
-                            channelValues[0] = lastWriteCommand.getChannelValues()[0];
-                            channelValues[1] = lastWriteCommand.getChannelValues()[1];
-                            channelValues[2] = lastWriteCommand.getChannelValues()[2];
-                            channelValues[3] = lastWriteCommand.getChannelValues()[3];
-                            needWatchdog = channelValues[0] != 0 || channelValues[1] != 0 || channelValues[2] != 0 || channelValues[3] != 0;
-                            break;
+                        WriteQuickDriveCommand command = (WriteQuickDriveCommand)lastWriteCommand;
+                        channelValues[0] = command.getV0();
+                        channelValues[1] = command.getV1();
+                        channelValues[2] = command.getV2();
+                        channelValues[3] = command.getV3();
                     }
 
                     // Start the watchdog timer if any of the channels is not 0
-                    if (needWatchdog) {
+                    boolean needWatchdog = channelValues[0] != 0 || channelValues[1] != 0 || channelValues[2] != 0 || channelValues[3] != 0;
+                    if (needWatchdog)
                         startWatchdogTimer();
-                    }
-                    else {
+                    else
                         stopWatchdogTimer();
-                    }
                 }
+            }
+            else {
+                Log.w(TAG, "  GATT not success.");
+                sendLocalBroadcast(ACTION_SBRICK_WRITE_CHARACTERISTIC_FAILED);
             }
 
             // Release the semaphore to let the command process thread to proceed.
-            commandSendingSemaphore.release();
+            sbrickManager.releaseCommandSemaphore();
         }
     };
 

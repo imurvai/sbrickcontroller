@@ -25,6 +25,7 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.scn.sbrickmanager.SBrick;
+import com.scn.sbrickmanager.SBrickCharacteristicType;
 import com.scn.sbrickmanager.SBrickManagerHolder;
 
 import java.util.Date;
@@ -114,9 +115,13 @@ public class SBrickDetailsActivity extends BaseActivity {
 
         IntentFilter filter = new IntentFilter();
         filter.addAction(SBrick.ACTION_SBRICK_CONNECTED);
+        filter.addAction(SBrick.ACTION_SBRICK_CONNECT_FAILED);
         filter.addAction(SBrick.ACTION_SBRICK_DISCONNECTED);
         filter.addAction(SBrick.ACTION_SBRICK_CHARACTERISTIC_READ);
         LocalBroadcastManager.getInstance(this).registerReceiver(sbrickBroadcastReceiver, filter);
+
+        Log.i(TAG, "  Start the SBrick command processing...");
+        SBrickManagerHolder.getManager().startCommandProcessing();
 
         if (sbrick.connect()) {
             progressDialog = Helper.showProgressDialog(
@@ -154,6 +159,9 @@ public class SBrickDetailsActivity extends BaseActivity {
 
         Log.i(TAG, "  Disconnect from the SBrick...");
         sbrick.disconnect();
+
+        Log.i(TAG, "  Stop the SBrick command processing...");
+        SBrickManagerHolder.getManager().stopCommandProcessing();
 
         Log.i(TAG, "  Dismiss the progress dialog if open...");
         if (progressDialog != null) {
@@ -308,13 +316,31 @@ public class SBrickDetailsActivity extends BaseActivity {
                         progressDialog = null;
                     }
 
-                    sbrick.readCharacteristic(SBrick.SBrickCharacteristicType.DeviceName);
-                    sbrick.readCharacteristic(SBrick.SBrickCharacteristicType.FirmwareRevision);
-                    sbrick.readCharacteristic(SBrick.SBrickCharacteristicType.HardwareRevision);
-                    sbrick.readCharacteristic(SBrick.SBrickCharacteristicType.SoftwareRevision);
-                    sbrick.readCharacteristic(SBrick.SBrickCharacteristicType.ManufacturerName);
-                    sbrick.readCharacteristic(SBrick.SBrickCharacteristicType.ModelNumber);
-                    sbrick.readCharacteristic(SBrick.SBrickCharacteristicType.Appearance);
+                    sbrick.readCharacteristic(SBrickCharacteristicType.DeviceName);
+                    sbrick.readCharacteristic(SBrickCharacteristicType.FirmwareRevision);
+                    sbrick.readCharacteristic(SBrickCharacteristicType.HardwareRevision);
+                    sbrick.readCharacteristic(SBrickCharacteristicType.SoftwareRevision);
+                    sbrick.readCharacteristic(SBrickCharacteristicType.ManufacturerName);
+                    sbrick.readCharacteristic(SBrickCharacteristicType.ModelNumber);
+                    sbrick.readCharacteristic(SBrickCharacteristicType.Appearance);
+
+                    break;
+
+                case SBrick.ACTION_SBRICK_CONNECT_FAILED:
+                    Log.i(TAG, "  ACTION_SBRICK_CONNECT_FAILED");
+
+                    if (progressDialog != null) {
+                        progressDialog.dismiss();
+                        progressDialog = null;
+                    }
+
+                    Helper.showMessageBox(SBrickDetailsActivity.this, "Failed to connect to SBrick.", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            Log.i(TAG, "onClick...");
+                            SBrickDetailsActivity.this.finish();
+                        }
+                    });
 
                     break;
 
@@ -326,7 +352,13 @@ public class SBrickDetailsActivity extends BaseActivity {
                         progressDialog = null;
                     }
 
-                    SBrickDetailsActivity.this.finish();
+                    progressDialog = Helper.showProgressDialog(SBrickDetailsActivity.this, "Reconnecting to SBrick...", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            Log.i(TAG, "onClick...");
+                            SBrickDetailsActivity.this.finish();
+                        }
+                    });
 
                     break;
 
@@ -334,7 +366,7 @@ public class SBrickDetailsActivity extends BaseActivity {
                     Log.i(TAG, "  ACTION_SBRICK_CHARACTERISTIC_READ");
 
                     try {
-                        SBrick.SBrickCharacteristicType characteristicType = SBrick.SBrickCharacteristicType.valueOf(intent.getStringExtra(SBrick.EXTRA_CHARACTERISTIC_TYPE));
+                        SBrickCharacteristicType characteristicType = SBrickCharacteristicType.valueOf(intent.getStringExtra(SBrick.EXTRA_CHARACTERISTIC_TYPE));
                         String value = intent.getStringExtra(SBrick.EXTRA_CHARACTERISTIC_VALUE);
 
                         switch (characteristicType) {
