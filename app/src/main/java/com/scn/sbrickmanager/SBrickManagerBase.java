@@ -8,6 +8,7 @@ import com.scn.sbrickmanager.sbrickcommand.Command;
 import com.scn.sbrickmanager.sbrickcommand.CommandMethod;
 import com.scn.sbrickmanager.sbrickcommand.QuitCommand;
 import com.scn.sbrickmanager.sbrickcommand.SBrickCommand;
+import com.scn.sbrickmanager.sbrickcommand.WriteCharacteristicCommand;
 import com.scn.sbrickmanager.sbrickcommand.WriteQuickDriveCommand;
 import com.scn.sbrickmanager.sbrickcommand.WriteRemoteControlCommand;
 
@@ -32,9 +33,10 @@ abstract class SBrickManagerBase implements SBrickManager {
 
     private static final String SBrickMapPreferencesName = "SBrickMapPrefs";
 
-    private LinkedBlockingDeque<Command> commandQueue = new LinkedBlockingDeque<>(10);
+    private LinkedBlockingDeque<Command> commandQueue = new LinkedBlockingDeque<>(20);
     private Thread commandProcessThread = null;
     private Semaphore commandSemaphore = new Semaphore(1);
+    private Object lockObject = new Object();
 
     //
     // Protected members
@@ -136,135 +138,150 @@ abstract class SBrickManagerBase implements SBrickManager {
     }
 
     @Override
-    public synchronized boolean startCommandProcessing() {
-        Log.i(TAG, "startCommandProcessing...");
+    public boolean startCommandProcessing() {
 
-        if (commandProcessThread != null) {
-            Log.w(TAG, "  Command processing has already been started.");
-            return false;
-        }
+        synchronized (lockObject) {
+            Log.i(TAG, "startCommandProcessing...");
 
-        try {
-            final Semaphore processThreadStartedSemaphore = new Semaphore(1);
-            processThreadStartedSemaphore.acquire();
+            if (commandProcessThread != null) {
+                Log.w(TAG, "  Command processing has already been started.");
+                return false;
+            }
 
-            commandProcessThread = new Thread() {
+            try {
+                final Semaphore processThreadStartedSemaphore = new Semaphore(1);
+                processThreadStartedSemaphore.acquire();
 
-                @Override
-                public void run() {
+                commandProcessThread = new Thread() {
 
-                    try {
-                        commandQueue.clear();
-                        processThreadStartedSemaphore.release();
+                    @Override
+                    public void run() {
 
-                        while (true) {
-                            try {
-                                // Wait for the GATT callback to release the semaphore.
-                                Log.i(TAG, "Waiting for the command semaphonre...");
-                                commandSemaphore.acquire();
-                                Log.i(TAG, "Command semaphore acquired.");
+                        try {
+                            commandQueue.clear();
+                            processThreadStartedSemaphore.release();
 
-                                synchronized (this) {
+                            while (true) {
+                                try {
+                                    // Wait for the GATT callback to release the semaphore.
+                                    commandSemaphore.acquire();
+
                                     // Get the next command to process.
-                                    Log.i(TAG, "Waiting for command...");
                                     Command command = commandQueue.take();
-                                    Log.i(TAG, "Command has been taken.");
-                                    CommandMethod commandMethod = command.getCommandMethod();
 
-                                    if (command instanceof QuitCommand) {
-                                        // Quit command
-                                        Log.i(TAG, "Quit command.");
-                                        Log.i(TAG, "Empty the command queue...");
-                                        commandQueue.clear();
-                                        break;
-                                    } else {
-                                        // Execute the command method
-                                        Log.i(TAG, "Execute the command method...");
-                                        if (commandMethod == null || !commandMethod.execute()) {
-                                            Log.w(TAG, "Command method execution failed.");
-                                            // Command wasn't sent, no need to wait for the GATT callback.
-                                            commandSemaphore.release();
+                                    synchronized (lockObject) {
+                                        if (command instanceof QuitCommand) {
+
+                                            // Quit command
+                                            Log.i(TAG, "Quit command.");
+                                            Log.i(TAG, "Empty the command queue...");
+                                            commandQueue.clear();
+                                            break;
+                                        } else if (command instanceof SBrickCommand) {
+
+                                            SBrickCommand sbrickCommand = (SBrickCommand) command;
+                                            CommandMethod commandMethod = sbrickCommand.getCommandMethod();
+                                            SBrickBase sbrick = (SBrickBase) sbrickCommand.getSbrick(); // Not nice :(
+
+                                            // Execute the command method
+                                            if (commandMethod != null && commandMethod.execute()) {
+
+                                                // Set the last write command and its time on the SBrick
+                                                if (command instanceof WriteCharacteristicCommand)
+                                                    sbrick.setLastWriteCommand((WriteCharacteristicCommand) command);
+                                            } else {
+                                                Log.w(TAG, "Command method execution failed.");
+                                                // Command wasn't sent, no need to wait for the GATT callback.
+                                                commandSemaphore.release();
+                                            }
                                         }
                                     }
+                                } catch (Exception ex) {
+                                    Log.e(TAG, "Command process thread has thrown an exception.", ex);
+                                    commandSemaphore.release();
                                 }
-                            } catch (Exception ex) {
-                                Log.e(TAG, "Command process thread has thrown an exception.", ex);
-                                commandSemaphore.release();
                             }
+
+                            Log.i(TAG, "Command process thread exits...");
+                        } catch (Exception ex) {
+                            Log.e(TAG, "Command process thread has thrown an exception.", ex);
                         }
 
-                        Log.i(TAG, "Command process thread exits...");
-                    } catch (Exception ex) {
-                        Log.e(TAG, "Command process thread has thrown an exception.", ex);
+                        commandProcessThread = null;
                     }
+                };
 
-                    commandProcessThread = null;
-                }
-            };
+                commandProcessThread.start();
 
-            commandProcessThread.start();
+                // Waiting for the process thread to start.
+                processThreadStartedSemaphore.acquire();
 
-            Log.i(TAG, "  Waiting for the command processing thread to start...");
-            processThreadStartedSemaphore.acquire();
-            Log.i(TAG, "  Command processing has been started.");
-
-            return true;
-        }
-        catch (Exception ex) {
-            Log.e(TAG, "Faild to start command processing thread.", ex);
-            return false;
+                return true;
+            } catch (Exception ex) {
+                Log.e(TAG, "Faild to start command processing thread.", ex);
+                return false;
+            }
         }
     }
 
-    public synchronized void stopCommandProcessing() {
-        Log.i(TAG, "stopCommandProcessing...");
+    public void stopCommandProcessing() {
 
-        if (commandProcessThread == null) {
-            Log.w(TAG, "  Command processing has not been started.");
-            return;
+        synchronized (lockObject) {
+            Log.i(TAG, "stopCommandProcessing...");
+
+            if (commandProcessThread == null) {
+                Log.w(TAG, "  Command processing has not been started.");
+                return;
+            }
+
+            Command quitCommand = Command.newQuitCommand();
+            commandQueue.clear();
+            commandQueue.offerFirst(quitCommand);
+
+            // Just to be sure the semaphore doesn't block the thread.
+            commandSemaphore.release();
         }
-
-        Command quitCommand = Command.newQuitCommand();
-        commandQueue.clear();
-        commandQueue.offerFirst(quitCommand);
-
-        // Just to be sure the semaphore doesn't block the thread.
-        commandSemaphore.release();
     }
 
     //
     // Internal API
     //
 
-    synchronized boolean sendCommand(Command command) {
-        Log.i(TAG, "sendCommand...");
-        Log.i(TAG, "  " + command);
+    Object getLockObject() { return lockObject; }
+
+    boolean sendCommand(Command command) {
+        //Log.i(TAG, "sendCommand...");
+        //Log.i(TAG, "  " + command);
 
         return commandQueue.offer(command);
     }
 
-    synchronized void releaseCommandSemaphore() {
+    boolean sendPriorityCommand(Command command) {
+        //Log.i(TAG, "sendPriorityCommand...");
+        //Log.i(TAG, "  " + command);
+
+        return commandQueue.offerFirst(command);
+    }
+
+    void releaseCommandSemaphore() {
         commandSemaphore.release();
     }
 
-    synchronized boolean hasWriteCommandForSBrick(SBrick sbrick) {
-
-        for (Iterator<Command> commandIterator = commandQueue.iterator(); commandIterator.hasNext(); ) {
-
-            Command command = commandIterator.next();
-            if (command instanceof SBrickCommand) {
-
-                SBrickCommand sbrickCommand = (SBrickCommand)command;
-                if (sbrickCommand.getSbrick().getAddress().equals(sbrick.getAddress())) {
-
-                    if (command instanceof WriteRemoteControlCommand || command instanceof WriteQuickDriveCommand)
-                        return true;
-                }
-            }
-        }
-
-        return false;
-    }
+//    boolean hasWriteCommandForSBrick(SBrick sbrick) {
+//
+//        for (Iterator<Command> commandIterator = commandQueue.iterator(); commandIterator.hasNext(); ) {
+//
+//            Command command = commandIterator.next();
+//            if (command instanceof WriteCharacteristicCommand) {
+//
+//                WriteCharacteristicCommand sbrickCommand = (WriteCharacteristicCommand)command;
+//                if (sbrickCommand.getSbrick().getAddress().equals(sbrick.getAddress()))
+//                    return true;
+//            }
+//        }
+//
+//        return false;
+//    }
 
     //
     // Protected abstract methods

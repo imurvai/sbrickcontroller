@@ -63,18 +63,21 @@ class SBrickManagerImpl extends SBrickManagerBase {
     //
 
     @Override
-    protected synchronized SBrick createSBrick(String sbrickAddress) {
-        Log.i(TAG, "createSBrick - " + sbrickAddress);
+    protected SBrick createSBrick(String sbrickAddress) {
 
-        if (sbrickMap.containsKey(sbrickAddress)) {
-            Log.i(TAG, "  SBrick is already in the map.");
-            return sbrickMap.get(sbrickAddress);
+        synchronized (getLockObject()) {
+            Log.i(TAG, "createSBrick - " + sbrickAddress);
+
+            if (sbrickMap.containsKey(sbrickAddress)) {
+                Log.i(TAG, "  SBrick is already in the map.");
+                return sbrickMap.get(sbrickAddress);
+            }
+
+            BluetoothDevice sbrickDevice = bluetoothAdapter.getRemoteDevice(sbrickAddress);
+            SBrick sbrick = new SBrickImpl(context, this, sbrickDevice);
+            sbrickMap.put(sbrickAddress, sbrick);
+            return sbrick;
         }
-
-        BluetoothDevice sbrickDevice = bluetoothAdapter.getRemoteDevice(sbrickAddress);
-        SBrick sbrick = new SBrickImpl(context, this, sbrickDevice);
-        sbrickMap.put(sbrickAddress, sbrick);
-        return sbrick;
     }
 
     //
@@ -104,41 +107,50 @@ class SBrickManagerImpl extends SBrickManagerBase {
     }
 
     @Override
-    public synchronized boolean startSBrickScan() {
-        Log.i(TAG, "startSBrickScan...");
+    public boolean startSBrickScan() {
 
-        if (isScanning) {
-            Log.w(TAG, "  Already scanning.");
+        synchronized (getLockObject()) {
+            Log.i(TAG, "startSBrickScan...");
+
+            if (isScanning) {
+                Log.w(TAG, "  Already scanning.");
+                return false;
+            }
+
+            if (bluetoothAdapter.startLeScan(leScanCallback)) {
+                isScanning = true;
+                return true;
+            }
+
+            Log.w(TAG, "  Failed to start scanning.");
             return false;
         }
-
-        if (bluetoothAdapter.startLeScan(leScanCallback)) {
-            isScanning = true;
-            return true;
-        }
-
-        Log.w(TAG, "  Failed to start scanning.");
-        return false;
     }
 
     @Override
-    public synchronized void stopSBrickScan() {
-        Log.i(TAG, "stopSBrickScan...");
+    public void stopSBrickScan() {
 
-        bluetoothAdapter.stopLeScan(leScanCallback);
-        isScanning = false;
+        synchronized (getLockObject()) {
+            Log.i(TAG, "stopSBrickScan...");
+
+            bluetoothAdapter.stopLeScan(leScanCallback);
+            isScanning = false;
+        }
     }
 
     @Override
-    public synchronized SBrick getSBrick(String sbrickAddress) {
-        Log.i(TAG, "getSBrick - " + sbrickAddress);
+    public SBrick getSBrick(String sbrickAddress) {
 
-        if (sbrickMap.containsKey(sbrickAddress)) {
-            return sbrickMap.get(sbrickAddress);
+        synchronized (getLockObject()) {
+            Log.i(TAG, "getSBrick - " + sbrickAddress);
+
+            if (sbrickMap.containsKey(sbrickAddress)) {
+                return sbrickMap.get(sbrickAddress);
+            }
+
+            Log.w(TAG, "  SBrick not found.");
+            return null;
         }
-
-        Log.w(TAG, "  SBrick not found.");
-        return null;
     }
 
     //
@@ -148,34 +160,36 @@ class SBrickManagerImpl extends SBrickManagerBase {
     private final BluetoothAdapter.LeScanCallback leScanCallback = new BluetoothAdapter.LeScanCallback() {
 
         @Override
-        public synchronized void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord) {
-            Log.i(TAG, "onScanResult...");
+        public void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord) {
 
-            if (device != null && device.getName() != null) {
-                if (device.getName().equalsIgnoreCase("sbrick")) {
-                    if (!sbrickMap.containsKey(device.getAddress())) {
-                        Log.i(TAG, "  Storing SBrick.");
-                        Log.i(TAG, "    Device address    : " + device.getAddress());
-                        Log.i(TAG, "    Device name       : " + device.getName());
+            synchronized (getLockObject()) {
+                Log.i(TAG, "onScanResult...");
 
-                        SBrick sbrick = new SBrickImpl(context, SBrickManagerImpl.this, device);
-                        sbrickMap.put(device.getAddress(), sbrick);
+                if (device != null && device.getName() != null) {
+                    if (device.getName().equalsIgnoreCase("sbrick")) {
+                        if (!sbrickMap.containsKey(device.getAddress())) {
+                            Log.i(TAG, "  Storing SBrick.");
+                            Log.i(TAG, "    Device address    : " + device.getAddress());
+                            Log.i(TAG, "    Device name       : " + device.getName());
 
-                        Intent sendIntent = new Intent();
-                        sendIntent.setAction(ACTION_FOUND_AN_SBRICK);
-                        sendIntent.putExtra(EXTRA_SBRICK_NAME, device.getName());
-                        sendIntent.putExtra(EXTRA_SBRICK_ADDRESS, device.getAddress());
-                        LocalBroadcastManager.getInstance(context).sendBroadcast(sendIntent);
+                            SBrick sbrick = new SBrickImpl(context, SBrickManagerImpl.this, device);
+                            sbrickMap.put(device.getAddress(), sbrick);
+
+                            Intent sendIntent = new Intent();
+                            sendIntent.setAction(ACTION_FOUND_AN_SBRICK);
+                            sendIntent.putExtra(EXTRA_SBRICK_NAME, device.getName());
+                            sendIntent.putExtra(EXTRA_SBRICK_ADDRESS, device.getAddress());
+                            LocalBroadcastManager.getInstance(context).sendBroadcast(sendIntent);
+                        } else {
+                            Log.i(TAG, "  Sbrick has already been discovered.");
+                        }
                     } else {
-                        Log.i(TAG, "  Sbrick has already been discovered.");
+                        Log.i(TAG, "  Device is not an SBrick.");
+                        Log.i(TAG, "    Name: " + device.getName());
                     }
                 } else {
-                    Log.i(TAG, "  Device is not an SBrick.");
-                    Log.i(TAG, "    Name: " + device.getName());
+                    Log.i(TAG, "  Device is null.");
                 }
-            }
-            else {
-                Log.i(TAG, "  Device is null.");
             }
         }
     };

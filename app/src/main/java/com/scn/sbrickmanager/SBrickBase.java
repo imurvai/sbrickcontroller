@@ -84,117 +84,127 @@ abstract class SBrickBase implements SBrick {
     }
 
     @Override
-    public synchronized boolean connect() {
-        Log.i(TAG, "connect - " + getAddress());
+    public boolean connect() {
 
-        if (isConnected) {
-            Log.i(TAG, "  Already connected.");
-            return false;
+        synchronized (sbrickManager.getLockObject()) {
+            Log.i(TAG, "connect - " + getAddress());
+
+            if (isConnected) {
+                Log.i(TAG, "  Already connected.");
+                return false;
+            }
+
+            CommandMethod commandMethod = createConnectCommandMethod();
+            return sbrickManager.sendCommand(Command.newConnectCommand(this, commandMethod));
         }
-
-        CommandMethod commandMethod = createConnectCommandMethod();
-        return sbrickManager.sendCommand(Command.newConnectCommand(this, commandMethod));
     }
 
     @Override
-    public synchronized boolean readCharacteristic(SBrickCharacteristicType characteristicType) {
-        Log.i(TAG, "readCharacteristic - " + getAddress());
+    public boolean readCharacteristic(SBrickCharacteristicType characteristicType) {
 
-        if (!isConnected) {
-            Log.w(TAG, "  Not connected.");
-            return false;
+        synchronized (sbrickManager.getLockObject()) {
+            Log.i(TAG, "readCharacteristic - " + getAddress());
+
+            if (!isConnected) {
+                Log.w(TAG, "  Not connected.");
+                return false;
+            }
+
+            CommandMethod commandMethod = createReadCharacteristicCommandMethod(characteristicType);
+            return sbrickManager.sendCommand(Command.newReadCharacteristicCommand(this, commandMethod, characteristicType));
         }
-
-        CommandMethod commandMethod = createReadCharacteristicCommandMethod(characteristicType);
-        return sbrickManager.sendCommand(Command.newReadCharacteristicCommand(this, commandMethod, characteristicType));
     }
 
     @Override
-    public synchronized boolean sendCommand(int channel, int value) {
-        //Log.i(TAG, "sendCommand - " + getAddress());
-        //Log.i(TAG, "  channel: " + channel);
-        //Log.i(TAG, "  value: " + value);
+    public boolean sendCommand(int channel, int value) {
 
-        if (channel < 0 || 3 < channel)
-            throw new IllegalArgumentException("channel must be in [0-3].");
+        synchronized (sbrickManager.getLockObject()) {
+            //Log.i(TAG, "sendCommand - " + getAddress());
+            //Log.i(TAG, "  channel: " + channel);
+            //Log.i(TAG, "  value: " + value);
 
-        if (!isConnected) {
-            Log.i(TAG, "  Not connected.");
-            return false;
+            if (channel < 0 || 3 < channel)
+                throw new IllegalArgumentException("channel must be in [0-3].");
+
+            if (!isConnected) {
+                Log.i(TAG, "  Not connected.");
+                return false;
+            }
+
+            // Filter out the lower bits (they don't take any effect)
+            value = Math.max(-255, Math.min(255, value & 0xfffffff8));
+
+            // Prevent flooding the command queue
+//            long timeSinceLastSendCommand = System.currentTimeMillis() - lastSendCommandTime;
+//            if (timeSinceLastSendCommand < 20 && value != 0) {
+//                Log.i(TAG, "  Too fast sendCommand, skip.");
+//                return false;
+//            }
+
+            // If value hasn't changed no need to resend it.
+            if (value == channelValues[channel]) {
+                //Log.i(TAG, "  Same value, skip.");
+                return true;
+            }
+
+            CommandMethod commandMethod = createWriteRemoteControlCommandMethod(channel, value);
+            WriteCharacteristicCommand command = Command.newWriteRemoteControlCommand(this, commandMethod, channel, value);
+            return sbrickManager.sendCommand(command);
         }
-
-        // Prevent flooding the command queue
-        long timeSinceLastSendCommand = System.currentTimeMillis() - lastSendCommandTime;
-        if (timeSinceLastSendCommand < 20) {
-            Log.i(TAG, "  Too fast sendCommand, skip.");
-            return false;
-        }
-
-        // Filter out the lower bits (they don't take any effect)
-        value = Math.max(-255, Math.min(255, value & 0xfffffff8));
-
-        // If value hasn't changed no need to resend it.
-        if (value == channelValues[channel])
-            return true;
-
-        CommandMethod commandMethod = createWriteRemoteControlCommandMethod(channel, value);
-        WriteCharacteristicCommand command = Command.newWriteRemoteControlCommand(this, commandMethod, channel, value);
-
-        if (sbrickManager.sendCommand(command)) {
-            lastSendCommandTime = System.currentTimeMillis();
-            lastWriteCommand = command;
-            return true;
-        }
-
-        return false;
     }
 
     @Override
-    public synchronized boolean sendCommand(int v0, int v1, int v2, int v3) {
-        //Log.i(TAG, "sendCommand - " + getAddress());
-        //Log.i(TAG, "  value1: " + v0);
-        //Log.i(TAG, "  value2: " + v1);
-        //Log.i(TAG, "  value3: " + v2);
-        //Log.i(TAG, "  value4: " + v3);
+    public boolean sendCommand(int v0, int v1, int v2, int v3) {
 
-        if (!isConnected) {
-            Log.i(TAG, "  Not connected.");
-            return false;
+        synchronized (sbrickManager.getLockObject()) {
+            //Log.i(TAG, "sendCommand - " + getAddress());
+            //Log.i(TAG, "  value1: " + v0);
+            //Log.i(TAG, "  value2: " + v1);
+            //Log.i(TAG, "  value3: " + v2);
+            //Log.i(TAG, "  value4: " + v3);
+
+            if (!isConnected) {
+                Log.i(TAG, "  Not connected.");
+                return false;
+            }
+
+            // Filter out the lower bits (they don't take any effect)
+            v0 = Math.max(-255, Math.min(255, v0 & 0xfffffff8));
+            v1 = Math.max(-255, Math.min(255, v1 & 0xfffffff8));
+            v2 = Math.max(-255, Math.min(255, v2 & 0xfffffff8));
+            v3 = Math.max(-255, Math.min(255, v3 & 0xfffffff8));
+
+            // Prevent flooding the command queue
+//            long timeSinceLastSendCommand = System.currentTimeMillis() - lastSendCommandTime;
+//            if (timeSinceLastSendCommand < 20 && (v0 != 0 || v1 != 0 || v2 != 0 || v3 != 0)) {
+//                Log.i(TAG, "  Too fast sendCommand, skip.");
+//                return false;
+//            }
+
+            // If values haven't changed no need to resend them.
+            if (v0 == channelValues[0] && v1 == channelValues[1] && v2 == channelValues[2] && v3 == channelValues[3]) {
+                //Log.i(TAG, "  same values, skip.");
+                return true;
+            }
+
+            CommandMethod commandMethod = createWriteQuickDriveCommandMethod(v0, v1, v2, v3);
+            WriteCharacteristicCommand command = Command.newWriteQuickDriveCommand(this, commandMethod, v0, v1, v2, v3);
+            return sbrickManager.sendCommand(command);
         }
-
-        // Prevent flooding the command queue
-        long timeSinceLastSendCommand = System.currentTimeMillis() - lastSendCommandTime;
-        if (timeSinceLastSendCommand < 20) {
-            Log.i(TAG, "  Too fast sendCommand, skip.");
-            return false;
-        }
-
-        // Filter out the lower bits (they don't take any effect)
-        v0 = Math.max(-255, Math.min(255, v0 & 0xfffffff8));
-        v1 = Math.max(-255, Math.min(255, v1 & 0xfffffff8));
-        v2 = Math.max(-255, Math.min(255, v2 & 0xfffffff8));
-        v3 = Math.max(-255, Math.min(255, v3 & 0xfffffff8));
-
-        // If values haven't changed no need to resend them.
-        if (v0 == channelValues[0] && v1 == channelValues[1] && v2 == channelValues[2] && v3 == channelValues[3]) {
-            Log.i(TAG, "  same values, skip.");
-            return true;
-        }
-
-        CommandMethod commandMethod = createWriteQuickDriveCommandMethod(v0, v1, v2, v3);
-        WriteCharacteristicCommand command = Command.newWriteQuickDriveCommand(this, commandMethod, v0, v1, v2, v3);
-
-        if (sbrickManager.sendCommand(command)) {
-            lastSendCommandTime = System.currentTimeMillis();
-            lastWriteCommand = command;
-            return true;
-        }
-
-        return false;
     }
 
     //
     // Internal API
+    //
+
+    void setLastWriteCommand(WriteCharacteristicCommand lastWriteCommand) {
+
+        this.lastWriteCommand = lastWriteCommand;
+        this.lastSendCommandTime = System.currentTimeMillis();
+    }
+
+    //
+    // Protected methods
     //
 
     protected Intent buildBroadcastIntent(String action) {
@@ -209,40 +219,49 @@ abstract class SBrickBase implements SBrick {
         LocalBroadcastManager.getInstance(context).sendBroadcast(buildBroadcastIntent(action));
     }
 
-    protected synchronized void startWatchdogTimer() {
-        Log.i(TAG, "startWatchdogTimer...");
+    protected void startWatchdogTimer() {
 
-        // Stop watchdog timer if already running
-        if (watchdogTimer != null) {
-            watchdogTimer.cancel();
-            watchdogTimer.purge();
-        }
+        synchronized (sbrickManager.getLockObject()) {
+            //Log.i(TAG, "startWatchdogTimer...");
 
-        watchdogTimer = new Timer();
-        watchdogTimer.schedule(new TimerTask() {
-            @Override
-            public synchronized void run() {
-                Log.i(TAG, "watchdogTimer.schedule...");
-
-                // Check if there is at least one write command in the queue
-                boolean hasWriteCommand = sbrickManager.hasWriteCommandForSBrick(SBrickBase.this);
-
-                // If there is no write command in the queue put back the last command
-                if (!hasWriteCommand && lastWriteCommand != null)
-                    sbrickManager.sendCommand(lastWriteCommand);
-
-                watchdogTimer = null;
+            // Stop watchdog timer if already running
+            if (watchdogTimer != null) {
+                watchdogTimer.cancel();
+                watchdogTimer.purge();
             }
-        }, 200);
+
+            watchdogTimer = new Timer();
+            watchdogTimer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+
+                    synchronized (sbrickManager.getLockObject()) {
+                        //Log.i(TAG, "watchdogTimer.schedule...");
+
+                        //// Check if there is at least one write command in the queue
+                        //boolean hasWriteCommand = sbrickManager.hasWriteCommandForSBrick(SBrickBase.this);
+
+                        // If there is no write command in the queue put back the last command
+                        if (lastWriteCommand != null)
+                            sbrickManager.sendPriorityCommand(lastWriteCommand);
+
+                        watchdogTimer = null;
+                    }
+                }
+            }, 200);
+        }
     }
 
-    protected synchronized void stopWatchdogTimer() {
-        Log.i(TAG, "stopWatchdogTimer...");
+    protected void stopWatchdogTimer() {
 
-        if (watchdogTimer != null) {
-            watchdogTimer.cancel();
-            watchdogTimer.purge();
-            watchdogTimer = null;
+        synchronized (sbrickManager.getLockObject()) {
+            //Log.i(TAG, "stopWatchdogTimer...");
+
+            if (watchdogTimer != null) {
+                watchdogTimer.cancel();
+                watchdogTimer.purge();
+                watchdogTimer = null;
+            }
         }
     }
 

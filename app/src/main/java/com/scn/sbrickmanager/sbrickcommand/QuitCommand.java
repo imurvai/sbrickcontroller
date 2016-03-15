@@ -11,8 +11,7 @@ public class QuitCommand extends Command {
     // Constructor
     //
 
-    QuitCommand(CommandMethod commandMethod) {
-        super(commandMethod);
+    QuitCommand() {
     }
 
     //

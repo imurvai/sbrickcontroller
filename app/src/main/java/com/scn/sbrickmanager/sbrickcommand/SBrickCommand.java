@@ -12,18 +12,22 @@ public class SBrickCommand extends Command {
     //
 
     private SBrick sbrick;
+    private CommandMethod commandMethod = null;
 
     //
     // Constructor
     //
 
     SBrickCommand(SBrick sbrick, CommandMethod commandMethod) {
-        super(commandMethod);
 
         if (sbrick == null)
             throw new IllegalArgumentException("sbrick is null.");
 
+        if (commandMethod == null)
+            throw new IllegalArgumentException("commandMethod is null.");
+
         this.sbrick = sbrick;
+        this.commandMethod = commandMethod;
     }
 
     //
@@ -31,6 +35,7 @@ public class SBrickCommand extends Command {
     //
 
     public SBrick getSbrick() { return sbrick; }
+    public CommandMethod getCommandMethod() { return commandMethod; }
 
     //
     // Object overrides

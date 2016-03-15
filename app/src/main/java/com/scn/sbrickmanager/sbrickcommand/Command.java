@@ -9,24 +9,8 @@ import com.scn.sbrickmanager.SBrickCharacteristicType;
 public abstract class Command {
 
     //
-    // Private members
-    //
-
-    private CommandMethod commandMethod = null;
-
-    //
-    // Constructor
-    //
-
-    public Command(CommandMethod commandMethod) {
-        this.commandMethod = commandMethod;
-    }
-
-    //
     // API
     //
-
-    public CommandMethod getCommandMethod() { return commandMethod; }
 
     public static ConnectCommand newConnectCommand(SBrick sbrick, CommandMethod commandMethod) {
         return new ConnectCommand(sbrick, commandMethod);
@@ -49,7 +33,7 @@ public abstract class Command {
     }
 
     public static QuitCommand newQuitCommand() {
-        return new QuitCommand(null);
+        return new QuitCommand();
     }
 
     //
