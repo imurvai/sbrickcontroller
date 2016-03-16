@@ -149,7 +149,13 @@ abstract class SBrickBase implements SBrick {
 
             CommandMethod commandMethod = createWriteRemoteControlCommandMethod(channel, value);
             WriteCharacteristicCommand command = Command.newWriteRemoteControlCommand(this, commandMethod, channel, value);
-            return sbrickManager.sendCommand(command);
+
+            if (sbrickManager.sendCommand(command)) {
+                stopWatchdogTimer();
+                return true;
+            }
+
+            return false;
         }
     }
 
@@ -189,7 +195,13 @@ abstract class SBrickBase implements SBrick {
 
             CommandMethod commandMethod = createWriteQuickDriveCommandMethod(v0, v1, v2, v3);
             WriteCharacteristicCommand command = Command.newWriteQuickDriveCommand(this, commandMethod, v0, v1, v2, v3);
-            return sbrickManager.sendCommand(command);
+
+            if (sbrickManager.sendCommand(command)) {
+                stopWatchdogTimer();
+                return true;
+            }
+
+            return false;
         }
     }
 
@@ -199,8 +211,10 @@ abstract class SBrickBase implements SBrick {
 
     void setLastWriteCommand(WriteCharacteristicCommand lastWriteCommand) {
 
-        this.lastWriteCommand = lastWriteCommand;
-        this.lastSendCommandTime = System.currentTimeMillis();
+        synchronized (sbrickManager.getLockObject()) {
+            this.lastWriteCommand = lastWriteCommand;
+            this.lastSendCommandTime = System.currentTimeMillis();
+        }
     }
 
     //
@@ -225,10 +239,7 @@ abstract class SBrickBase implements SBrick {
             //Log.i(TAG, "startWatchdogTimer...");
 
             // Stop watchdog timer if already running
-            if (watchdogTimer != null) {
-                watchdogTimer.cancel();
-                watchdogTimer.purge();
-            }
+            stopWatchdogTimer();
 
             watchdogTimer = new Timer();
             watchdogTimer.schedule(new TimerTask() {
@@ -238,11 +249,8 @@ abstract class SBrickBase implements SBrick {
                     synchronized (sbrickManager.getLockObject()) {
                         //Log.i(TAG, "watchdogTimer.schedule...");
 
-                        //// Check if there is at least one write command in the queue
-                        //boolean hasWriteCommand = sbrickManager.hasWriteCommandForSBrick(SBrickBase.this);
-
-                        // If there is no write command in the queue put back the last command
-                        if (lastWriteCommand != null)
+                        // If watchdog still needs to run and there was a write command send it again.
+                        if (watchdogTimer != null && lastWriteCommand != null)
                             sbrickManager.sendPriorityCommand(lastWriteCommand);
 
                         watchdogTimer = null;

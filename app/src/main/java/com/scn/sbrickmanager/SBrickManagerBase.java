@@ -267,22 +267,6 @@ abstract class SBrickManagerBase implements SBrickManager {
         commandSemaphore.release();
     }
 
-//    boolean hasWriteCommandForSBrick(SBrick sbrick) {
-//
-//        for (Iterator<Command> commandIterator = commandQueue.iterator(); commandIterator.hasNext(); ) {
-//
-//            Command command = commandIterator.next();
-//            if (command instanceof WriteCharacteristicCommand) {
-//
-//                WriteCharacteristicCommand sbrickCommand = (WriteCharacteristicCommand)command;
-//                if (sbrickCommand.getSbrick().getAddress().equals(sbrick.getAddress()))
-//                    return true;
-//            }
-//        }
-//
-//        return false;
-//    }
-
     //
     // Protected abstract methods
     //
