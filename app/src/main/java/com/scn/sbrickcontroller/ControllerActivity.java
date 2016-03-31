@@ -398,11 +398,14 @@ public class ControllerActivity extends ActionBarActivity {
             if (!channelNewValuesMap.containsKey(sbrickAddress))
                 channelNewValuesMap.put(sbrickAddress, new Integer[4]);
 
-            // Update the channel value if the new one is greater than the current one.
-            // It can happen if more than one controller action is assigned to the same channel.
             Integer oldValue = (channelNewValuesMap.get(sbrickAddress))[channel];
-            if (oldValue == null || Math.abs(oldValue.intValue()) < Math.abs(value))
-                channelNewValuesMap.get(sbrickAddress)[channel] = new Integer(value);
+
+            // Add the new value to the old. It makes sense if more than one controller action
+            // is assigned to the same channel.
+            if (oldValue != null)
+                value = Math.min(255, value + oldValue);
+
+            channelNewValuesMap.get(sbrickAddress)[channel] = new Integer(value);
         }
     }
 

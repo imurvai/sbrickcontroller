@@ -243,7 +243,7 @@ public class SBrickDetailsActivity extends BaseActivity {
             int value1 = (int)(event.getAxisValue(MotionEvent.AXIS_Y) * 255);
             int value2 = (int)(event.getAxisValue(MotionEvent.AXIS_X) * 255);
             int value3 = (int)(event.getAxisValue(MotionEvent.AXIS_Z) * 255);
-            int value4 = (int)(event.getAxisValue(MotionEvent.AXIS_RZ) * -255);
+            int value4 = (int)(event.getAxisValue(MotionEvent.AXIS_RZ) * 255);
 
             sbrick.sendCommand(value1, value2, value3, value4);
             return true;

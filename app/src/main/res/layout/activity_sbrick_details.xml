@@ -107,33 +107,89 @@
                 android:text="Port tester"
                 android:paddingTop="16dp"/>
 
-            <SeekBar
-                android:id="@+id/seekbar_port1"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:max="100"
-                android:padding="4dp" />
+                android:padding="4dp"
+                android:orientation="horizontal">
 
-            <SeekBar
-                android:id="@+id/seekbar_port2"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:max="100"
-                android:padding="4dp" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingLeft="4dp"
+                    android:textAppearance="?android:attr/textAppearanceMedium"
+                    android:text="A"/>
 
-            <SeekBar
-                android:id="@+id/seekbar_port3"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:max="100"
-                android:padding="4dp" />
+                <SeekBar
+                    android:id="@+id/seekbar_port1"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:max="100"
+                    android:paddingLeft="16dp" />
+            </LinearLayout>
 
-            <SeekBar
-                android:id="@+id/seekbar_port4"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:max="100"
-                android:padding="4dp" />
+                android:padding="4dp"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingLeft="4dp"
+                    android:textAppearance="?android:attr/textAppearanceMedium"
+                    android:text="B"/>
+
+                <SeekBar
+                    android:id="@+id/seekbar_port2"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:max="100"
+                    android:paddingLeft="16dp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="4dp"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingLeft="4dp"
+                    android:textAppearance="?android:attr/textAppearanceMedium"
+                    android:text="C"/>
+
+                <SeekBar
+                    android:id="@+id/seekbar_port3"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:max="100"
+                    android:paddingLeft="16dp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="4dp"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingLeft="4dp"
+                    android:textAppearance="?android:attr/textAppearanceMedium"
+                    android:text="D"/>
+
+                <SeekBar
+                    android:id="@+id/seekbar_port4"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:max="100"
+                    android:paddingLeft="16dp" />
+            </LinearLayout>
 
             <!-- Device information -->
 
