@@ -149,8 +149,6 @@ public class SBrickListActivity extends BaseActivity {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
                                     Log.i(TAG, "progressDialog.onClick...");
-
-                                    SBrickManagerHolder.getManager().stopSBrickScan();
                                     scanAsyncTask.cancel(true);
                                 }
                             });
@@ -197,6 +195,7 @@ public class SBrickListActivity extends BaseActivity {
                                 progressDialog.dismiss();
                                 progressDialog = null;
                             }
+                            SBrickManagerHolder.getManager().stopSBrickScan();
                             scanAsyncTask = null;
                         }
                     }.execute();

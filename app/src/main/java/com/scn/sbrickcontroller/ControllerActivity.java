@@ -429,6 +429,38 @@ public class ControllerActivity extends ActionBarActivity {
                 return selectedProfile.getControllerActions(ControllerProfile.CONTROLLER_ACTION_SELECT);
             case KeyEvent.KEYCODE_BUTTON_START:
                 return selectedProfile.getControllerActions(ControllerProfile.CONTROLLER_ACTION_START);
+            case KeyEvent.KEYCODE_BUTTON_1:
+                return selectedProfile.getControllerActions(ControllerProfile.CONTROLLER_ACTION_BUTTON_1);
+            case KeyEvent.KEYCODE_BUTTON_2:
+                return selectedProfile.getControllerActions(ControllerProfile.CONTROLLER_ACTION_BUTTON_2);
+            case KeyEvent.KEYCODE_BUTTON_3:
+                return selectedProfile.getControllerActions(ControllerProfile.CONTROLLER_ACTION_BUTTON_3);
+            case KeyEvent.KEYCODE_BUTTON_4:
+                return selectedProfile.getControllerActions(ControllerProfile.CONTROLLER_ACTION_BUTTON_4);
+            case KeyEvent.KEYCODE_BUTTON_5:
+                return selectedProfile.getControllerActions(ControllerProfile.CONTROLLER_ACTION_BUTTON_5);
+            case KeyEvent.KEYCODE_BUTTON_6:
+                return selectedProfile.getControllerActions(ControllerProfile.CONTROLLER_ACTION_BUTTON_6);
+            case KeyEvent.KEYCODE_BUTTON_7:
+                return selectedProfile.getControllerActions(ControllerProfile.CONTROLLER_ACTION_BUTTON_7);
+            case KeyEvent.KEYCODE_BUTTON_8:
+                return selectedProfile.getControllerActions(ControllerProfile.CONTROLLER_ACTION_BUTTON_8);
+            case KeyEvent.KEYCODE_BUTTON_9:
+                return selectedProfile.getControllerActions(ControllerProfile.CONTROLLER_ACTION_BUTTON_9);
+            case KeyEvent.KEYCODE_BUTTON_10:
+                return selectedProfile.getControllerActions(ControllerProfile.CONTROLLER_ACTION_BUTTON_10);
+            case KeyEvent.KEYCODE_BUTTON_11:
+                return selectedProfile.getControllerActions(ControllerProfile.CONTROLLER_ACTION_BUTTON_11);
+            case KeyEvent.KEYCODE_BUTTON_12:
+                return selectedProfile.getControllerActions(ControllerProfile.CONTROLLER_ACTION_BUTTON_12);
+            case KeyEvent.KEYCODE_BUTTON_13:
+                return selectedProfile.getControllerActions(ControllerProfile.CONTROLLER_ACTION_BUTTON_13);
+            case KeyEvent.KEYCODE_BUTTON_14:
+                return selectedProfile.getControllerActions(ControllerProfile.CONTROLLER_ACTION_BUTTON_14);
+            case KeyEvent.KEYCODE_BUTTON_15:
+                return selectedProfile.getControllerActions(ControllerProfile.CONTROLLER_ACTION_BUTTON_15);
+            case KeyEvent.KEYCODE_BUTTON_16:
+                return selectedProfile.getControllerActions(ControllerProfile.CONTROLLER_ACTION_BUTTON_16);
         }
 
         return new HashSet<>();

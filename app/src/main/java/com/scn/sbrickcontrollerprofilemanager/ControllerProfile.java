@@ -38,6 +38,22 @@ public class ControllerProfile implements Parcelable {
     public static final String CONTROLLER_ACTION_LEFT_TRIGGER = "CONTROLLER_ACTION_LEFT_TRIGGER";
     public static final String CONTROLLER_ACTION_START = "CONTROLLER_ACTION_START";
     public static final String CONTROLLER_ACTION_SELECT = "CONTROLLER_ACTION_SELECT";
+    public static final String CONTROLLER_ACTION_BUTTON_1 = "CONTROLLER_ACTION_BUTTON_1";
+    public static final String CONTROLLER_ACTION_BUTTON_2 = "CONTROLLER_ACTION_BUTTON_2";
+    public static final String CONTROLLER_ACTION_BUTTON_3 = "CONTROLLER_ACTION_BUTTON_3";
+    public static final String CONTROLLER_ACTION_BUTTON_4 = "CONTROLLER_ACTION_BUTTON_4";
+    public static final String CONTROLLER_ACTION_BUTTON_5 = "CONTROLLER_ACTION_BUTTON_5";
+    public static final String CONTROLLER_ACTION_BUTTON_6 = "CONTROLLER_ACTION_BUTTON_6";
+    public static final String CONTROLLER_ACTION_BUTTON_7 = "CONTROLLER_ACTION_BUTTON_7";
+    public static final String CONTROLLER_ACTION_BUTTON_8 = "CONTROLLER_ACTION_BUTTON_8";
+    public static final String CONTROLLER_ACTION_BUTTON_9 = "CONTROLLER_ACTION_BUTTON_9";
+    public static final String CONTROLLER_ACTION_BUTTON_10 = "CONTROLLER_ACTION_BUTTON_10";
+    public static final String CONTROLLER_ACTION_BUTTON_11 = "CONTROLLER_ACTION_BUTTON_11";
+    public static final String CONTROLLER_ACTION_BUTTON_12 = "CONTROLLER_ACTION_BUTTON_12";
+    public static final String CONTROLLER_ACTION_BUTTON_13 = "CONTROLLER_ACTION_BUTTON_13";
+    public static final String CONTROLLER_ACTION_BUTTON_14 = "CONTROLLER_ACTION_BUTTON_14";
+    public static final String CONTROLLER_ACTION_BUTTON_15 = "CONTROLLER_ACTION_BUTTON_15";
+    public static final String CONTROLLER_ACTION_BUTTON_16 = "CONTROLLER_ACTION_BUTTON_16";
 
     //
     // Private members
@@ -245,6 +261,22 @@ public class ControllerProfile implements Parcelable {
             case CONTROLLER_ACTION_LEFT_TRIGGER: return "Left trigger";
             case CONTROLLER_ACTION_START: return "Start button";
             case CONTROLLER_ACTION_SELECT: return "Select button";
+            case CONTROLLER_ACTION_BUTTON_1: return "Button 1";
+            case CONTROLLER_ACTION_BUTTON_2: return "Button 2";
+            case CONTROLLER_ACTION_BUTTON_3: return "Button 3";
+            case CONTROLLER_ACTION_BUTTON_4: return "Button 4";
+            case CONTROLLER_ACTION_BUTTON_5: return "Button 5";
+            case CONTROLLER_ACTION_BUTTON_6: return "Button 6";
+            case CONTROLLER_ACTION_BUTTON_7: return "Button 7";
+            case CONTROLLER_ACTION_BUTTON_8: return "Button 8";
+            case CONTROLLER_ACTION_BUTTON_9: return "Button 9";
+            case CONTROLLER_ACTION_BUTTON_10: return "Button 10";
+            case CONTROLLER_ACTION_BUTTON_11: return "Button 11";
+            case CONTROLLER_ACTION_BUTTON_12: return "Button 12";
+            case CONTROLLER_ACTION_BUTTON_13: return "Button 13";
+            case CONTROLLER_ACTION_BUTTON_14: return "Button 14";
+            case CONTROLLER_ACTION_BUTTON_15: return "Button 15";
+            case CONTROLLER_ACTION_BUTTON_16: return "Button 16";
         }
         return "";
     }
@@ -277,6 +309,22 @@ public class ControllerProfile implements Parcelable {
             case CONTROLLER_ACTION_LEFT_TRIGGER_BUTTON:
             case CONTROLLER_ACTION_START:
             case CONTROLLER_ACTION_SELECT:
+            case CONTROLLER_ACTION_BUTTON_1:
+            case CONTROLLER_ACTION_BUTTON_2:
+            case CONTROLLER_ACTION_BUTTON_3:
+            case CONTROLLER_ACTION_BUTTON_4:
+            case CONTROLLER_ACTION_BUTTON_5:
+            case CONTROLLER_ACTION_BUTTON_6:
+            case CONTROLLER_ACTION_BUTTON_7:
+            case CONTROLLER_ACTION_BUTTON_8:
+            case CONTROLLER_ACTION_BUTTON_9:
+            case CONTROLLER_ACTION_BUTTON_10:
+            case CONTROLLER_ACTION_BUTTON_11:
+            case CONTROLLER_ACTION_BUTTON_12:
+            case CONTROLLER_ACTION_BUTTON_13:
+            case CONTROLLER_ACTION_BUTTON_14:
+            case CONTROLLER_ACTION_BUTTON_15:
+            case CONTROLLER_ACTION_BUTTON_16:
                 return true;
         }
 

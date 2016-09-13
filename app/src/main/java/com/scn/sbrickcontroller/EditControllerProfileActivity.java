@@ -224,8 +224,8 @@ public class EditControllerProfileActivity extends BaseActivity {
 
         @Override
         public int getCount() {
-            // profile name + 18 controller action
-            return 19;
+            // profile name + 34 controller action
+            return 35;
         }
 
         @Override
@@ -395,6 +395,22 @@ public class EditControllerProfileActivity extends BaseActivity {
                 case 15: return ControllerProfile.CONTROLLER_ACTION_LEFT_TRIGGER;
                 case 16: return ControllerProfile.CONTROLLER_ACTION_START;
                 case 17: return ControllerProfile.CONTROLLER_ACTION_SELECT;
+                case 18: return ControllerProfile.CONTROLLER_ACTION_BUTTON_1;
+                case 19: return ControllerProfile.CONTROLLER_ACTION_BUTTON_2;
+                case 20: return ControllerProfile.CONTROLLER_ACTION_BUTTON_3;
+                case 21: return ControllerProfile.CONTROLLER_ACTION_BUTTON_4;
+                case 22: return ControllerProfile.CONTROLLER_ACTION_BUTTON_5;
+                case 23: return ControllerProfile.CONTROLLER_ACTION_BUTTON_6;
+                case 24: return ControllerProfile.CONTROLLER_ACTION_BUTTON_7;
+                case 25: return ControllerProfile.CONTROLLER_ACTION_BUTTON_8;
+                case 26: return ControllerProfile.CONTROLLER_ACTION_BUTTON_9;
+                case 27: return ControllerProfile.CONTROLLER_ACTION_BUTTON_10;
+                case 28: return ControllerProfile.CONTROLLER_ACTION_BUTTON_11;
+                case 29: return ControllerProfile.CONTROLLER_ACTION_BUTTON_12;
+                case 30: return ControllerProfile.CONTROLLER_ACTION_BUTTON_13;
+                case 31: return ControllerProfile.CONTROLLER_ACTION_BUTTON_14;
+                case 32: return ControllerProfile.CONTROLLER_ACTION_BUTTON_15;
+                case 33: return ControllerProfile.CONTROLLER_ACTION_BUTTON_16;
             }
             return "";
         }
