@@ -11,8 +11,8 @@ public class DiscoverServicesCommand extends SBrickCommand {
     // Constructor
     //
 
-    public DiscoverServicesCommand(SBrick sbrick, CommandMethod commandMethod) {
-        super(sbrick, commandMethod);
+    public DiscoverServicesCommand(String sbrickAddress, CommandMethod commandMethod) {
+        super(sbrickAddress, commandMethod);
     }
 
     //
@@ -21,6 +21,6 @@ public class DiscoverServicesCommand extends SBrickCommand {
 
     @Override
     public String toString() {
-        return "DiscoverServicesCommand, SBrick: " + getSbrick().getAddress();
+        return "DiscoverServicesCommand, SBrick: " + getSbrickAddress();
     }
 }

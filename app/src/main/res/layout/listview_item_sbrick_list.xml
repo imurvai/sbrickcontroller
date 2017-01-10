@@ -37,18 +37,6 @@
         android:orientation="horizontal">
 
         <ImageButton
-            android:id="@+id/button_rename_sbrick"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:layout_gravity="center_vertical"
-            android:padding="8dp"
-            android:src="@drawable/ic_mode_edit_black_36dp"
-            android:scaleType="centerInside"
-            android:background="@android:color/transparent"
-            android:focusable="false"
-            android:focusableInTouchMode="false" />
-
-        <ImageButton
             android:id="@+id/button_forget_sbrick"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"

@@ -51,6 +51,7 @@ public class ControllerActivity extends ActionBarActivity {
     private ArrayList<ControllerProfile> profiles;
     private Map<String, SBrick> sbricksMap;
     private Map<String, int[]> channelValuesMap;
+    private Map<String, int[]> lastSentChannelValuesMap;
 
     private ControllerProfile selectedProfile;
 
@@ -83,6 +84,7 @@ public class ControllerActivity extends ActionBarActivity {
         selectedProfile = profiles.get(0);
         sbricksMap = new HashMap<>();
         channelValuesMap = new HashMap<>();
+        lastSentChannelValuesMap = new HashMap<>();
 
         // Find and store the SBricks addressed in the profiles
         for (ControllerProfile profile : profiles) {
@@ -94,6 +96,7 @@ public class ControllerActivity extends ActionBarActivity {
                 int[] channelValues = new int[4];
                 channelValues[0] = channelValues[1] = channelValues[2] = channelValues[3] = 0;
                 channelValuesMap.put(address, channelValues);
+                lastSentChannelValuesMap.put(address, channelValues);
             }
         }
 
@@ -323,7 +326,12 @@ public class ControllerActivity extends ActionBarActivity {
                 int v2 = (newValues[2] != null && Math.abs(values[2]) < Math.abs(newValues[2])) ? newValues[2] : values[2];
                 int v3 = (newValues[3] != null && Math.abs(values[3]) < Math.abs(newValues[3])) ? newValues[3] : values[3];
 
-                sbrick.sendCommand(v0, v1, v2, v3);
+                if (sbrick.sendCommand(v0, v1, v2, v3)) {
+                    //channelValuesMap.get(sbrickAddress)[0] = v0;
+                    //channelValuesMap.get(sbrickAddress)[1] = v1;
+                    //channelValuesMap.get(sbrickAddress)[2] = v2;
+                    //channelValuesMap.get(sbrickAddress)[3] = v3;
+                }
             }
 
             return true;

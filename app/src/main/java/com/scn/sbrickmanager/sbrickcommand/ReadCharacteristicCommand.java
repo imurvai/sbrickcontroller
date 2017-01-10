@@ -18,8 +18,8 @@ public class ReadCharacteristicCommand extends SBrickCommand {
     // Constructor
     //
 
-    ReadCharacteristicCommand(SBrick sbrick, CommandMethod commandMethod, SBrickCharacteristicType characteristicType) {
-        super(sbrick, commandMethod);
+    ReadCharacteristicCommand(String sbrickAddress, CommandMethod commandMethod, SBrickCharacteristicType characteristicType) {
+        super(sbrickAddress, commandMethod);
 
         this.characteristicType = characteristicType;
     }
@@ -36,6 +36,6 @@ public class ReadCharacteristicCommand extends SBrickCommand {
 
     @Override
     public String toString() {
-        return "ReadCharacteristicCommand, SBrick: " + getSbrick().getAddress() + ", characteristic type: " + characteristicType.toString();
+        return "ReadCharacteristicCommand, SBrick: " + getSbrickAddress() + ", characteristic type: " + characteristicType.toString();
     }
 }

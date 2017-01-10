@@ -11,22 +11,22 @@ public class SBrickCommand extends Command {
     // Private members
     //
 
-    private SBrick sbrick;
+    private String sbrickAddress;
     private CommandMethod commandMethod = null;
 
     //
     // Constructor
     //
 
-    SBrickCommand(SBrick sbrick, CommandMethod commandMethod) {
+    SBrickCommand(String sbrickAddress, CommandMethod commandMethod) {
 
-        if (sbrick == null)
-            throw new IllegalArgumentException("sbrick is null.");
+        if (sbrickAddress == null)
+            throw new IllegalArgumentException("sbrickAddress is null.");
 
         if (commandMethod == null)
             throw new IllegalArgumentException("commandMethod is null.");
 
-        this.sbrick = sbrick;
+        this.sbrickAddress = sbrickAddress;
         this.commandMethod = commandMethod;
     }
 
@@ -34,7 +34,7 @@ public class SBrickCommand extends Command {
     // API
     //
 
-    public SBrick getSbrick() { return sbrick; }
+    public String getSbrickAddress() { return sbrickAddress; }
     public CommandMethod getCommandMethod() { return commandMethod; }
 
     //
@@ -43,6 +43,6 @@ public class SBrickCommand extends Command {
 
     @Override
     public String toString() {
-        return "SBrickCommand, SBrick address: " + sbrick.getAddress();
+        return "SBrickCommand, SBrick address: " + sbrickAddress;
     }
 }

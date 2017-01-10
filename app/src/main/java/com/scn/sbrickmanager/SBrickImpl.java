@@ -14,6 +14,7 @@ import android.util.Log;
 
 import com.scn.sbrickmanager.sbrickcommand.Command;
 import com.scn.sbrickmanager.sbrickcommand.CommandMethod;
+import com.scn.sbrickmanager.sbrickcommand.WriteCharacteristicCommand;
 import com.scn.sbrickmanager.sbrickcommand.WriteQuickDriveCommand;
 import com.scn.sbrickmanager.sbrickcommand.WriteRemoteControlCommand;
 
@@ -26,7 +27,7 @@ import java.util.UUID;
 /**
  * SBrick real implementation.
  */
-class SBrickImpl extends SBrickBase {
+class SBrickImpl implements SBrick {
 
     //
     // Private members
@@ -56,24 +57,142 @@ class SBrickImpl extends SBrickBase {
     private BluetoothGattCharacteristic remoteControlCharacteristic = null;
     private BluetoothGattCharacteristic quickDriveCharacteristic = null;
 
+    private final Context context;
+    private final SBrickManagerImpl sbrickManager;
+    private String name = null;
+    private boolean isConnected = false;
+
+    private Timer watchdogTimer = null;
+    private int[] channelValues = new int[] { 0, 0, 0, 0 };
+    private WriteCharacteristicCommand lastWriteCommand = null;
+    private long lastSendCommandTime = System.currentTimeMillis();
+
     //
     // Constructor
     //
 
-    SBrickImpl(Context context, SBrickManagerBase sbrickManager, BluetoothDevice bluetoothDevice) {
-        super(context, sbrickManager);
+    SBrickImpl(Context context, SBrickManagerImpl sbrickManager, BluetoothDevice bluetoothDevice) {
 
         Log.i(TAG, "SBrickImpl...");
         Log.i(TAG, "  address: " + bluetoothDevice.getAddress());
         Log.i(TAG, "  name:    " + bluetoothDevice.getName());
 
+        this.context = context;
+        this.sbrickManager = sbrickManager;
+
         this.bluetoothDevice = bluetoothDevice;
-        setName(bluetoothDevice.getName());
+        this.name = bluetoothDevice.getName();
+    }
+
+    //
+    // Object overrides
+    //
+
+    @Override
+    public String toString() {
+        return getName();
     }
 
     //
     // SBrick overrides
     //
+
+    @Override
+    public String getName() {
+        return name;
+    }
+
+    @Override
+    public boolean isConnected() {
+        return isConnected;
+    }
+
+    @Override
+    public boolean connect() {
+
+        synchronized (sbrickManager.getLockObject()) {
+            Log.i(TAG, "connect - " + getAddress());
+
+            if (isConnected) {
+                Log.i(TAG, "  Already connected.");
+                return false;
+            }
+
+            CommandMethod commandMethod = createConnectCommandMethod();
+            return sbrickManager.sendCommand(Command.newConnectCommand(getAddress(), commandMethod));
+        }
+    }
+
+    @Override
+    public boolean readCharacteristic(SBrickCharacteristicType characteristicType) {
+
+        synchronized (sbrickManager.getLockObject()) {
+            Log.i(TAG, "readCharacteristic - " + getAddress());
+
+            if (!isConnected) {
+                Log.w(TAG, "  Not connected.");
+                return false;
+            }
+
+            CommandMethod commandMethod = createReadCharacteristicCommandMethod(characteristicType);
+            return sbrickManager.sendCommand(Command.newReadCharacteristicCommand(getAddress(), commandMethod, characteristicType));
+        }
+    }
+
+    @Override
+    public boolean sendCommand(int channel, int value) {
+
+        synchronized (sbrickManager.getLockObject()) {
+            //Log.i(TAG, "sendCommand - " + getAddress());
+            //Log.i(TAG, "  channel: " + channel);
+            //Log.i(TAG, "  value: " + value);
+
+            if (channel < 0 || 3 < channel)
+                throw new IllegalArgumentException("channel must be in [0-3].");
+
+            if (!isConnected) {
+                Log.i(TAG, "  Not connected.");
+                return false;
+            }
+
+            CommandMethod commandMethod = createWriteRemoteControlCommandMethod(channel, value);
+            WriteCharacteristicCommand command = Command.newWriteRemoteControlCommand(getAddress(), commandMethod, channel, value);
+
+            if (sbrickManager.sendCommand(command)) {
+                stopWatchdogTimer();
+                return true;
+            }
+
+            return false;
+        }
+    }
+
+    @Override
+    public boolean sendCommand(int v0, int v1, int v2, int v3) {
+
+        synchronized (sbrickManager.getLockObject()) {
+            //Log.i(TAG, "sendCommand - " + getAddress());
+            //Log.i(TAG, "  value1: " + v0);
+            //Log.i(TAG, "  value2: " + v1);
+            //Log.i(TAG, "  value3: " + v2);
+            //Log.i(TAG, "  value4: " + v3);
+
+            if (!isConnected) {
+                Log.i(TAG, "  Not connected.");
+                return false;
+            }
+
+            CommandMethod commandMethod = createWriteQuickDriveCommandMethod(v0, v1, v2, v3);
+            WriteCharacteristicCommand command = Command.newWriteQuickDriveCommand(getAddress(), commandMethod, v0, v1, v2, v3);
+
+            if (sbrickManager.sendCommand(command)) {
+                stopWatchdogTimer();
+                return true;
+            }
+
+            return false;
+        }
+    }
 
     @Override
     public String getAddress() {
@@ -98,11 +217,74 @@ class SBrickImpl extends SBrickBase {
     }
 
     //
-    // SBrickBase overrides
+    // Internal API
     //
 
-    @Override
-    protected CommandMethod createConnectCommandMethod() {
+    void setLastWriteCommand(WriteCharacteristicCommand lastWriteCommand) {
+
+        synchronized (sbrickManager.getLockObject()) {
+            this.lastWriteCommand = lastWriteCommand;
+            this.lastSendCommandTime = System.currentTimeMillis();
+        }
+    }
+
+    //
+    // Private classes and methods
+    //
+
+    private Intent buildBroadcastIntent(String action) {
+        Intent intent = new Intent();
+        intent.setAction(action);
+        intent.putExtra(EXTRA_SBRICK_ADDRESS, getAddress());
+        return intent;
+    }
+
+    private void sendLocalBroadcast(String action) {
+        Log.i(TAG, "sendLocalBroadcast...");
+        LocalBroadcastManager.getInstance(context).sendBroadcast(buildBroadcastIntent(action));
+    }
+
+    private void startWatchdogTimer() {
+
+        synchronized (sbrickManager.getLockObject()) {
+            //Log.i(TAG, "startWatchdogTimer...");
+
+            // Stop watchdog timer if already running
+            stopWatchdogTimer();
+
+            watchdogTimer = new Timer();
+            watchdogTimer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+
+                    synchronized (sbrickManager.getLockObject()) {
+                        //Log.i(TAG, "watchdogTimer.schedule...");
+
+                        // If watchdog still needs to run and there was a write command send it again.
+                        if (watchdogTimer != null && lastWriteCommand != null)
+                            sbrickManager.sendCommand(lastWriteCommand);
+
+                        watchdogTimer = null;
+                    }
+                }
+            }, 300);
+        }
+    }
+
+    private void stopWatchdogTimer() {
+
+        synchronized (sbrickManager.getLockObject()) {
+            //Log.i(TAG, "stopWatchdogTimer...");
+
+            if (watchdogTimer != null) {
+                watchdogTimer.cancel();
+                watchdogTimer.purge();
+                watchdogTimer = null;
+            }
+        }
+    }
+
+    private CommandMethod createConnectCommandMethod() {
         Log.i(TAG, "createConnectCommandMethod - " + getAddress());
 
         return new CommandMethod() {
@@ -121,8 +303,7 @@ class SBrickImpl extends SBrickBase {
         };
     }
 
-    @Override
-    protected CommandMethod createDiscoverServicesCommandMethod() {
+    private CommandMethod createDiscoverServicesCommandMethod() {
         Log.i(TAG, "createDiscoverServicesCommandMethod - " + getAddress());
 
         return new CommandMethod() {
@@ -140,8 +321,7 @@ class SBrickImpl extends SBrickBase {
         };
     }
 
-    @Override
-    protected CommandMethod createReadCharacteristicCommandMethod(final SBrickCharacteristicType characteristicType) {
+    private CommandMethod createReadCharacteristicCommandMethod(final SBrickCharacteristicType characteristicType) {
         Log.i(TAG, "createReadCharacteristicCommandMethod - " + getAddress());
 
         return new CommandMethod() {
@@ -198,8 +378,7 @@ class SBrickImpl extends SBrickBase {
         };
     }
 
-    @Override
-    protected CommandMethod createWriteRemoteControlCommandMethod(final int channel, final int value) {
+    private CommandMethod createWriteRemoteControlCommandMethod(final int channel, final int value) {
         //Log.i(TAG, "createWriteRemoteControlCommandMethod - " + getAddress());
 
         return new CommandMethod() {
@@ -217,8 +396,7 @@ class SBrickImpl extends SBrickBase {
         };
     }
 
-    @Override
-    protected CommandMethod createWriteQuickDriveCommandMethod(final int v0, final int v1, final int v2, final int v3) {
+    private CommandMethod createWriteQuickDriveCommandMethod(final int v0, final int v1, final int v2, final int v3) {
         //Log.i(TAG, "createWriteQuickDriveCommandMethod - " + getAddress());
 
         return new CommandMethod() {
@@ -240,9 +418,8 @@ class SBrickImpl extends SBrickBase {
     }
 
     //
-    // Private classes and methods
+    // The GATT callback
     //
-
     private final BluetoothGattCallback gattCallback = new BluetoothGattCallback() {
 
         @Override
@@ -261,7 +438,7 @@ class SBrickImpl extends SBrickBase {
 
                             // Discover services
                             CommandMethod commandMethod = createDiscoverServicesCommandMethod();
-                            sbrickManager.sendCommand(Command.newDiscoverServicesCommand(SBrickImpl.this, commandMethod));
+                            sbrickManager.sendCommand(Command.newDiscoverServicesCommand(getAddress(), commandMethod));
                             break;
 
                         case BluetoothProfile.STATE_DISCONNECTED:
@@ -301,6 +478,10 @@ class SBrickImpl extends SBrickBase {
                     remoteControlCharacteristic = getGattCharacteristic(gatt, SERVICE_UUID_REMOTE_CONTROL, CHARACTERISTIC_UUID_REMOTE_CONTROL);
                     quickDriveCharacteristic = getGattCharacteristic(gatt, SERVICE_UUID_REMOTE_CONTROL, CHARACTERISTIC_UUID_QUICK_DRIVE);
                     isConnected = true;
+
+                    // Setup characteristic notification
+                    bluetoothGatt.setCharacteristicNotification(remoteControlCharacteristic, true);
+                    bluetoothGatt.setCharacteristicNotification(quickDriveCharacteristic, true);
 
                     sendLocalBroadcast(ACTION_SBRICK_CONNECTED);
                 } else {
@@ -403,6 +584,11 @@ class SBrickImpl extends SBrickBase {
                 // Release the semaphore to let the command process thread to proceed.
                 sbrickManager.releaseCommandSemaphore();
             }
+        }
+
+        @Override
+        public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
+            Log.i(TAG, "onCharacteristicChanged...");
         }
     };
 

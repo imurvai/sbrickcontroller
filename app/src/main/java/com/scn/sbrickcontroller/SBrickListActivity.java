@@ -273,42 +273,6 @@ public class SBrickListActivity extends BaseActivity {
             twSBrickName.setText(sbrick.getName());
             twSBrickAddress.setText(sbrick.getAddress());
 
-            ImageButton btnRenameSBrick = (ImageButton)rowView.findViewById(R.id.button_rename_sbrick);
-            btnRenameSBrick.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    final EditText et = new EditText(context);
-                    et.setText(sbrick.getName());
-
-                    AlertDialog.Builder ab = new AlertDialog.Builder(context);
-                    ab.setTitle("Rename the SBRick");
-                    ab.setView(et);
-                    ab.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            String newName = et.getText().toString();
-                            if (newName.length() > 0) {
-                                sbrick.setName(newName);
-                                SBrickListAdapter.this.notifyDataSetChanged();
-                            }
-                            else {
-                                Helper.showMessageBox(context, "The name can't be empty.", new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int which) {
-                                    }
-                                });
-                            }
-                        }
-                    });
-                    ab.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                        }
-                    });
-                    ab.show();
-                }
-            });
-
             ImageButton btnForgetSBrick = (ImageButton)rowView.findViewById(R.id.button_forget_sbrick);
             btnForgetSBrick.setOnClickListener(new View.OnClickListener() {
                 @Override

@@ -27,12 +27,6 @@ public interface SBrick {
     String getName();
 
     /**
-     * Sets the name of the SBrick.
-     * @param name is the name.
-     */
-    void setName(String name);
-
-    /**
      * Starts connecting to the SBrick.
      * When connected the appropriate broadcast message is sent.
      * @return True if the connection has been started, false otherwise.

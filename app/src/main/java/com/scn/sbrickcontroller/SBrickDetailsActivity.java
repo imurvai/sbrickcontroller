@@ -43,7 +43,6 @@ public class SBrickDetailsActivity extends BaseActivity {
 
     private SBrick sbrick;
 
-    private EditText etDisplayName;
     private TextView twDeviceName;
     private TextView twAddress;
     private TextView twModelNumber;
@@ -81,7 +80,6 @@ public class SBrickDetailsActivity extends BaseActivity {
 
         sbrick = SBrickManagerHolder.getManager().getSBrick(sbrickAddress);
 
-        etDisplayName = (EditText)findViewById(R.id.edittext_display_name);
         twDeviceName = (TextView)findViewById(R.id.textview_device_name);
         twAddress = (TextView)findViewById(R.id.textview_address);
         twModelNumber = (TextView)findViewById(R.id.textview_model_number);
@@ -95,7 +93,7 @@ public class SBrickDetailsActivity extends BaseActivity {
         sbPort4 = (SeekBar)findViewById(R.id.seekbar_port4);
 
         twAddress.setText(sbrick.getAddress());
-        etDisplayName.setText(sbrick.getName());
+        twDeviceName.setText(sbrick.getName());
 
         sbPort1.setOnSeekBarChangeListener(seekBarChangeListener);
         sbPort2.setOnSeekBarChangeListener(seekBarChangeListener);
@@ -196,27 +194,12 @@ public class SBrickDetailsActivity extends BaseActivity {
 
             case android.R.id.home:
                 Log.i(TAG, "  home");
-
                 NavUtils.navigateUpFromSameTask(this);
                 return true;
 
             case R.id.menu_item_done:
                 Log.i(TAG, "  menu_item_done");
-
-                String newName = etDisplayName.getText().toString();
-                if (newName.length() > 0) {
-
-                    sbrick.setName(newName);
-                    finish();
-                }
-                else {
-                    Helper.showMessageBox(this, "The name can't be empty.", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                        }
-                    });
-                }
-
+                finish();
                 return true;
         }
 
@@ -316,7 +299,6 @@ public class SBrickDetailsActivity extends BaseActivity {
                         progressDialog = null;
                     }
 
-                    sbrick.readCharacteristic(SBrickCharacteristicType.DeviceName);
                     sbrick.readCharacteristic(SBrickCharacteristicType.FirmwareRevision);
                     sbrick.readCharacteristic(SBrickCharacteristicType.HardwareRevision);
                     sbrick.readCharacteristic(SBrickCharacteristicType.SoftwareRevision);

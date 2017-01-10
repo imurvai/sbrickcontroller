@@ -11,8 +11,8 @@ public class ConnectCommand extends SBrickCommand {
     // Constructor
     //
 
-    ConnectCommand(SBrick sbrick, CommandMethod commandMethod) {
-        super(sbrick, commandMethod);
+    ConnectCommand(String sbrickAddress, CommandMethod commandMethod) {
+        super(sbrickAddress, commandMethod);
     }
 
     //
@@ -21,6 +21,6 @@ public class ConnectCommand extends SBrickCommand {
 
     @Override
     public String toString() {
-        return "ConnectCommand, SBrick: " + getSbrick().getAddress();
+        return "ConnectCommand, SBrick: " + getSbrickAddress();
     }
 }

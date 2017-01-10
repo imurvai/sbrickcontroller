@@ -11,8 +11,8 @@ public abstract class WriteCharacteristicCommand extends SBrickCommand {
     // Constructor
     //
 
-    WriteCharacteristicCommand(SBrick sbrick, CommandMethod commandMethod) {
-        super(sbrick, commandMethod);
+    WriteCharacteristicCommand(String sbrickAddress, CommandMethod commandMethod) {
+        super(sbrickAddress, commandMethod);
     }
 
     //
@@ -21,6 +21,6 @@ public abstract class WriteCharacteristicCommand extends SBrickCommand {
 
     @Override
     public String toString() {
-        return "WriteCharacteristicCommand, SBrick: " + getSbrick().getAddress();
+        return "WriteCharacteristicCommand, SBrick: " + getSbrickAddress();
     }
 }

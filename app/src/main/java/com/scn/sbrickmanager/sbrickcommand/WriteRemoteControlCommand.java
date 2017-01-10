@@ -18,8 +18,8 @@ public class WriteRemoteControlCommand extends WriteCharacteristicCommand {
     // Constructor
     //
 
-    WriteRemoteControlCommand(SBrick sbrick, CommandMethod commandMethod, int channel, int value) {
-        super(sbrick, commandMethod);
+    WriteRemoteControlCommand(String sbrickAddress, CommandMethod commandMethod, int channel, int value) {
+        super(sbrickAddress, commandMethod);
 
         this.channel = channel;
         this.value = value;
@@ -38,6 +38,6 @@ public class WriteRemoteControlCommand extends WriteCharacteristicCommand {
 
     @Override
     public String toString() {
-        return "WriteRemoteControlCommand, SBrick address: " + getSbrick().getAddress() + " - channel: " + channel + ", value: " + value;
+        return "WriteRemoteControlCommand, SBrick address: " + getSbrickAddress() + " - channel: " + channel + ", value: " + value;
     }
 }

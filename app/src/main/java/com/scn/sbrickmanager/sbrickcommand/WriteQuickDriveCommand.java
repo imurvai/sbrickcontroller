@@ -17,8 +17,8 @@ public class WriteQuickDriveCommand extends WriteCharacteristicCommand {
     // Constructor
     //
 
-    WriteQuickDriveCommand(SBrick sbrick, CommandMethod commandMethod, int v0, int v1, int v2, int v3) {
-        super(sbrick, commandMethod);
+    WriteQuickDriveCommand(String sbrickAddress, CommandMethod commandMethod, int v0, int v1, int v2, int v3) {
+        super(sbrickAddress, commandMethod);
 
         this.v0 = v0;
         this.v1 = v1;
@@ -41,6 +41,6 @@ public class WriteQuickDriveCommand extends WriteCharacteristicCommand {
 
     @Override
     public String toString() {
-        return "WriteQuickDriveCommand, SBrick address: " + getSbrick().getAddress() + " - v0: " + v0 + ", v1 = " + v1 + ", v2: " + v2 + ", v3: " + v3;
+        return "WriteQuickDriveCommand, SBrick address: " + getSbrickAddress() + " - v0: " + v0 + ", v1 = " + v1 + ", v2: " + v2 + ", v3: " + v3;
     }
 }
